@@ -6,10 +6,24 @@ import { parseUsagePayload, toUsageRecords } from "@/lib/usage";
 
 export const runtime = "nodejs";
 
-export async function POST() {
-  if (!config.exposeSyncEndpoint) {
-    return NextResponse.json({ error: "sync endpoint disabled" }, { status: 404 });
-  }
+function unauthorized() {
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+}
+
+function missingPassword() {
+  return NextResponse.json({ error: "PASSWORD is missing" }, { status: 501 });
+}
+
+function isAuthorized(request: Request) {
+  const allowed = [config.password, config.cronSecret].filter(Boolean).map((v) => `Bearer ${v}`);
+  if (allowed.length === 0) return false;
+  const auth = request.headers.get("authorization") || "";
+  return allowed.includes(auth);
+}
+
+export async function performSync(request: Request) {
+  if (!config.password && !config.cronSecret) return missingPassword();
+  if (!isAuthorized(request)) return unauthorized();
 
   try {
     assertEnv();
@@ -68,4 +82,5 @@ export async function POST() {
   return NextResponse.json({ status: "ok", inserted: rows.length, db: result });
 }
 
+export const POST = (request: Request) => performSync(request);
 export const GET = POST;
