@@ -60,32 +60,6 @@ function clamp(num: number, min: number, max: number) {
   return Math.min(Math.max(num, min), max);
 }
 
-// 节流函数：限制高频调用
-function throttle<T extends (...args: any[]) => void>(fn: T, delay: number): T {
-  let lastCall = 0;
-  let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  
-  return ((...args: Parameters<T>) => {
-    const now = Date.now();
-    const remaining = delay - (now - lastCall);
-    
-    if (remaining <= 0) {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
-      }
-      lastCall = now;
-      fn(...args);
-    } else if (!timeoutId) {
-      timeoutId = setTimeout(() => {
-        lastCall = Date.now();
-        timeoutId = null;
-        fn(...args);
-      }, remaining);
-    }
-  }) as T;
-}
-
 // 添加小范围的 padding 使边缘点完整显示
 function niceDomain([min, max]: [number, number], paddingRatio = 0.01): [number, number] {
   if (!Number.isFinite(min) || !Number.isFinite(max)) return [0, 1];
@@ -387,8 +361,8 @@ export default function ExplorePage() {
   const points = useMemo(() => data?.points ?? [], [data]);
 
   // brush 选择区域状态
-  const [brushStart, setBrushStart] = useState<{ x: number; y: number } | null>(null);
-  const [brushEnd, setBrushEnd] = useState<{ x: number; y: number } | null>(null);
+  const brushStartRef = useRef<{ x: number; y: number } | null>(null);
+  const brushEndRef = useRef<{ x: number; y: number } | null>(null);
   const [isBrushing, setIsBrushing] = useState(false);
   
   // 缩放后的视图区域
@@ -404,6 +378,9 @@ export default function ExplorePage() {
   const xRangeContainerRef = useRef<HTMLDivElement>(null);
   // 范围选择器 hover 状态（用于显示时间标签）
   const [xRangeHover, setXRangeHover] = useState<'left' | 'right' | 'box' | null>(null);
+  // rAF 合并 X 轴范围拖动，减少频繁 setState
+  const xRangeUpdateFrameRef = useRef<number | null>(null);
+  const pendingXRangeRef = useRef<[number, number] | null>(null);
 
   // 图例交互状态
   const [highlightedModel, setHighlightedModel] = useState<string | null>(null);
@@ -432,8 +409,27 @@ export default function ExplorePage() {
     return { x: niceDomain([xMin, xMax]), y: niceYDomain([yMin, yMax]) };
   }, [filteredPoints]);
 
+  const flushXRangeUpdate = useCallback(() => {
+    const pending = pendingXRangeRef.current;
+    xRangeUpdateFrameRef.current = null;
+    if (!pending) return;
+    setZoomDomain(prev => prev
+      ? { ...prev, x: pending }
+      : { x: pending, y: dataBounds?.y ?? [0, 1] }
+    );
+    setZoomSource('range');
+    pendingXRangeRef.current = null;
+  }, [dataBounds]);
+
+  const scheduleXRangeUpdate = useCallback((next: [number, number]) => {
+    pendingXRangeRef.current = next;
+    if (xRangeUpdateFrameRef.current == null) {
+      xRangeUpdateFrameRef.current = requestAnimationFrame(flushXRangeUpdate);
+    }
+  }, [flushXRangeUpdate]);
+
   // 当前实际使用的 domain（考虑缩放）
-  const activeDomain = useMemo(() => {
+  const activeDomain = useMemo<{ x: [number, number]; y: [number, number] } | null>(() => {
     if (!dataBounds) return null;
     if (!zoomDomain) return dataBounds;
 
@@ -445,13 +441,11 @@ export default function ExplorePage() {
     // 如果是底部范围选择器，X 轴使用选择的范围，Y 轴根据当前时间范围内的点自动计算
     if (zoomSource === 'range') {
       const [xMin, xMax] = zoomDomain.x;
-      let yMin = Number.POSITIVE_INFINITY;
       let yMax = Number.NEGATIVE_INFINITY;
       let hasPoints = false;
 
       for (const p of filteredPoints) {
         if (p.ts >= xMin && p.ts <= xMax) {
-          yMin = Math.min(yMin, p.tokens);
           yMax = Math.max(yMax, p.tokens);
           hasPoints = true;
         }
@@ -461,7 +455,10 @@ export default function ExplorePage() {
         return { x: zoomDomain.x, y: dataBounds.y };
       }
 
-      return { x: zoomDomain.x, y: niceYDomain([yMin, yMax]) };
+      // 保持 Y 轴底部不动（使用全局 padding 后的下界），仅顶部随可视范围自适应
+      const fixedBottom = dataBounds.y[0];
+      const [, paddedTop] = niceYDomain([fixedBottom, yMax]);
+      return { x: zoomDomain.x, y: [fixedBottom, paddedTop] as [number, number] };
     }
 
     return zoomDomain;
@@ -526,8 +523,31 @@ export default function ExplorePage() {
   const chartAreaRef = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
   
   // 存储像素级的 brush 位置（用于显示选择框）
-  const [brushPixelStart, setBrushPixelStart] = useState<{ x: number; y: number } | null>(null);
-  const [brushPixelEnd, setBrushPixelEnd] = useState<{ x: number; y: number } | null>(null);
+  const brushPixelStartRef = useRef<{ x: number; y: number } | null>(null);
+  const brushPixelEndRef = useRef<{ x: number; y: number } | null>(null);
+  const brushOverlayRef = useRef<HTMLDivElement>(null);
+
+  // 使用 rAF 合并高频鼠标事件，避免过多状态更新导致掉帧
+  const brushMoveFrameRef = useRef<number | null>(null);
+  const pendingBrushUpdateRef = useRef<{
+    pixel: { x: number; y: number };
+    data: { x: number; y: number };
+  } | null>(null);
+
+  const applyBrushOverlay = useCallback(() => {
+    if (!brushOverlayRef.current || !brushPixelStartRef.current || !brushPixelEndRef.current) return;
+    const start = brushPixelStartRef.current;
+    const end = brushPixelEndRef.current;
+    const left = Math.min(start.x, end.x);
+    const top = Math.min(start.y, end.y);
+    const width = Math.abs(end.x - start.x);
+    const height = Math.abs(end.y - start.y);
+    const el = brushOverlayRef.current;
+    el.style.left = `${left}px`;
+    el.style.top = `${top}px`;
+    el.style.width = `${width}px`;
+    el.style.height = `${height}px`;
+  }, []);
 
   // 使用 DOM 事件进行 brush 操作，因为 ScatterChart 的 recharts 事件可能不在空白区域触发
   const handleContainerMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -569,8 +589,10 @@ export default function ExplorePage() {
     }
     
     // 存储像素坐标
-    setBrushPixelStart({ x: mouseX, y: mouseY });
-    setBrushPixelEnd({ x: mouseX, y: mouseY });
+    brushPixelStartRef.current = { x: mouseX, y: mouseY };
+    brushPixelEndRef.current = { x: mouseX, y: mouseY };
+    brushOverlayRef.current && (brushOverlayRef.current.style.display = 'block');
+    applyBrushOverlay();
     
     // 转换为数据坐标
     const xRatio = clamp((mouseX - area.x) / area.width, 0, 1);
@@ -579,52 +601,60 @@ export default function ExplorePage() {
     const xValue = activeDomain.x[0] + xRatio * (activeDomain.x[1] - activeDomain.x[0]);
     const yValue = activeDomain.y[0] + yRatio * (activeDomain.y[1] - activeDomain.y[0]);
     
-    setBrushStart({ x: xValue, y: yValue });
-    setBrushEnd({ x: xValue, y: yValue });
+    brushStartRef.current = { x: xValue, y: yValue };
+    brushEndRef.current = { x: xValue, y: yValue };
     setIsBrushing(true);
-  }, [activeDomain]);
+  }, [activeDomain, applyBrushOverlay]);
 
-  const handleContainerMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+  // rAF 驱动的鼠标移动处理，减少 React 渲染频率
+  const handleContainerMouseMoveWithRaf = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!isBrushing || !chartContainerRef.current || !activeDomain || !chartAreaRef.current) return;
-    
     const rect = chartContainerRef.current.getBoundingClientRect();
     const area = chartAreaRef.current;
-    
+
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
-    
-    // 更新像素坐标（实时更新以保证选框流畅）
-    setBrushPixelEnd({ x: mouseX, y: mouseY });
-    
+
     const xRatio = clamp((mouseX - area.x) / area.width, 0, 1);
     const yRatio = clamp(1 - (mouseY - area.y) / area.height, 0, 1);
-    
+
     const xValue = activeDomain.x[0] + xRatio * (activeDomain.x[1] - activeDomain.x[0]);
     const yValue = activeDomain.y[0] + yRatio * (activeDomain.y[1] - activeDomain.y[0]);
-    
-    setBrushEnd({ x: xValue, y: yValue });
-  }, [isBrushing, activeDomain]);
 
-  // 节流版本的鼠标移动处理（用于减少状态更新频率）
-  const throttledContainerMouseMove = useMemo(
-    () => throttle(handleContainerMouseMove, 16),
-    [handleContainerMouseMove]
-  );
+    pendingBrushUpdateRef.current = {
+      pixel: { x: mouseX, y: mouseY },
+      data: { x: xValue, y: yValue }
+    };
+
+    if (brushMoveFrameRef.current == null) {
+      brushMoveFrameRef.current = requestAnimationFrame(() => {
+        const pending = pendingBrushUpdateRef.current;
+        brushMoveFrameRef.current = null;
+        if (!pending) return;
+        brushPixelEndRef.current = pending.pixel;
+        brushEndRef.current = pending.data;
+        applyBrushOverlay();
+      });
+    }
+  }, [isBrushing, activeDomain, applyBrushOverlay]);
 
   const handleContainerMouseUp = useCallback(() => {
-    if (!isBrushing || !brushStart || !brushEnd) {
+    const start = brushStartRef.current;
+    const end = brushEndRef.current;
+    if (!isBrushing || !start || !end) {
       setIsBrushing(false);
-      setBrushStart(null);
-      setBrushEnd(null);
-      setBrushPixelStart(null);
-      setBrushPixelEnd(null);
+      brushStartRef.current = null;
+      brushEndRef.current = null;
+      brushPixelStartRef.current = null;
+      brushPixelEndRef.current = null;
+      if (brushOverlayRef.current) brushOverlayRef.current.style.display = 'none';
       return;
     }
 
-    const xMin = Math.min(brushStart.x, brushEnd.x);
-    const xMax = Math.max(brushStart.x, brushEnd.x);
-    const yMin = Math.min(brushStart.y, brushEnd.y);
-    const yMax = Math.max(brushStart.y, brushEnd.y);
+    const xMin = Math.min(start.x, end.x);
+    const xMax = Math.max(start.x, end.x);
+    const yMin = Math.min(start.y, end.y);
+    const yMax = Math.max(start.y, end.y);
 
     // 需要有一定的选择范围才触发缩放（基于当前视图范围的 2%）
     const currentDomain = activeDomain ?? dataBounds;
@@ -637,11 +667,24 @@ export default function ExplorePage() {
     }
 
     setIsBrushing(false);
-    setBrushStart(null);
-    setBrushEnd(null);
-    setBrushPixelStart(null);
-    setBrushPixelEnd(null);
-  }, [isBrushing, brushStart, brushEnd, activeDomain, dataBounds]);
+    brushStartRef.current = null;
+    brushEndRef.current = null;
+    brushPixelStartRef.current = null;
+    brushPixelEndRef.current = null;
+    if (brushOverlayRef.current) brushOverlayRef.current.style.display = 'none';
+  }, [isBrushing, activeDomain, dataBounds]);
+
+  // 组件卸载时取消 rAF，避免遗留任务
+  useEffect(() => {
+    return () => {
+      if (brushMoveFrameRef.current != null) {
+        cancelAnimationFrame(brushMoveFrameRef.current);
+      }
+      if (xRangeUpdateFrameRef.current != null) {
+        cancelAnimationFrame(xRangeUpdateFrameRef.current);
+      }
+    };
+  }, []);
 
   // 重置缩放
   const resetZoom = useCallback(() => {
@@ -796,19 +839,11 @@ export default function ExplorePage() {
       if (xRangeDragType === 'left') {
         const newStart = Math.min(xValue, xRangeOriginalDomain[1] - minRange);
         const clampedStart = Math.max(newStart, dataBounds.x[0]);
-        setZoomDomain(prev => prev 
-          ? { ...prev, x: [clampedStart, xRangeOriginalDomain[1]] } 
-          : { x: [clampedStart, xRangeOriginalDomain[1]], y: dataBounds.y }
-        );
-        setZoomSource('range');
+        scheduleXRangeUpdate([clampedStart, xRangeOriginalDomain[1]]);
       } else if (xRangeDragType === 'right') {
         const newEnd = Math.max(xValue, xRangeOriginalDomain[0] + minRange);
         const clampedEnd = Math.min(newEnd, dataBounds.x[1]);
-        setZoomDomain(prev => prev 
-          ? { ...prev, x: [xRangeOriginalDomain[0], clampedEnd] } 
-          : { x: [xRangeOriginalDomain[0], clampedEnd], y: dataBounds.y }
-        );
-        setZoomSource('range');
+        scheduleXRangeUpdate([xRangeOriginalDomain[0], clampedEnd]);
       } else if (xRangeDragType === 'move' && xRangeDragStartX !== null) {
         const deltaX = mouseX - xRangeDragStartX;
         const deltaRatio = deltaX / rect.width;
@@ -828,11 +863,7 @@ export default function ExplorePage() {
           newStart = dataBounds.x[1] - rangeSize;
         }
         
-        setZoomDomain(prev => prev 
-          ? { ...prev, x: [newStart, newEnd] } 
-          : { x: [newStart, newEnd], y: dataBounds.y }
-        );
-        setZoomSource('range');
+        scheduleXRangeUpdate([newStart, newEnd]);
       }
     };
 
@@ -862,7 +893,7 @@ export default function ExplorePage() {
       window.removeEventListener('mousemove', handleMouseMoveRaw);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isXRangeDragging, dataBounds, xRangeDragType, xRangeDragStartX, xRangeOriginalDomain, zoomDomain]);
+  }, [isXRangeDragging, dataBounds, xRangeDragType, xRangeDragStartX, xRangeOriginalDomain, zoomDomain, scheduleXRangeUpdate]);
 
   // 当数据变化时重置缩放
   useEffect(() => {
@@ -926,28 +957,53 @@ export default function ExplorePage() {
     if (!activeDomain || filteredPoints.length === 0 || models.length === 0) return [];
     
     const [xMin, xMax] = activeDomain.x;
-    const binCount = 60; // 时间分箱数量
-    const binSize = (xMax - xMin) / binCount;
-    
-    // 初始化每个时间区间的模型累计
+    const rangeMs = xMax - xMin;
+    if (!Number.isFinite(rangeMs) || rangeMs <= 0) return [];
+
+    // 固定时间粒度 + 对齐边界：避免时间范围轻微变化导致所有桶整体漂移。
+    const targetBins = 60;
+    const niceIntervalsMs = [
+      1 * 60_000,
+      2 * 60_000,
+      5 * 60_000,
+      10 * 60_000,
+      15 * 60_000,
+      30 * 60_000,
+      60 * 60_000,
+      2 * 60 * 60_000,
+      3 * 60 * 60_000,
+      6 * 60 * 60_000,
+      12 * 60 * 60_000,
+      24 * 60 * 60_000,
+      2 * 24 * 60 * 60_000,
+      7 * 24 * 60 * 60_000
+    ];
+
+    const ideal = rangeMs / targetBins;
+    const intervalMs = niceIntervalsMs.find((v) => v >= ideal) ?? niceIntervalsMs[niceIntervalsMs.length - 1];
+
+    const startIndex = Math.floor(xMin / intervalMs);
+    const endIndex = Math.ceil(xMax / intervalMs);
+    const binCount = Math.max(1, endIndex - startIndex);
+
+    // 初始化每个时间桶的模型累计（ts 为桶中心点）
     const bins: Array<Record<string, number> & { ts: number }> = [];
     for (let i = 0; i < binCount; i++) {
-      const bin: Record<string, number> & { ts: number } = { ts: xMin + (i + 0.5) * binSize };
-      for (const m of models) {
-        bin[m] = 0;
-      }
+      const bucketStart = (startIndex + i) * intervalMs;
+      const bin: Record<string, number> & { ts: number } = { ts: bucketStart + intervalMs / 2 };
+      for (const m of models) bin[m] = 0;
       bins.push(bin);
     }
-    
-    // 累加每个点到对应的 bin
+
+    // 累加每个点到对应的桶（按绝对时间对齐）
     for (const p of filteredPoints) {
       if (p.ts < xMin || p.ts > xMax) continue;
-      const binIndex = Math.min(Math.floor((p.ts - xMin) / binSize), binCount - 1);
-      if (bins[binIndex] && p.model) {
-        bins[binIndex][p.model] = (bins[binIndex][p.model] || 0) + p.tokens;
-      }
+      if (!p.model) continue;
+      const idx = Math.floor(p.ts / intervalMs) - startIndex;
+      if (idx < 0 || idx >= binCount) continue;
+      bins[idx][p.model] = (bins[idx][p.model] || 0) + p.tokens;
     }
-    
+
     return bins;
   }, [activeDomain, filteredPoints, models]);
 
@@ -1206,7 +1262,7 @@ export default function ExplorePage() {
                 style={{ marginLeft: 64 }}
                 tabIndex={-1}
                 onMouseDown={handleContainerMouseDown}
-                onMouseMove={throttledContainerMouseMove}
+                onMouseMove={handleContainerMouseMoveWithRaf}
                 onMouseUp={handleContainerMouseUp}
                 onMouseLeave={() => {
                   handleContainerMouseUp();
@@ -1214,25 +1270,18 @@ export default function ExplorePage() {
                 }}
                 onDoubleClick={zoomDomain ? resetZoom : undefined}
               >
-                {/* Brush 选择区域可视化 - 使用绝对定位的 div */}
-                {isBrushing && brushPixelStart && brushPixelEnd && (
-                  <div
-                    className="pointer-events-none absolute border border-blue-400/80 bg-blue-400/15"
-                    style={{
-                      left: Math.min(brushPixelStart.x, brushPixelEnd.x),
-                      top: Math.min(brushPixelStart.y, brushPixelEnd.y),
-                      width: Math.abs(brushPixelEnd.x - brushPixelStart.x),
-                    height: Math.abs(brushPixelEnd.y - brushPixelStart.y),
-                  }}
+                {/* Brush 选择区域可视化 - DOM 直接更新避免频繁重渲染 */}
+                <div
+                  ref={brushOverlayRef}
+                  className="pointer-events-none absolute border border-blue-400/80 bg-blue-400/15"
+                  style={{ display: 'none' }}
                 />
-              )}
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart 
                   margin={{ ...CHART_MARGIN, top: CHART_MARGIN.top + CHART_TOP_INSET }}
                   data={normalizedStackedData}
                   onMouseLeave={clearHover}
                 >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#64748b" horizontal vertical />
                     <XAxis
                       type="number"
                       dataKey="ts"
@@ -1282,6 +1331,7 @@ export default function ExplorePage() {
                         isAnimationActive={false}
                       />
                     ))}
+                  <CartesianGrid yAxisId="left" strokeDasharray="3 3" stroke="#64748b" strokeOpacity={0.6} horizontal vertical />
                   <Tooltip
                     cursor={false}
                     content={() => null}
