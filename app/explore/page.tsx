@@ -204,7 +204,7 @@ function useLerpYDomain(
   const [currentDomain, setCurrentDomain] = useState(targetDomain);
   const [prevTarget, setPrevTarget] = useState(targetDomain);
   const targetRef = useRef(targetDomain);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
   const frameRef = useRef(0);
 
@@ -221,7 +221,7 @@ function useLerpYDomain(
   }, [targetDomain]);
 
   useEffect(() => {
-    if (animationRef.current) {
+    if (animationRef.current !== null) {
       cancelAnimationFrame(animationRef.current);
     }
 
@@ -288,7 +288,7 @@ function useLerpYDomain(
     animationRef.current = requestAnimationFrame(animate);
 
     return () => {
-      if (animationRef.current) {
+      if (animationRef.current !== null) {
         cancelAnimationFrame(animationRef.current);
       }
     };

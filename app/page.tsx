@@ -298,7 +298,7 @@ export default function DashboardPage() {
     pieLegendClearTimerRef.current = window.setTimeout(() => {
       setHoveredPieIndex(null);
       pieLegendClearTimerRef.current = null;
-    }, 120);
+    }, 60); // 扇形图例悬停延时，避免缝隙导致频繁闪烁
   }, [cancelPieLegendClear]);
 
   useEffect(() => {
@@ -1035,7 +1035,7 @@ export default function DashboardPage() {
               <div className={`mt-3 text-2xl font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>
                 {formatNumberWithCommas(overviewData.totalRequests)}
                 {lastInsertedDelta > 0 ? (
-                  <span className={`ml-2 text-lg font-normal ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                  <span className={`ml-2 text-sm font-normal ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                     (+{formatCompactNumber(lastInsertedDelta)})
                   </span>
                 ) : null}
