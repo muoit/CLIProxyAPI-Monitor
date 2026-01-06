@@ -206,7 +206,6 @@ export default function LogsPage() {
       })
       .catch(err => setError(err.message || "加载失败"))
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 当时间筛选改变时自动重新加载

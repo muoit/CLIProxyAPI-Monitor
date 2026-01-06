@@ -64,9 +64,9 @@ export default function Sidebar() {
     setUsageStatsLoading(true);
     try {
       const res = await fetch("/api/usage-statistics-enabled", {
-        method: "POST",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ "usage-statistics-enabled": nextEnabled })
+        body: JSON.stringify({ value: nextEnabled })
       });
       if (!res.ok) throw new Error("toggle failed");
       const data = await res.json();
@@ -140,7 +140,7 @@ export default function Sidebar() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-slate-400">
             <Activity className="h-4 w-4" />
-            用量数据收集
+            上游使用统计
           </div>
           <button
             onClick={handleUsageToggle}
@@ -177,12 +177,12 @@ export default function Sidebar() {
       <Modal
         isOpen={showUsageConfirm}
         onClose={() => setShowUsageConfirm(false)}
-        title="关闭用量数据收集？"
+        title="关闭上游使用统计？"
         darkMode={true}
         className="bg-slate-900 ring-1 ring-slate-700"
         backdropClassName="bg-black/60"
       >
-        <p className="mt-2 text-sm text-slate-400">关闭后将停止记录使用数据，需要时可再次开启。</p>
+        <p className="mt-2 text-sm text-slate-400">关闭后将停止 CLIProxyAPI 记录使用数据，需要时可再次开启。</p>
         <div className="mt-4 flex gap-2">
           <button
             type="button"

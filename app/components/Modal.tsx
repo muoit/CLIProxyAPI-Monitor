@@ -24,17 +24,24 @@ export function Modal({
 }: ModalProps) {
   const [isVisible, setIsVisible] = useState(isOpen);
   const [isClosing, setIsClosing] = useState(false);
-  const [cachedChildren, setCachedChildren] = useState<React.ReactNode>(null);
-  const [cachedTitle, setCachedTitle] = useState<string | undefined>(title);
+  const [cachedChildren, setCachedChildren] = useState<React.ReactNode>(isOpen ? children : null);
+  const [cachedTitle, setCachedTitle] = useState<string | undefined>(isOpen ? title : undefined);
 
+  // Handle visibility transitions and initial sync
   useEffect(() => {
     if (isOpen) {
       setIsVisible(true);
       setIsClosing(false);
       setCachedChildren(children);
       setCachedTitle(title);
-    } else if (isVisible) {
+    } else if (isVisible && !isClosing) {
+      // Start closing animation if we are currently visible and not already closing
       setIsClosing(true);
+    }
+  }, [isOpen, isVisible, isClosing, children, title]);
+
+  useEffect(() => {
+    if (isClosing) {
       const timer = setTimeout(() => {
         setIsVisible(false);
         setIsClosing(false);
@@ -43,7 +50,7 @@ export function Modal({
       }, 200); // Match animation duration
       return () => clearTimeout(timer);
     }
-  }, [isOpen, isVisible, children, title]);
+  }, [isClosing]);
 
   if (!isVisible) return null;
 

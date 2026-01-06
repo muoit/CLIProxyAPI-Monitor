@@ -188,3 +188,9 @@ body,
   animation: cardFloatIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   opacity: 0;
 }
+
+/* View Transition 基础优化：减缓快照交叉淡入淡出，使过渡更自然 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.3s;
+}

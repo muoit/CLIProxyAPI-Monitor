@@ -203,22 +203,28 @@ function useLerpYDomain(
 ): [number, number] | undefined {
   const [currentDomain, setCurrentDomain] = useState(targetDomain);
   const targetRef = useRef(targetDomain);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
   const frameRef = useRef(0);
+
+  // Sync domain when target changes or animation is disabled
+  useEffect(() => {
+    if (!targetDomain || !enabled) {
+      setCurrentDomain(targetDomain);
+    }
+  }, [targetDomain, enabled]);
 
   useEffect(() => {
     targetRef.current = targetDomain;
   }, [targetDomain]);
 
   useEffect(() => {
-    if (animationRef.current) {
+    if (animationRef.current !== null) {
       cancelAnimationFrame(animationRef.current);
     }
 
-    // 无目标或禁用动画时直接同步
+    // Only proceed with animation if target exists and enabled
     if (!targetDomain || !enabled) {
-      setCurrentDomain(targetDomain);
       return;
     }
 
@@ -280,7 +286,7 @@ function useLerpYDomain(
     animationRef.current = requestAnimationFrame(animate);
 
     return () => {
-      if (animationRef.current) {
+      if (animationRef.current !== null) {
         cancelAnimationFrame(animationRef.current);
       }
     };
@@ -469,6 +475,7 @@ export default function ExplorePage() {
     } catch (err) {
       console.warn("Failed to load global rangeSelection", err);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 

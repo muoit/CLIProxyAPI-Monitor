@@ -103,7 +103,12 @@ function buildHourlySeries(series: UsageSeriesPoint[], rangeHours?: number) {
 }
 
 export default function DashboardPage() {
+  const [mounted, setMounted] = useState(false);
   const [prices, setPrices] = useState<ModelPrice[]>([]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [overview, setOverview] = useState<UsageOverview | null>(null);
   const [overviewError, setOverviewError] = useState<string | null>(null);
   const [overviewEmpty, setOverviewEmpty] = useState(false);
@@ -293,7 +298,7 @@ export default function DashboardPage() {
     pieLegendClearTimerRef.current = window.setTimeout(() => {
       setHoveredPieIndex(null);
       pieLegendClearTimerRef.current = null;
-    }, 120);
+    }, 60); // 扇形图例悬停延时，避免缝隙导致频繁闪烁
   }, [cancelPieLegendClear]);
 
   useEffect(() => {
@@ -832,7 +837,7 @@ export default function DashboardPage() {
             </div>
             {lastSyncTime && (
               <span className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-500"}`}>
-                上次同步: {lastSyncTime.toLocaleTimeString()}
+                上次同步: {mounted ? lastSyncTime.toLocaleTimeString() : "--:--:--"}
               </span>
             )}
           </div>
@@ -1030,7 +1035,7 @@ export default function DashboardPage() {
               <div className={`mt-3 text-2xl font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>
                 {formatNumberWithCommas(overviewData.totalRequests)}
                 {lastInsertedDelta > 0 ? (
-                  <span className={`ml-2 text-lg font-normal ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                  <span className={`ml-2 text-sm font-normal ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                     (+{formatCompactNumber(lastInsertedDelta)})
                   </span>
                 ) : null}
