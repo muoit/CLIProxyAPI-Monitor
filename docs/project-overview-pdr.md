@@ -154,7 +154,7 @@ CRUD operations for cost calculation configuration:
 
 ### Internationalization
 
-- **Language:** Simplified Chinese (zh-CN)
+- **Language:** English (en-US)
 - **Timezone:** Fixed to Asia/Shanghai (UTC+8)
 - **Number Format:** Compact notation (1.5M, 1.2k) + currency formatting
 

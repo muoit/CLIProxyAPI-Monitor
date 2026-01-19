@@ -23,27 +23,27 @@ type ExploreResponse = {
   error?: string;
 };
 
-// 高对比度明亮色卡 - 20 色高饱和高明度，确保各色间强区分
-// 按色相分布均匀，饱和度 70-90%，明度 55-75%，适配暗色主题
-// 排序优化：按 1,3,5,7,9,2,4,6,8,10 交叉排列，最大化相邻颜色差异
+// High-contrast bright color palette - 20 colors with high saturation/brightness for strong differentiation
+// Evenly distributed by hue, saturation 70-90%, brightness 55-75%, adapted for dark theme
+// Optimized ordering: 1,3,5,7,9,2,4,6,8,10 pattern maximizes adjacent color contrast
 const MODEL_COLORS = [
-  "#ff7a7aff", // 14 玫红 (345°)
-  "#ffe863ff", // 3 橙黄 (40°)
-  "#8df48dff", // 6 绿 (120°)
-  "#72afffff", // 9 蓝 (220°)
-  "#a582ff", // 11 紫 (270°)
-  "#99e6ff", // 19 浅蓝 (200°+)
-  "#ff76d1ff", // 13 品红 (320°)
-  "#ffb3b3", // 15 浅红 (0°+)
-  "#fff899", // 17 浅黄 (60°+)
-  "#ff8c42", // 2 橙红 (20°)
-  "#ffe66d", // 4 黄 (60°)
-  "#42c9f5", // 8 天青 (195°)
-  "#7d7aff", // 10 靛蓝 (245°)
-  "#d97aff", // 12 品红紫 (290°)
-  "#ffd699", // 16 浅橙 (40°+)
-  "#b3f5b3", // 18 浅绿 (120°+)
-  "#d9b3ff", // 20 浅紫 (280°+)
+  "#ff7a7aff", // 14 Rose (345°)
+  "#ffe863ff", // 3 Orange-yellow (40°)
+  "#8df48dff", // 6 Green (120°)
+  "#72afffff", // 9 Blue (220°)
+  "#a582ff", // 11 Purple (270°)
+  "#99e6ff", // 19 Light blue (200°+)
+  "#ff76d1ff", // 13 Magenta (320°)
+  "#ffb3b3", // 15 Light red (0°+)
+  "#fff899", // 17 Light yellow (60°+)
+  "#ff8c42", // 2 Orange-red (20°)
+  "#ffe66d", // 4 Yellow (60°)
+  "#42c9f5", // 8 Cyan (195°)
+  "#7d7aff", // 10 Indigo (245°)
+  "#d97aff", // 12 Magenta-purple (290°)
+  "#ffd699", // 16 Light orange (40°+)
+  "#b3f5b3", // 18 Light green (120°+)
+  "#d9b3ff", // 20 Light purple (280°+)
 ];
 
 const TOKEN_COLORS = {
@@ -60,7 +60,7 @@ function clamp(num: number, min: number, max: number) {
   return Math.min(Math.max(num, min), max);
 }
 
-// 添加小范围的 padding 使边缘点完整显示
+// Add small padding to ensure edge points are fully visible
 function niceDomain([min, max]: [number, number], paddingRatio = 0.01): [number, number] {
   if (!Number.isFinite(min) || !Number.isFinite(max)) return [0, 1];
   if (min === max) return [min - 1, max + 1];
@@ -69,18 +69,18 @@ function niceDomain([min, max]: [number, number], paddingRatio = 0.01): [number,
   return [min - padding, max + padding];
 }
 
-// Y 轴使用：底部添加 -1% padding，顶部添加 2% padding
+// Y-axis: add -1% padding at bottom, 2% padding at top
 function niceYDomain([min, max]: [number, number], paddingRatio = 0.02): [number, number] {
   if (!Number.isFinite(min) || !Number.isFinite(max)) return [0, 1];
   if (min === max) return [0, max + 1];
   const range = max - min;
   const topPadding = range * paddingRatio;
-  const bottomPadding = range * 0.01; // 底部 -1%
+  const bottomPadding = range * 0.01; // Bottom -1%
   return [min - bottomPadding, max + topPadding];
 }
 
-// 固定刻度，避免 lerp 动画导致网格每帧重算
-// 仅生成在实际域范围内的刻度值，并在顶部显示实际最大值
+// Fixed ticks to avoid grid recalculation every frame due to lerp animation
+// Generate only ticks within actual domain range, display actual max value at top
 function computeNiceTicks([min, max]: [number, number], maxTickCount = 6): number[] {
   if (!Number.isFinite(min) || !Number.isFinite(max) || maxTickCount <= 0) return [];
   if (min === max) {
@@ -105,49 +105,49 @@ function computeNiceTicks([min, max]: [number, number], maxTickCount = 6): numbe
   for (let v = tickStart; v <= tickEnd + step * 0.01 && ticks.length < 200; v += step) {
     ticks.push(Number(v.toFixed(6)));
   }
-  // 如果最后一个刻度距离最大值有明显距离，添加实际最大值作为顶部刻度
+  // If last tick is significantly away from max, add actual max as top tick
   const lastTick = ticks[ticks.length - 1] ?? min;
   const gapToMax = max - lastTick;
-  // 当距离超过 step 的 15% 时，添加最大值刻度
+  // When distance exceeds 15% of step, add max value tick
   if (gapToMax > step * 0.15) {
     ticks.push(Number(max.toFixed(6)));
   }
   return ticks;
 }
 
-// 时间轴刻度计算：确保始终包含起始和结束时间
+// Time axis tick calculation: ensure start and end times are always included
 function computeTimeTicks([min, max]: [number, number], maxTickCount = 8): number[] {
   if (!Number.isFinite(min) || !Number.isFinite(max) || maxTickCount <= 0) return [];
   if (min === max) return [min];
-  
+
   const range = max - min;
   const roughStep = range / Math.max(1, maxTickCount - 1);
-  
-  // 时间步长候选值（毫秒）
+
+  // Time step candidates (milliseconds)
   const timeSteps = [
-    1000,           // 1秒
-    2000,           // 2秒
-    5000,           // 5秒
-    10000,          // 10秒
-    30000,          // 30秒
-    60000,          // 1分钟
-    120000,         // 2分钟
-    300000,         // 5分钟
-    600000,         // 10分钟
-    900000,         // 15分钟
-    1800000,        // 30分钟
-    3600000,        // 1小时
-    7200000,        // 2小时
-    10800000,       // 3小时
-    21600000,       // 6小时
-    43200000,       // 12小时
-    86400000,       // 1天
-    172800000,      // 2天
-    432000000,      // 5天
-    604800000,      // 7天
+    1000,           // 1s
+    2000,           // 2s
+    5000,           // 5s
+    10000,          // 10s
+    30000,          // 30s
+    60000,          // 1m
+    120000,         // 2m
+    300000,         // 5m
+    600000,         // 10m
+    900000,         // 15m
+    1800000,        // 30m
+    3600000,        // 1h
+    7200000,        // 2h
+    10800000,       // 3h
+    21600000,       // 6h
+    43200000,       // 12h
+    86400000,       // 1d
+    172800000,      // 2d
+    432000000,      // 5d
+    604800000,      // 7d
   ];
-  
-  // 选择合适的步长
+
+  // Select appropriate step size
   let step = timeSteps[timeSteps.length - 1];
   for (const s of timeSteps) {
     if (s >= roughStep) {
@@ -156,25 +156,25 @@ function computeTimeTicks([min, max]: [number, number], maxTickCount = 8): numbe
     }
   }
   
-  // 生成中间刻度
-  const ticks: number[] = [min]; // 始终包含起始时间
+  // Generate intermediate ticks
+  const ticks: number[] = [min]; // Always include start time
   const tickStart = Math.ceil(min / step) * step;
   const tickEnd = Math.floor(max / step) * step;
-  
+
   for (let v = tickStart; v <= tickEnd && ticks.length < 200; v += step) {
-    // 避免与起始时间太接近（小于5%的范围）
+    // Avoid being too close to start time (less than 5% of range)
     if (Math.abs(v - min) > range * 0.05 && Math.abs(v - max) > range * 0.05) {
       ticks.push(Number(v.toFixed(0)));
     }
   }
-  
-  // 始终包含结束时间
+
+  // Always include end time
   ticks.push(max);
   
   return ticks;
 }
 
-const timeFormatter = new Intl.DateTimeFormat("zh-CN", {
+const timeFormatter = new Intl.DateTimeFormat("en-US", {
   timeZone: "Asia/Shanghai",
   month: "2-digit",
   day: "2-digit",
@@ -228,11 +228,11 @@ function useLerpYDomain(
       return;
     }
 
-    // 单一路径：提高帧数保证平滑，同时限定总时长避免拖沓
+    // Single path: increase frame count for smoothness while limiting total duration to avoid sluggishness
     const stepFactor = factor;
     const maxFrames = 60;
     const maxDuration = 1000; // ms
-    const snapThreshold = 1; // token 差值小于阈值直接吸附
+    const snapThreshold = 1; // Token difference below threshold snaps directly
 
     startTimeRef.current = null;
     frameRef.current = 0;
@@ -299,7 +299,7 @@ function Skeleton({ className }: { className?: string }) {
   return <div className={`animate-pulse rounded-lg bg-slate-700/50 ${className ?? ""}`} />;
 }
 
-// 独立的图例组件，使用 React.memo 避免不必要的重渲染
+// Standalone legend component, using React.memo to avoid unnecessary re-renders
 import { memo } from "react";
 
 type ModelLegendProps = {
@@ -324,7 +324,7 @@ const ModelLegend = memo(function ModelLegend({
   return (
     <div className="mt-3 rounded-xl bg-slate-900/30 p-3 ring-1 ring-slate-800">
       <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300">
-        <span className="text-slate-400">模型图例（悬停高亮，点击隐藏）</span>
+        <span className="text-slate-400">Model legend (hover to highlight, click to hide)</span>
       </div>
       <div className="mt-2 max-h-20 overflow-auto pr-1">
         <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-300">
@@ -356,7 +356,7 @@ const ModelLegend = memo(function ModelLegend({
 export default function ExplorePage() {
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
-  // 移除 recharts Scatter 的 clip-path 使边缘点完整显示
+  // Remove recharts Scatter clip-path to show edge points completely
   useEffect(() => {
     if (!chartContainerRef.current) return;
     const sanitize = () => {
@@ -438,12 +438,12 @@ export default function ExplorePage() {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<ExploreResponse | null>(null);
   
-  // 堆叠面积图开关
+  // Stacked area chart toggle
   const [showStackedArea, setShowStackedArea] = useState(true);
   
   const scatterTooltipRef = useRef<ScatterTooltipHandle>(null);
 
-  // 持久化本页自定义选择，不回写仪表盘
+  // Persist page-specific selections, do not write back to dashboard
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (selectionSource !== "local") return;
@@ -496,20 +496,20 @@ export default function ExplorePage() {
 
       if (!state) return null;
 
-      // 计算 tooltip 位置，避免超出屏幕右边缘
-      const tooltipWidth = tooltipRef.current?.offsetWidth ?? 300; // 默认估算宽度
+      // Calculate tooltip position, avoid exceeding screen right edge
+      const tooltipWidth = tooltipRef.current?.offsetWidth ?? 300; // Default estimated width
       const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
       
-      // 默认显示在鼠标右侧
+      // Default display on right side of cursor
       const defaultLeft = state.x + 12;
       
-      // 检查是否会超出右边缘（留 20px 余量）
+      // Check if it will exceed right edge (leave 20px margin)
       const wouldOverflow = defaultLeft + tooltipWidth > viewportWidth - 20;
       
-      // 根据是否溢出选择定位方式
+      // Choose positioning method based on overflow
       const positionStyle = wouldOverflow
-        ? { right: viewportWidth - state.x + 12 } // 使用 right 定位，显示在鼠标左侧
-        : { left: defaultLeft }; // 使用 left 定位，显示在鼠标右侧
+        ? { right: viewportWidth - state.x + 12 } // Use right positioning, show on left side of cursor
+        : { left: defaultLeft }; // Use left positioning, show on right side of cursor
 
       return (
         <div 
@@ -523,29 +523,29 @@ export default function ExplorePage() {
         >
           <div className="font-semibold text-slate-100">{formatTs(state.point.ts)}</div>
           <div className="mt-1 flex items-center gap-2 text-slate-200">
-            <span className="text-slate-400">模型：</span>
+            <span className="text-slate-400">Model:</span>
             <span className="inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: getModelColor(state.point.model || ""), opacity: 0.7 }} />
             <span className="max-w-[22rem] truncate">{state.point.model || "-"}</span>
           </div>
           <div className="mt-1 text-slate-200">
-            <span className="text-slate-400">总 Tokens：</span>
+            <span className="text-slate-400">Total Tokens:</span>
             <span>{formatNumberWithCommas(state.point.tokens)}</span>
           </div>
           <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-slate-200">
             <div>
-              <span className="text-slate-400">输入：</span>
+              <span className="text-slate-400">Input:</span>
               <span style={{ color: TOKEN_COLORS.input }}>{formatNumberWithCommas(state.point.inputTokens)}</span>
             </div>
             <div>
-              <span className="text-slate-400">输出：</span>
+              <span className="text-slate-400">Output:</span>
               <span style={{ color: TOKEN_COLORS.output }}>{formatNumberWithCommas(state.point.outputTokens)}</span>
             </div>
             <div>
-              <span className="text-slate-400">思考：</span>
+              <span className="text-slate-400">Reasoning:</span>
               <span style={{ color: TOKEN_COLORS.reasoning }}>{formatNumberWithCommas(state.point.reasoningTokens)}</span>
             </div>
             <div>
-              <span className="text-slate-400">缓存：</span>
+              <span className="text-slate-400">Cached:</span>
               <span style={{ color: TOKEN_COLORS.cached }}>{formatNumberWithCommas(state.point.cachedTokens)}</span>
             </div>
           </div>
@@ -557,33 +557,33 @@ export default function ExplorePage() {
 
   const points = useMemo(() => data?.points ?? [], [data]);
 
-  // brush 选择区域状态
+  // Brush selection area state
   const brushStartRef = useRef<{ x: number; y: number } | null>(null);
   const brushEndRef = useRef<{ x: number; y: number } | null>(null);
   const [isBrushing, setIsBrushing] = useState(false);
   
-  // 缩放后的视图区域
+  // Zoomed view area
   const [zoomDomain, setZoomDomain] = useState<{ x: [number, number]; y: [number, number] } | null>(null);
-  // 缩放来源：'brush' = 主图框选, 'range' = 底部范围选择器
+  // Zoom source: 'brush' = main chart selection, 'range' = bottom range selector
   const [zoomSource, setZoomSource] = useState<'brush' | 'range' | null>(null);
 
-  // X 轴范围选择器状态（简化：只支持拖动边界）
+  // X-axis range selector state (simplified: only supports dragging boundaries)
   const [isXRangeDragging, setIsXRangeDragging] = useState(false);
   const [xRangeDragType, setXRangeDragType] = useState<'left' | 'right' | 'move' | null>(null);
   const [xRangeDragStartX, setXRangeDragStartX] = useState<number | null>(null);
   const [xRangeOriginalDomain, setXRangeOriginalDomain] = useState<[number, number] | null>(null);
   const xRangeContainerRef = useRef<HTMLDivElement>(null);
-  // 范围选择器 hover 状态（用于显示时间标签）
+  // Range selector hover state (for displaying time labels)
   const [xRangeHover, setXRangeHover] = useState<'left' | 'right' | 'box' | null>(null);
-  // rAF 合并 X 轴范围拖动，减少频繁 setState
+  // rAF merge X-axis range dragging, reduce frequent setState
   const xRangeUpdateFrameRef = useRef<number | null>(null);
   const pendingXRangeRef = useRef<[number, number] | null>(null);
 
-  // 图例交互状态
+  // Legend interaction state
   const [highlightedModel, setHighlightedModel] = useState<string | null>(null);
   const [hiddenModels, setHiddenModels] = useState<Set<string>>(new Set());
 
-  // 过滤后的点（排除隐藏的模型）
+  // Filtered points (excluding hidden models)
   const filteredPoints = useMemo(() => {
     if (hiddenModels.size === 0) return points;
     return points.filter(p => !hiddenModels.has(p.model));
@@ -625,17 +625,17 @@ export default function ExplorePage() {
     }
   }, [flushXRangeUpdate]);
 
-  // 当前实际使用的 domain（考虑缩放）
+  // Currently used domain (considering zoom)
   const activeDomain = useMemo<{ x: [number, number]; y: [number, number] } | null>(() => {
     if (!dataBounds) return null;
     if (!zoomDomain) return dataBounds;
 
-    // 如果是主图框选，直接使用框选的范围
+    // If main chart selection, use selected range directly
     if (zoomSource === 'brush') {
       return zoomDomain;
     }
 
-    // 如果是底部范围选择器，X 轴使用选择的范围，Y 轴根据当前时间范围内的点自动计算
+    // If bottom range selector, use selected range for X-axis, auto-calculate Y-axis based on points in current time range
     if (zoomSource === 'range') {
       const [xMin, xMax] = zoomDomain.x;
       let yMax = Number.NEGATIVE_INFINITY;
@@ -652,7 +652,7 @@ export default function ExplorePage() {
         return { x: zoomDomain.x, y: dataBounds.y };
       }
 
-      // 保持 Y 轴底部不动（使用全局 padding 后的下界），仅顶部随可视范围自适应
+      // Keep Y-axis bottom fixed (use global padded lower bound), only top adapts to visible range
       const fixedBottom = dataBounds.y[0];
       const [, paddedTop] = niceYDomain([fixedBottom, yMax]);
       return { x: zoomDomain.x, y: [fixedBottom, paddedTop] as [number, number] };
@@ -661,7 +661,7 @@ export default function ExplorePage() {
     return zoomDomain;
   }, [dataBounds, zoomDomain, zoomSource, filteredPoints]);
 
-  // 仅渲染可视范围内的散点，并将数量用于动画降级
+  // Only render scatter points within visible range, use count for animation degradation
   const visiblePoints = useMemo(() => {
     if (!activeDomain) return filteredPoints;
     const [xMin, xMax] = activeDomain.x;
@@ -671,30 +671,30 @@ export default function ExplorePage() {
     );
   }, [filteredPoints, activeDomain]);
 
-  // 使用平滑过渡的 Y 轴 domain (Lerp 动画)
-  // 框选缩放时禁用动画，只有范围选择器缩放时才启用平滑过渡
+  // Use smooth transition for Y-axis domain (Lerp animation)
+  // Disable animation during brush zoom, only enable smooth transition for range selector zoom
   const enableLerpAnimation = zoomSource === 'range';
   const smoothYDomain = useLerpYDomain(activeDomain?.y, 0.15, enableLerpAnimation);
 
-  // 基于当前渲染的 domain 计算刻度，确保刻度与显示值匹配
+  // Calculate ticks based on current rendered domain, ensure ticks match displayed values
   const computedYTicks = useMemo(() => {
     const domain = smoothYDomain || activeDomain?.y;
     if (!domain) return undefined;
     return computeNiceTicks(domain);
   }, [smoothYDomain, activeDomain?.y]);
 
-  // 计算 X 轴时间刻度，确保边界刻度正确显示
+  // Calculate X-axis time ticks, ensure boundary ticks display correctly
   const computedXTicks = useMemo(() => {
     if (!activeDomain?.x) return undefined;
     return computeTimeTicks(activeDomain.x);
   }, [activeDomain?.x]);
 
-  // 计算 Y 轴分布（token 数量的直方图数据）
+  // Calculate Y-axis distribution (histogram data for token counts)
   const yDistribution = useMemo(() => {
     if (!activeDomain || filteredPoints.length === 0) return [];
     
     const [yMin, yMax] = activeDomain.y;
-    const binCount = 50; // 更多 bin 使曲线更平滑
+    const binCount = 50; // More bins for smoother curve
     const binSize = (yMax - yMin) / binCount;
     const bins = new Array(binCount).fill(0);
     
@@ -704,26 +704,26 @@ export default function ExplorePage() {
       bins[binIndex]++;
     }
     
-    // 返回从上到下排列（Y 轴顶部对应高 token 值）
+    // Return sorted top to bottom (Y-axis top corresponds to high token values)
     return bins.map((count, i) => ({
       y: yMin + (i + 0.5) * binSize,
       count
     })).reverse();
   }, [activeDomain, filteredPoints]);
 
-  // 计算 X 轴分布（时间分布的面积图数据，用于范围选择器）
+  // Calculate X-axis distribution (area chart data for time distribution, for range selector)
   const xDistribution = useMemo(() => {
     if (!dataBounds || filteredPoints.length === 0) return [];
-    
+
     const [xMin, xMax] = dataBounds.x;
-    const binCount = 100; // 更多 bin 使曲线更平滑
+    const binCount = 100; // More bins for smoother curve
     const binSize = (xMax - xMin) / binCount;
     const bins = new Array(binCount).fill(0);
-    
+
     for (const p of filteredPoints) {
       if (p.ts < xMin || p.ts > xMax) continue;
       const binIndex = Math.min(Math.floor((p.ts - xMin) / binSize), binCount - 1);
-      bins[binIndex] += p.tokens; // 累加 tokens 而不是计数
+      bins[binIndex] += p.tokens; // Accumulate tokens instead of counting
     }
     
     return bins.map((totalTokens, i) => ({
@@ -732,15 +732,15 @@ export default function ExplorePage() {
     }));
   }, [dataBounds, filteredPoints]);
 
-  // 存储图表区域信息用于坐标转换
+  // Store chart area info for coordinate conversion
   const chartAreaRef = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
-  
-  // 存储像素级的 brush 位置（用于显示选择框）
+
+  // Store pixel-level brush position (for displaying selection box)
   const brushPixelStartRef = useRef<{ x: number; y: number } | null>(null);
   const brushPixelEndRef = useRef<{ x: number; y: number } | null>(null);
   const brushOverlayRef = useRef<HTMLDivElement>(null);
 
-  // 使用 rAF 合并高频鼠标事件，避免过多状态更新导致掉帧
+  // Use rAF to merge high-frequency mouse events, avoid frame drops from too many state updates
   const brushMoveFrameRef = useRef<number | null>(null);
   const pendingBrushUpdateRef = useRef<{
     pixel: { x: number; y: number };
@@ -762,17 +762,17 @@ export default function ExplorePage() {
     el.style.height = `${height}px`;
   }, []);
 
-  // 使用 DOM 事件进行 brush 操作，因为 ScatterChart 的 recharts 事件可能不在空白区域触发
+  // Use DOM events for brush operations, as recharts events may not trigger in blank areas of ScatterChart
   const handleContainerMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     if (!chartContainerRef.current || !activeDomain) return;
-    
+
     const containerRect = chartContainerRef.current.getBoundingClientRect();
-    
-    // 尝试找到 SVG 内部的 CartesianGrid 来确定实际的绘图区域
+
+    // Try to find CartesianGrid inside SVG to determine actual drawing area
     const gridElement = chartContainerRef.current.querySelector('.recharts-cartesian-grid');
     let area: { x: number; y: number; width: number; height: number };
-    
+
     if (gridElement) {
       const gridRect = gridElement.getBoundingClientRect();
       area = {
@@ -782,7 +782,7 @@ export default function ExplorePage() {
         height: gridRect.height
       };
     } else {
-      // 降级到使用 margin 计算
+      // Fallback to using margin calculation
       area = {
         x: CHART_MARGIN.left,
         y: CHART_MARGIN.top,
@@ -791,23 +791,23 @@ export default function ExplorePage() {
       };
     }
     chartAreaRef.current = area;
-    
-    // 计算相对于容器的坐标
+
+    // Calculate coordinates relative to container
     const mouseX = e.clientX - containerRect.left;
     const mouseY = e.clientY - containerRect.top;
-    
-    // 检查是否在图表区域内
+
+    // Check if within chart area
     if (mouseX < area.x || mouseX > area.x + area.width || mouseY < area.y || mouseY > area.y + area.height) {
       return;
     }
-    
-    // 存储像素坐标
+
+    // Store pixel coordinates
     brushPixelStartRef.current = { x: mouseX, y: mouseY };
     brushPixelEndRef.current = { x: mouseX, y: mouseY };
     brushOverlayRef.current && (brushOverlayRef.current.style.display = 'block');
     applyBrushOverlay();
-    
-    // 转换为数据坐标
+
+    // Convert to data coordinates
     const xRatio = clamp((mouseX - area.x) / area.width, 0, 1);
     const yRatio = clamp(1 - (mouseY - area.y) / area.height, 0, 1);
     
@@ -819,7 +819,7 @@ export default function ExplorePage() {
     setIsBrushing(true);
   }, [activeDomain, applyBrushOverlay]);
 
-  // rAF 驱动的鼠标移动处理，减少 React 渲染频率
+  // rAF-driven mouse move handler, reduce React render frequency
   const handleContainerMouseMoveWithRaf = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!isBrushing || !chartContainerRef.current || !activeDomain || !chartAreaRef.current) return;
     const rect = chartContainerRef.current.getBoundingClientRect();
@@ -869,14 +869,14 @@ export default function ExplorePage() {
     const yMin = Math.min(start.y, end.y);
     const yMax = Math.max(start.y, end.y);
 
-    // 需要有一定的选择范围才触发缩放（基于当前视图范围的 2%）
+    // Need sufficient selection range to trigger zoom (2% of current view range)
     const currentDomain = activeDomain ?? dataBounds;
     const xRange = currentDomain ? currentDomain.x[1] - currentDomain.x[0] : 1;
     const yRange = currentDomain ? currentDomain.y[1] - currentDomain.y[0] : 1;
-    
+
     if ((xMax - xMin) > xRange * 0.02 && (yMax - yMin) > yRange * 0.02) {
       setZoomDomain({ x: [xMin, xMax], y: [yMin, yMax] });
-      setZoomSource('brush'); // 主图框选缩放
+      setZoomSource('brush'); // Main chart brush zoom
     }
 
     setIsBrushing(false);
@@ -887,7 +887,7 @@ export default function ExplorePage() {
     if (brushOverlayRef.current) brushOverlayRef.current.style.display = 'none';
   }, [isBrushing, activeDomain, dataBounds]);
 
-  // 组件卸载时取消 rAF，避免遗留任务
+  // Cancel rAF on component unmount to avoid lingering tasks
   useEffect(() => {
     return () => {
       if (brushMoveFrameRef.current != null) {
@@ -899,31 +899,31 @@ export default function ExplorePage() {
     };
   }, []);
 
-  // 重置缩放
+  // Reset zoom
   const resetZoom = useCallback(() => {
     setZoomDomain(null);
     setZoomSource(null);
   }, []);
 
-  // X 轴范围选择器事件处理（仅支持拖动左右边界）
+  // X-axis range selector event handling (only supports dragging left/right boundaries)
   const handleXRangeMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!xRangeContainerRef.current || !dataBounds) return;
-    
+
     const rect = xRangeContainerRef.current.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
-    
-    // 获取当前选择范围（如果没有则使用完整范围）
+
+    // Get current selection range (use full range if none)
     const currentSelection = zoomDomain?.x ?? dataBounds.x;
     const selectionStartRatio = (currentSelection[0] - dataBounds.x[0]) / (dataBounds.x[1] - dataBounds.x[0]);
     const selectionEndRatio = (currentSelection[1] - dataBounds.x[0]) / (dataBounds.x[1] - dataBounds.x[0]);
     const selectionStartPx = selectionStartRatio * rect.width;
     const selectionEndPx = selectionEndRatio * rect.width;
     const handleSize = 12;
-    
-    // 只要点击了范围选择器，就切换到 range 模式，确保 Y 轴自适应生效
+
+    // Switch to range mode whenever range selector is clicked, ensure Y-axis auto-adaptation works
     setZoomSource('range');
 
-    // 检查是否在左边缘
+    // Check if on left edge
     if (Math.abs(mouseX - selectionStartPx) < handleSize) {
       setXRangeDragType('left');
       setIsXRangeDragging(true);
@@ -931,7 +931,7 @@ export default function ExplorePage() {
       setXRangeOriginalDomain(currentSelection);
       return;
     }
-    // 检查是否在右边缘
+    // Check if on right edge
     if (Math.abs(mouseX - selectionEndPx) < handleSize) {
       setXRangeDragType('right');
       setIsXRangeDragging(true);
@@ -939,7 +939,7 @@ export default function ExplorePage() {
       setXRangeOriginalDomain(currentSelection);
       return;
     }
-    // 检查是否在选择框内（可拖动移动）
+    // Check if inside selection box (draggable for moving)
     if (mouseX > selectionStartPx && mouseX < selectionEndPx) {
       setXRangeDragType('move');
       setIsXRangeDragging(true);
@@ -947,17 +947,17 @@ export default function ExplorePage() {
       setXRangeOriginalDomain(currentSelection);
       return;
     }
-    
-    // 点击空白区域：将选择框中心跳转到点击位置
+
+    // Click empty area: jump selection box center to click position
     const clickRatio = mouseX / rect.width;
     const clickTime = dataBounds.x[0] + clickRatio * (dataBounds.x[1] - dataBounds.x[0]);
     const rangeSize = currentSelection[1] - currentSelection[0];
     const halfRange = rangeSize / 2;
-    
+
     let newStart = clickTime - halfRange;
     let newEnd = clickTime + halfRange;
-    
-    // 限制在数据范围内
+
+    // Constrain to data range
     if (newStart < dataBounds.x[0]) {
       newStart = dataBounds.x[0];
       newEnd = dataBounds.x[0] + rangeSize;
@@ -973,39 +973,39 @@ export default function ExplorePage() {
     );
   }, [dataBounds, zoomDomain]);
 
-  // X 轴范围选择器滚轮缩放 - 使用原生事件以支持 preventDefault
+  // X-axis range selector wheel zoom - use native events to support preventDefault
   useEffect(() => {
     const container = xRangeContainerRef.current;
     if (!container || !dataBounds) return;
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      
+
       const rect = container.getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
       const mouseRatio = clamp(mouseX / rect.width, 0, 1);
       const mouseTime = dataBounds.x[0] + mouseRatio * (dataBounds.x[1] - dataBounds.x[0]);
-      
+
       const currentSelection = zoomDomain?.x ?? dataBounds.x;
       const currentRange = currentSelection[1] - currentSelection[0];
       const fullRange = dataBounds.x[1] - dataBounds.x[0];
-      
-      // 缩放因子：滚轮向上缩小范围，向下扩大范围
+
+      // Zoom factor: scroll up to shrink range, scroll down to expand range
       const zoomFactor = e.deltaY > 0 ? 1.15 : 0.85;
       let newRange = currentRange * zoomFactor;
-      
-      // 限制最小范围为总范围的 2%，最大为完整范围
+
+      // Constrain minimum range to 2% of total range, maximum to full range
       const minRange = fullRange * 0.02;
       newRange = clamp(newRange, minRange, fullRange);
-      
-      // 以鼠标位置为锚点进行缩放
+
+      // Zoom with mouse position as anchor
       const leftRatio = (mouseTime - currentSelection[0]) / currentRange;
       const rightRatio = (currentSelection[1] - mouseTime) / currentRange;
-      
+
       let newStart = mouseTime - newRange * leftRatio;
       let newEnd = mouseTime + newRange * rightRatio;
-      
-      // 限制在数据范围内
+
+      // Constrain to data range
       if (newStart < dataBounds.x[0]) {
         newStart = dataBounds.x[0];
         newEnd = dataBounds.x[0] + newRange;
@@ -1014,8 +1014,8 @@ export default function ExplorePage() {
         newEnd = dataBounds.x[1];
         newStart = dataBounds.x[1] - newRange;
       }
-      
-      // 如果缩放到接近完整范围，则重置
+
+      // Reset if zoomed to near full range
       if (newRange >= fullRange * 0.98) {
         setZoomDomain(null);
         setZoomSource(null);
@@ -1032,23 +1032,23 @@ export default function ExplorePage() {
     return () => container.removeEventListener('wheel', handleWheel);
   }, [dataBounds, zoomDomain]);
 
-  // 全局鼠标事件处理，支持拖出容器范围
+  // Global mouse event handling, support dragging outside container
   useEffect(() => {
     if (!isXRangeDragging) return;
 
     const handleMouseMoveRaw = (e: MouseEvent) => {
       if (!xRangeContainerRef.current || !dataBounds || !xRangeOriginalDomain) return;
-      
+
       const rect = xRangeContainerRef.current.getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
-      // 允许拖出容器，但限制 xRatio 在合理范围内（虽然 clamp 限制了 0-1，但计算 delta 时可以用原始值）
-      // 这里我们仍然 clamp xRatio 用于计算 xValue，但对于 move 操作，我们需要未 clamp 的 delta
-      
+      // Allow dragging outside container, but constrain xRatio within reasonable range (though clamp limits 0-1, we can use raw value for delta calculation)
+      // Here we still clamp xRatio for calculating xValue, but for move operation we need unclamped delta
+
       const xRatio = clamp(mouseX / rect.width, 0, 1);
       const xValue = dataBounds.x[0] + xRatio * (dataBounds.x[1] - dataBounds.x[0]);
-      
-      const minRange = (dataBounds.x[1] - dataBounds.x[0]) * 0.02; // 最小范围 2%
-      
+
+      const minRange = (dataBounds.x[1] - dataBounds.x[0]) * 0.02; // Minimum range 2%
+
       if (xRangeDragType === 'left') {
         const newStart = Math.min(xValue, xRangeOriginalDomain[1] - minRange);
         const clampedStart = Math.max(newStart, dataBounds.x[0]);
@@ -1062,11 +1062,11 @@ export default function ExplorePage() {
         const deltaRatio = deltaX / rect.width;
         const deltaValue = deltaRatio * (dataBounds.x[1] - dataBounds.x[0]);
         const rangeSize = xRangeOriginalDomain[1] - xRangeOriginalDomain[0];
-        
+
         let newStart = xRangeOriginalDomain[0] + deltaValue;
         let newEnd = xRangeOriginalDomain[1] + deltaValue;
-        
-        // 限制在数据范围内
+
+        // Constrain to data range
         if (newStart < dataBounds.x[0]) {
           newStart = dataBounds.x[0];
           newEnd = dataBounds.x[0] + rangeSize;
@@ -1075,13 +1075,13 @@ export default function ExplorePage() {
           newEnd = dataBounds.x[1];
           newStart = dataBounds.x[1] - rangeSize;
         }
-        
+
         scheduleXRangeUpdate([newStart, newEnd]);
       }
     };
 
     const handleMouseUp = () => {
-      // 检查当前选择范围是否已覆盖完整数据范围，如果是则重置
+      // Check if current selection range covers full data range, reset if so
       if (dataBounds && zoomDomain) {
         const fullRange = dataBounds.x[1] - dataBounds.x[0];
         const startNearBound = Math.abs(zoomDomain.x[0] - dataBounds.x[0]) < fullRange * 0.001;
@@ -1108,7 +1108,7 @@ export default function ExplorePage() {
     };
   }, [isXRangeDragging, dataBounds, xRangeDragType, xRangeDragStartX, xRangeOriginalDomain, zoomDomain, scheduleXRangeUpdate]);
 
-  // 当数据变化时重置缩放
+  // Reset zoom when data changes
   useEffect(() => {
     setZoomDomain(null);
     setZoomSource(null);
@@ -1173,7 +1173,7 @@ export default function ExplorePage() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError((err as Error).message || "加载失败");
+          setError((err as Error).message || "Failed to load");
           setData(null);
         }
       } finally {
@@ -1205,20 +1205,20 @@ export default function ExplorePage() {
 
   const rangeSubtitle = useMemo(() => {
     if (rangeMode === "custom" && customStart && customEnd) {
-      return `${customStart} ~ ${customEnd}${isUsingGlobalRange ? "（跟随仪表盘）" : ""}`;
+      return `${customStart} ~ ${customEnd}${isUsingGlobalRange ? " (following dashboard)" : ""}`;
     }
-    return `${presetDateLabel}${isUsingGlobalRange ? "（跟随仪表盘）" : ""}`;
+    return `${presetDateLabel}${isUsingGlobalRange ? " (following dashboard)" : ""}`;
   }, [rangeMode, customStart, customEnd, isUsingGlobalRange, presetDateLabel]);
 
-  // 计算堆叠面积图数据（按时间分组，各模型 token 累计）
+  // Calculate stacked area chart data (grouped by time, accumulated tokens per model)
   const stackedAreaData = useMemo(() => {
     if (!activeDomain || filteredPoints.length === 0 || models.length === 0) return [];
-    
+
     const [xMin, xMax] = activeDomain.x;
     const rangeMs = xMax - xMin;
     if (!Number.isFinite(rangeMs) || rangeMs <= 0) return [];
 
-    // 固定时间粒度 + 对齐边界：避免时间范围轻微变化导致所有桶整体漂移。
+    // Fixed time granularity + aligned boundaries: avoid overall bucket drift from slight time range changes
     const targetBins = 60;
     const niceIntervalsMs = [
       1 * 60_000,
@@ -1244,7 +1244,7 @@ export default function ExplorePage() {
     const endIndex = Math.ceil(xMax / intervalMs);
     const binCount = Math.max(1, endIndex - startIndex);
 
-    // 初始化每个时间桶的模型累计（ts 为桶中心点）
+    // Initialize model accumulation for each time bucket (ts is bucket center point)
     const bins: Array<Record<string, number> & { ts: number }> = [];
     for (let i = 0; i < binCount; i++) {
       const bucketStart = (startIndex + i) * intervalMs;
@@ -1253,7 +1253,7 @@ export default function ExplorePage() {
       bins.push(bin);
     }
 
-    // 累加每个点到对应的桶（按绝对时间对齐）
+    // Accumulate each point to corresponding bucket (aligned by absolute time)
     for (const p of filteredPoints) {
       if (p.ts < xMin || p.ts > xMax) continue;
       if (!p.model) continue;
@@ -1265,7 +1265,7 @@ export default function ExplorePage() {
     return bins;
   }, [activeDomain, filteredPoints, models]);
 
-  // 堆叠面积图的最大值（用于归一化到左Y轴）
+  // Maximum value of stacked area chart (for normalization to left Y-axis)
   const stackedMaxSum = useMemo((): number => {
     if (stackedAreaData.length === 0 || models.length === 0) return 1;
     let maxSum = 0;
@@ -1279,7 +1279,7 @@ export default function ExplorePage() {
     return maxSum || 1;
   }, [stackedAreaData, models]);
 
-  // 缓存 Y 轴刻度文本，减少 tickFormatter 的重复计算
+  // Cache Y-axis tick labels to reduce redundant tickFormatter calculations
   const yTickLabelMap = useMemo(() => {
     if (!computedYTicks) return null;
 
@@ -1300,7 +1300,7 @@ export default function ExplorePage() {
     return labels;
   }, [computedYTicks, showStackedArea, activeDomain, stackedMaxSum]);
 
-  // 归一化堆叠数据 - 将堆叠值映射到散点图 Y 轴范围
+  // Normalize stacked data - map stacked values to scatter plot Y-axis range
   const normalizedStackedData = useMemo(() => {
     if (!showStackedArea || stackedAreaData.length === 0 || !activeDomain) return stackedAreaData;
     
@@ -1316,7 +1316,7 @@ export default function ExplorePage() {
     });
   }, [showStackedArea, stackedAreaData, stackedMaxSum, activeDomain, models]);
 
-  // 性能优化：只渲染可视范围内的堆叠面积数据
+  // Performance optimization: only render stacked area data within visible range
   const visibleStackedData = useMemo(() => {
     if (!activeDomain) return normalizedStackedData;
     const [xMin, xMax] = activeDomain.x;
@@ -1325,7 +1325,7 @@ export default function ExplorePage() {
     );
   }, [normalizedStackedData, activeDomain]);
 
-  // 基于模型在列表中的索引分配颜色，避免哈希碰撞
+  // Assign colors based on model index in list, avoid hash collisions
   const modelColorMap = useMemo(() => {
     const map = new Map<string, string>();
     models.forEach((m, idx) => {
@@ -1338,7 +1338,7 @@ export default function ExplorePage() {
     return modelColorMap.get(model) ?? MODEL_COLORS[0];
   }, [modelColorMap]);
 
-  // 使用 ref 存储高亮状态，避免 dotShape 因高亮变化而重建
+  // Use ref to store highlight state, avoid dotShape rebuilding due to highlight changes
   const highlightedModelRef = useRef(highlightedModel);
   const zoomSourceRef = useRef(zoomSource);
   
@@ -1364,7 +1364,7 @@ export default function ExplorePage() {
     vertical: true
   }), []);
 
-  // 散点图点形状组件 - 仅依赖 modelColorMap，其他通过 ref 访问
+  // Scatter plot dot shape component - only depends on modelColorMap, access others via ref
   const dotShape = useMemo(() => {
     return function Dot(props: any) {
       const { cx, cy, payload } = props;
@@ -1374,21 +1374,21 @@ export default function ExplorePage() {
       const currentHighlighted = highlightedModelRef.current;
       const currentZoomSource = zoomSourceRef.current;
       const isHighlighted = currentHighlighted === model;
-      
-      // 仅框选缩放（brush）时放大点，范围选择器缩放不放大
+
+      // Only enlarge dots during brush zoom, not during range selector zoom
       const baseRadius = currentZoomSource === 'brush' ? 5 : 3;
       const radius = isHighlighted ? baseRadius + 1 : baseRadius;
-      
+
       return (
         <g style={{ cursor: 'pointer' }}>
-          {/* 透明扩大点击区域 */}
-          <circle 
-            cx={cx} 
-            cy={cy} 
-            r={radius + 3} 
+          {/* Transparent area to expand clickable region */}
+          <circle
+            cx={cx}
+            cy={cy}
+            r={radius + 3}
             fill="transparent"
           />
-          {/* 可见的点 */}
+          {/* Visible dot */}
           <circle 
             cx={cx} 
             cy={cy} 
@@ -1403,7 +1403,7 @@ export default function ExplorePage() {
     };
   }, [modelColorMap]);
 
-  // 图例交互处理
+  // Legend interaction handling
   const handleLegendMouseEnter = useCallback((model: string) => {
     setHighlightedModel(model);
   }, []);
@@ -1443,17 +1443,17 @@ export default function ExplorePage() {
 
   const applyCustomRange = useCallback(() => {
     if (!customDraftStart || !customDraftEnd) {
-      setCustomError("请选择开始和结束日期");
+      setCustomError("Please select start and end dates");
       return;
     }
     const startDate = new Date(customDraftStart);
     const endDate = new Date(customDraftEnd);
     if (!Number.isFinite(startDate.getTime()) || !Number.isFinite(endDate.getTime())) {
-      setCustomError("日期无效");
+      setCustomError("Invalid date");
       return;
     }
     if (endDate < startDate) {
-      setCustomError("结束日期需不早于开始日期");
+      setCustomError("End date must not be earlier than start date");
       return;
     }
     setCustomError(null);
@@ -1483,8 +1483,8 @@ export default function ExplorePage() {
       <main className="min-h-screen bg-slate-900 px-6 pb-4 pt-8 text-slate-100">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">数据探索</h1>
-          <p className="text-sm text-slate-400">每个点代表一次请求（X=时间，Y=token 数，颜色=模型）</p>
+          <h1 className="text-2xl font-bold text-white">Data Exploration</h1>
+          <p className="text-sm text-slate-400">Each point represents a request (X=time, Y=token count, color=model)</p>
         </div>
         <div className="flex flex-col items-start gap-2 text-sm text-slate-300 md:items-end">
           <div className="flex flex-wrap items-center gap-2 md:justify-end">
@@ -1498,7 +1498,7 @@ export default function ExplorePage() {
                     : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500"
                 }`}
               >
-                最近 {days} 天
+                Last {days} days
               </button>
             ))}
             <div className="relative">
@@ -1514,14 +1514,14 @@ export default function ExplorePage() {
                     : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500"
                 }`}
               >
-                自定义
+                Custom
               </button>
               {customPickerOpen ? (
                 <div className="absolute right-0 z-30 mt-2 w-72 rounded-xl border border-slate-700 bg-slate-900 p-4 shadow-2xl">
                   <div className="space-y-3 text-sm">
                     <div className="grid grid-cols-1 gap-2">
                       <label className="text-slate-300">
-                        开始日期
+                        Start date
                         <input
                           type="date"
                           className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
@@ -1531,7 +1531,7 @@ export default function ExplorePage() {
                         />
                       </label>
                       <label className="text-slate-300">
-                        结束日期
+                        End date
                         <input
                           type="date"
                           className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
@@ -1553,14 +1553,14 @@ export default function ExplorePage() {
                         }}
                         className="rounded-lg px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-800"
                       >
-                        取消
+                        Cancel
                       </button>
                       <button
                         type="button"
                         onClick={applyCustomRange}
                         className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500"
                       >
-                        应用
+                        Apply
                       </button>
                     </div>
                   </div>
@@ -1575,13 +1575,13 @@ export default function ExplorePage() {
                   : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500"
               }`}
             >
-              跟随仪表盘
+              Follow dashboard
             </button>
           </div>
           <div className="text-xs text-slate-400">
-            <span className="text-slate-500">时间范围：</span>
+            <span className="text-slate-500">Time range: </span>
             <span>{rangeSubtitle}</span>
-            {data?.step && data.step > 1 ? <span className="ml-3 text-slate-500">{`已抽样：每 ${data.step} 个点取 1 个`}</span> : null}
+            {data?.step && data.step > 1 ? <span className="ml-3 text-slate-500">{`Sampled: 1 in every ${data.step} points`}</span> : null}
           </div>
         </div>
       </header>
@@ -1589,11 +1589,11 @@ export default function ExplorePage() {
       <section className="mt-6 rounded-2xl bg-slate-950/40 p-5 ring-1 ring-slate-800">
         <div className="flex min-h-[28px] flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-300">
           <div>
-            <span className="text-slate-400">总点数：</span>
+            <span className="text-slate-400">Total points: </span>
             <span>{formatNumberWithCommas(data?.total ?? 0)}</span>
           </div>
           <div>
-            <span className="text-slate-400">渲染点数：</span>
+            <span className="text-slate-400">Rendered points: </span>
             <span>{formatNumberWithCommas(visiblePoints.length)}</span>
           </div>
           {zoomDomain && dataBounds && (() => {
@@ -1607,7 +1607,7 @@ export default function ExplorePage() {
               onClick={resetZoom}
               className="rounded-lg bg-slate-600/90 px-3 py-1 text-xs text-slate-100 transition-colors hover:bg-slate-500"
             >
-              重置缩放
+              Reset zoom
             </button>
           )}
           <div className="ml-auto flex items-center gap-4">
@@ -1627,9 +1627,9 @@ export default function ExplorePage() {
                   }`}
                 />
               </button>
-              <span>模型堆叠分布图</span>
+              <span>Model stacked distribution</span>
             </label>
-            <span className="text-xs text-slate-500">提示：拖拽框选可缩放区域</span>
+            <span className="text-xs text-slate-500">Tip: Drag to select and zoom area</span>
           </div>
         </div>
 
@@ -1647,19 +1647,19 @@ export default function ExplorePage() {
             <Skeleton className="h-full" />
           ) : error ? (
             <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-900/30 text-center">
-                  <p className="text-base text-slate-200">加载失败</p>
+                  <p className="text-base text-slate-200">Failed to load</p>
                   <p className="mt-1 text-sm text-slate-400">{error}</p>
             </div>
           ) : points.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-900/30 text-center">
-                  <p className="text-base text-slate-200">暂无请求明细数据</p>
-                  <p className="mt-1 text-sm text-slate-400">如果上游 /usage 未提供 details，此图会为空。</p>
+                  <p className="text-base text-slate-200">No request detail data</p>
+                  <p className="mt-1 text-sm text-slate-400">If upstream /usage does not provide details, this chart will be empty.</p>
             </div>
           ) : (
             <>
-            {/* 主图表区域 */}
+            {/* Main chart area */}
             <div className="relative flex flex-1 gap-0">
-              {/* Y 轴分布面积图（竖向，波峰朝左）- 使用绝对定位精确对齐 */}
+              {/* Y-axis distribution area chart (vertical, peaks to the left) - use absolute positioning for precise alignment */}
               <div 
                 className="absolute left-0 w-16 pointer-events-none"
                 style={{ 
@@ -1694,8 +1694,8 @@ export default function ExplorePage() {
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-              
-              {/* 主散点图 - 左侧留出面积图的空间 */}
+
+              {/* Main scatter plot - leave space for area chart on the left */}
               <div 
                 ref={chartContainerRef} 
                 className="relative flex-1 select-none focus:outline-none focus-visible:outline-none"
@@ -1710,7 +1710,7 @@ export default function ExplorePage() {
                 }}
                 onDoubleClick={zoomDomain ? resetZoom : undefined}
               >
-                {/* Brush 选择区域可视化 - DOM 直接更新避免频繁重渲染 */}
+                {/* Brush selection area visualization - direct DOM update to avoid frequent re-renders */}
                 <div
                   ref={brushOverlayRef}
                   className="pointer-events-none absolute border border-blue-400/80 bg-blue-400/15"
@@ -1754,7 +1754,7 @@ export default function ExplorePage() {
                       }}
                       allowDataOverflow
                     />
-                    {/* 堆叠面积图 - 在散点下方作为背景 */}
+                    {/* Stacked area chart - as background below scatter points */}
                     {showStackedArea && models.map((model) => (
                       <Area
                         key={model}
@@ -1803,8 +1803,8 @@ export default function ExplorePage() {
               
               </div>
             </div>
-            
-            {/* X 轴范围选择器 */}
+
+            {/* X-axis range selector */}
             <div 
               className="relative mt-1 h-16 select-none"
               style={{ marginLeft: 132 , marginRight: 12 }}
@@ -1816,7 +1816,7 @@ export default function ExplorePage() {
                 onMouseLeave={() => !isXRangeDragging && setXRangeHover(null)}
                 onDoubleClick={zoomDomain ? resetZoom : undefined}
               >
-                {/* 背景面积图 */}
+                {/* Background area chart */}
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart 
                     data={xDistribution} 
@@ -1841,8 +1841,8 @@ export default function ExplorePage() {
                     />
                   </AreaChart>
                 </ResponsiveContainer>
-                
-                {/* 选择区域遮罩和手柄 - 始终显示，默认覆盖全范围 */}
+
+                {/* Selection area mask and handles - always visible, covers full range by default */}
                 {dataBounds && (() => {
                   const currentSelection = zoomDomain?.x ?? dataBounds.x;
                   const startRatio = (currentSelection[0] - dataBounds.x[0]) / (dataBounds.x[1] - dataBounds.x[0]);
@@ -1853,7 +1853,7 @@ export default function ExplorePage() {
                   
                   return (
                     <>
-                      {/* 左侧灰色区域 */}
+                      {/* Left gray area */}
                       {startRatio > 0.001 && (
                         <div 
                           className="pointer-events-none absolute top-0 h-full rounded-l-lg bg-slate-950/55"
@@ -1863,7 +1863,7 @@ export default function ExplorePage() {
                           }}
                         />
                       )}
-                      {/* 右侧灰色区域 */}
+                      {/* Right gray area */}
                       {endRatio < 0.999 && (
                         <div 
                           className="pointer-events-none absolute top-0 h-full rounded-r-lg bg-slate-950/55"
@@ -1873,8 +1873,8 @@ export default function ExplorePage() {
                           }}
                         />
                       )}
-                      
-                      {/* 选择框（可拖动移动）*/}
+
+                      {/* Selection box (draggable for moving) */}
                       <div 
                         className={`absolute top-0 h-full cursor-move border-y transition-[background-color,border-color] duration-150 hover:bg-blue-500/10 active:bg-blue-500/15 ${hasZoom ? 'border-blue-500/50 border-l border-r rounded-lg' : 'border-blue-500/25'}`}
                         style={{
@@ -1884,27 +1884,27 @@ export default function ExplorePage() {
                         onMouseEnter={() => setXRangeHover('box')}
                       />
 
-                      {/* 左侧拖动手柄 */}
+                      {/* Left drag handle */}
                       <div 
                         className="group absolute top-0 z-10 flex h-full w-5 -translate-x-1/2 cursor-ew-resize items-center justify-center"
                         style={{ left: `${startRatio * 100}%` }}
                         onMouseEnter={() => setXRangeHover('left')}
                       >
                         <div className="h-6 w-1.5 rounded-full bg-slate-200/90 ring-1 ring-slate-950/80 shadow-none transition-[background-color,width] duration-150 group-hover:w-2 group-hover:bg-slate-50" />
-                        {/* 时间标签 - 仅 hover 或拖动时显示 */}
+                        {/* Time label - only show on hover or drag */}
                         <div className={`absolute bottom-full mb-1 whitespace-nowrap rounded-md bg-slate-900/70 px-1.5 py-0.5 text-[10px] font-medium text-slate-200 ring-1 ring-slate-700/60 transition-opacity duration-150 ${showLeftLabel ? 'opacity-100' : 'opacity-0'}`}>
                           {formatTs(currentSelection[0])}
                         </div>
                       </div>
 
-                      {/* 右侧拖动手柄 */}
+                      {/* Right drag handle */}
                       <div 
                         className="group absolute top-0 z-10 flex h-full w-5 -translate-x-1/2 cursor-ew-resize items-center justify-center"
                         style={{ left: `${endRatio * 100}%` }}
                         onMouseEnter={() => setXRangeHover('right')}
                       >
                         <div className="h-6 w-1.5 rounded-full bg-slate-200/90 ring-1 ring-slate-950/80 shadow-none transition-[background-color,width] duration-150 group-hover:w-2 group-hover:bg-slate-50" />
-                        {/* 时间标签 - 仅 hover 或拖动时显示 */}
+                        {/* Time label - only show on hover or drag */}
                         <div className={`absolute bottom-full mb-1 whitespace-nowrap rounded-md bg-slate-900/70 px-1.5 py-0.5 text-[10px] font-medium text-slate-200 ring-1 ring-slate-700/60 transition-opacity duration-150 ${showRightLabel ? 'opacity-100' : 'opacity-0'}`}>
                           {formatTs(currentSelection[1])}
                         </div>

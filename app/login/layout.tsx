@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "../globals.css";
 
 export const metadata: Metadata = {
-  title: "登录 - CLIProxyAPI Dashboard",
+  title: "Login - CLIProxyAPI Dashboard",
   description: "Login to CLIProxyAPI Usage Dashboard"
 };
 

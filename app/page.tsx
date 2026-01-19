@@ -8,7 +8,7 @@ import { AlertTriangle, Info, LucideIcon, Activity, Save, RefreshCw, Moon, Sun, 
 import type { ModelPrice, UsageOverview, UsageSeriesPoint } from "@/lib/types";
 import { Modal } from "@/app/components/Modal";
 
-// 饼图颜色 - 柔和配色
+// Pie chart colors - soft palette
 const PIE_COLORS = ["#60a5fa", "#4ade80", "#fbbf24", "#c084fc", "#f472b6", "#38bdf8", "#a3e635", "#fb923c"];
 
 type OverviewMeta = { page: number; pageSize: number; totalModels: number; totalPages: number };
@@ -47,7 +47,7 @@ function normalizeTooltipValue(value: TooltipValue) {
 
 const trendTooltipFormatter: TooltipProps<number, string>["formatter"] = (value, name) => {
   const numericValue = normalizeTooltipValue(value);
-  return name === "费用" ? [formatCurrency(numericValue), name] : [formatNumberWithCommas(numericValue), name];
+  return name === "Cost" ? [formatCurrency(numericValue), name] : [formatNumberWithCommas(numericValue), name];
 };
 
 const numericTooltipFormatter: TooltipProps<number, string>["formatter"] = (value, name) => {
@@ -225,16 +225,16 @@ export default function DashboardPage() {
     const key = e.dataKey ?? e.payload?.dataKey ?? e.id;
     if (!key) return;
     
-    // 检查是否为 Ctrl/Cmd+左键
+    // Check for Ctrl/Cmd + left click
     const nativeEvent = event?.nativeEvent || event;
     const isModifierClick = nativeEvent && (nativeEvent.ctrlKey || nativeEvent.metaKey);
-    
+
     if (isModifierClick) {
-      // Ctrl/Cmd+左键：只显示当前项或恢复全部显示
+      // Ctrl/Cmd + left click: show only current item or restore all
       const allOthersHidden = Object.keys(hourlyVisible).every(k => k === key || !hourlyVisible[k]);
-      
+
       if (allOthersHidden) {
-        // 如果其他都已隐藏，恢复全部显示
+        // If all others are hidden, restore all
         setHourlyVisible({
           requests: true,
           inputTokens: true,
@@ -243,7 +243,7 @@ export default function DashboardPage() {
           cachedTokens: true,
         });
       } else {
-        // 隐藏其他，只显示当前项
+        // Hide others, show only current item
         setHourlyVisible({
           requests: key === "requests",
           inputTokens: key === "inputTokens",
@@ -253,7 +253,7 @@ export default function DashboardPage() {
         });
       }
     } else {
-      // 左键点击：切换当前项
+      // Left click: toggle current item
       setHourlyVisible((prev) => ({
         ...prev,
         [key]: !prev[key as string],
@@ -265,39 +265,39 @@ export default function DashboardPage() {
 
   const trendConfig = useMemo(() => {
     const defs = {
-      requests: { color: darkMode ? "#60a5fa" : "#3b82f6", formatter: (v: any) => formatCompactNumber(v), name: "请求数" },
+      requests: { color: darkMode ? "#60a5fa" : "#3b82f6", formatter: (v: any) => formatCompactNumber(v), name: "Requests" },
       tokens: { color: darkMode ? "#4ade80" : "#16a34a", formatter: (v: any) => formatCompactNumber(v), name: "Tokens" },
-      cost: { color: "#fbbf24", formatter: (v: any) => formatCurrency(v), name: "费用" },
+      cost: { color: "#fbbf24", formatter: (v: any) => formatCurrency(v), name: "Cost" },
     };
 
     const visibleKeys = (Object.keys(trendVisible) as Array<keyof typeof trendVisible>).filter((k) => trendVisible[k]);
-    
-    // 费用始终使用 cost 轴，避免轴切换导致的重新渲染
+
+    // Cost always uses cost axis to avoid axis switching and re-rendering
     let lineAxisMap: Record<string, string> = {
       requests: "left",
       tokens: "right",
       cost: "cost",
     };
-    
+
     let leftAxisKey = "requests";
     let rightAxisKey = "tokens";
     let rightAxisVisible = true;
 
     if (visibleKeys.length === 2) {
       if (!trendVisible.requests) {
-        // requests 隐藏 -> tokens (left), cost (cost)
+        // requests hidden -> tokens (left), cost (cost)
         lineAxisMap = { requests: "left", tokens: "left", cost: "cost" };
         leftAxisKey = "tokens";
         rightAxisKey = "tokens";
         rightAxisVisible = false;
       } else if (!trendVisible.tokens) {
-        // tokens 隐藏 -> requests (left), cost (cost)
+        // tokens hidden -> requests (left), cost (cost)
         lineAxisMap = { requests: "left", tokens: "right", cost: "cost" };
         leftAxisKey = "requests";
         rightAxisKey = "requests";
         rightAxisVisible = false;
       } else {
-        // cost 隐藏 -> requests (left), tokens (right)
+        // cost hidden -> requests (left), tokens (right)
         lineAxisMap = { requests: "left", tokens: "right", cost: "cost" };
         leftAxisKey = "requests";
         rightAxisKey = "tokens";
@@ -331,7 +331,7 @@ export default function DashboardPage() {
     pieLegendClearTimerRef.current = window.setTimeout(() => {
       setHoveredPieIndex(null);
       pieLegendClearTimerRef.current = null;
-    }, 60); // 扇形图例悬停延时，避免缝隙导致频繁闪烁
+    }, 60); // Pie legend hover delay to avoid flickering
   }, [cancelPieLegendClear]);
 
   useEffect(() => {
@@ -367,7 +367,7 @@ export default function DashboardPage() {
     };
   }, [pieTooltipOpen, cancelPieLegendClear]);
 
-  // 关闭syncStatus toast
+  // Close syncStatus toast
   const closeSyncStatus = useCallback(() => {
     setSyncStatusClosing(true);
     setTimeout(() => {
@@ -376,7 +376,7 @@ export default function DashboardPage() {
     }, 400);
   }, []);
 
-  // 关闭saveStatus toast  
+  // Close saveStatus toast
   const closeSaveStatus = useCallback(() => {
     setSaveStatusClosing(true);
     setTimeout(() => {
@@ -385,19 +385,19 @@ export default function DashboardPage() {
     }, 400);
   }, []);
 
-  // 自动清除 syncStatus toast
+  // Auto-clear syncStatus toast
   useEffect(() => {
     if (!syncStatus) return;
-    
+
     if (syncStatusTimerRef.current !== null) {
       window.clearTimeout(syncStatusTimerRef.current);
     }
-    
+
     syncStatusTimerRef.current = window.setTimeout(() => {
       closeSyncStatus();
       syncStatusTimerRef.current = null;
     }, 10000);
-    
+
     return () => {
       if (syncStatusTimerRef.current !== null) {
         window.clearTimeout(syncStatusTimerRef.current);
@@ -406,19 +406,19 @@ export default function DashboardPage() {
     };
   }, [syncStatus, closeSyncStatus]);
 
-  // 自动清除 saveStatus toast
+  // Auto-clear saveStatus toast
   useEffect(() => {
     if (!saveStatus) return;
-    
+
     if (saveStatusTimerRef.current !== null) {
       window.clearTimeout(saveStatusTimerRef.current);
     }
-    
+
     saveStatusTimerRef.current = window.setTimeout(() => {
       closeSaveStatus();
       saveStatusTimerRef.current = null;
     }, 10000);
-    
+
     return () => {
       if (saveStatusTimerRef.current !== null) {
         window.clearTimeout(saveStatusTimerRef.current);
@@ -437,27 +437,27 @@ export default function DashboardPage() {
     }
   }, []);
 
-  // 执行数据同步
+  // Execute data synchronization
   const doSync = useCallback(async (showMessage = true, triggerRefresh = true, timeout = 60000) => {
     if (syncingRef.current) return;
     syncingRef.current = true;
     setSyncing(true);
     setSyncStatus(null);
     try {
-      // 创建超时控制器（默认 60 秒，首屏加载时为 5 秒）
+      // Create timeout controller (default 60s, 5s for initial load)
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
-      
-      const res = await fetch("/api/sync", { 
-        method: "POST", 
+
+      const res = await fetch("/api/sync", {
+        method: "POST",
         cache: "no-store",
-        signal: controller.signal 
+        signal: controller.signal
       });
       clearTimeout(timeoutId);
-      
+
       const data = await res.json();
       if (!res.ok) {
-        const errorMsg = `同步失败: ${data.error || res.statusText}`;
+        const errorMsg = `Sync failed: ${data.error || res.statusText}`;
         setSyncStatus(errorMsg);
         if (typeof window !== "undefined") {
           window.localStorage.setItem("lastSyncStatus", errorMsg);
@@ -477,10 +477,10 @@ export default function DashboardPage() {
           }
           return next;
         });
-        // 手动同步时总是显示消息，自动同步时仅在有数据时显示
+        // Always show message for manual sync, show only when data exists for auto sync
         const shouldShowMessage = showMessage || inserted > 0;
         if (shouldShowMessage) {
-          const successMsg = `已同步 ${inserted} 条记录`;
+          const successMsg = `Synced ${inserted} records`;
           setSyncStatus(successMsg);
           if (typeof window !== "undefined") {
             window.localStorage.setItem("lastSyncStatus", successMsg);
@@ -489,11 +489,11 @@ export default function DashboardPage() {
         if (triggerRefresh && inserted > 0) setRefreshTrigger((prev) => prev + 1);
       }
     } catch (err) {
-      // 判断是否为超时错误
+      // Check if it's a timeout error
       const isTimeout = (err as Error).name === "AbortError";
-      const errorMsg = isTimeout 
-        ? "同步超时：数据同步可能需要更长时间，建议稍后手动刷新" 
-        : `同步失败: ${(err as Error).message}`;
+      const errorMsg = isTimeout
+        ? "Sync timeout: Data synchronization may take longer, please refresh manually later"
+        : `Sync failed: ${(err as Error).message}`;
       setSyncStatus(errorMsg);
       if (typeof window !== "undefined") {
         window.localStorage.setItem("lastSyncStatus", errorMsg);
@@ -504,7 +504,7 @@ export default function DashboardPage() {
     }
   }, []);
 
-  // 页面加载时仅在当前会话首次进入时自动同步一次
+  // Auto-sync once per session on page load
   useEffect(() => {
     let active = true;
     const autoSyncKey = "cli_dashboard_auto_sync_done";
@@ -519,7 +519,7 @@ export default function DashboardPage() {
 
     const run = async () => {
       try {
-        await doSync(true, false, 5000); // 首屏加载使用 5 秒超时
+        await doSync(true, false, 5000); // 5s timeout for initial load
         if (typeof window !== "undefined") {
           window.sessionStorage.setItem(autoSyncKey, "1");
         }
@@ -602,7 +602,7 @@ export default function DashboardPage() {
 
         if (!res.ok) {
           if (active) {
-            setOverviewError("无法加载实时用量：" + res.statusText);
+            setOverviewError("Unable to load usage data: " + res.statusText);
             setOverview(null);
           }
           return;
@@ -620,7 +620,7 @@ export default function DashboardPage() {
         if (!active) return;
         const error = err as Error;
         if ((error as any)?.name === "AbortError") return;
-        setOverviewError("无法加载实时用量：" + error.message);
+        setOverviewError("Unable to load usage data: " + error.message);
         setOverview(null);
       } finally {
         if (active) setLoadingOverview(false);
@@ -650,9 +650,9 @@ export default function DashboardPage() {
   }, [fullscreenChart]);
 
   const hourRangeOptions: { key: "all" | "24h" | "72h"; label: string }[] = [
-    { key: "all", label: "全部" },
-    { key: "24h", label: "最近 24 小时" },
-    { key: "72h", label: "最近 72 小时" }
+    { key: "all", label: "All" },
+    { key: "24h", label: "Last 24 hours" },
+    { key: "72h", label: "Last 72 hours" }
   ];
 
   const priceModelOptions = useMemo(() => {
@@ -668,13 +668,13 @@ export default function DashboardPage() {
     return [...models].sort((a, b) => b.cost - a.cost);
   }, [overviewData]);
 
-  // 计算实际数据时长（从最早记录到现在）
+  // Calculate actual data duration (from earliest record to now)
   const actualTimeSpan = useMemo(() => {
     if (!overviewData?.byHour || overviewData.byHour.length === 0) {
       return { days: appliedDays, minutes: appliedDays * 24 * 60 };
     }
-    
-    // 找到最早的时间戳
+
+    // Find earliest timestamp
     let earliestTime: Date | null = null;
     for (const point of overviewData.byHour) {
       if (point.timestamp) {
@@ -686,25 +686,25 @@ export default function DashboardPage() {
         }
       }
     }
-    
+
     if (!earliestTime) {
       return { days: appliedDays, minutes: appliedDays * 24 * 60 };
     }
-    
-    // 计算从最早记录到现在的时长
+
+    // Calculate duration from earliest record to now
     const now = new Date();
     const diffMs = now.getTime() - earliestTime.getTime();
     const diffMinutes = Math.max(1, Math.floor(diffMs / (1000 * 60)));
     const diffDays = Math.max(1, diffMinutes / (24 * 60));
-    
+
     return { days: diffDays, minutes: diffMinutes };
   }, [overviewData?.byHour, appliedDays]);
 
   const rangeSubtitle = useMemo(() => {
     if (rangeMode === "custom" && customStart && customEnd) {
-      return `${customStart} ~ ${customEnd}（共 ${appliedDays} 天）`;
+      return `${customStart} ~ ${customEnd} (${appliedDays} days)`;
     }
-    return `最近 ${appliedDays} 天`;
+    return `Last ${appliedDays} days`;
   }, [rangeMode, customStart, customEnd, appliedDays]);
 
 
@@ -742,7 +742,7 @@ export default function DashboardPage() {
       if (statusTimerRef.current !== null) {
         clearTimeout(statusTimerRef.current);
       }
-      setStatus("请输入有效的模型名称和单价");
+      setStatus("Please enter valid model name and prices");
       statusTimerRef.current = window.setTimeout(() => {
         setStatus(null);
         statusTimerRef.current = null;
@@ -761,7 +761,7 @@ export default function DashboardPage() {
         if (statusTimerRef.current !== null) {
           clearTimeout(statusTimerRef.current);
         }
-        setStatus("保存失败，请检查后端日志/环境变量");
+        setStatus("Save failed, please check backend logs/environment variables");
         statusTimerRef.current = window.setTimeout(() => {
           setStatus(null);
           statusTimerRef.current = null;
@@ -775,23 +775,23 @@ export default function DashboardPage() {
         if (statusTimerRef.current !== null) {
           clearTimeout(statusTimerRef.current);
         }
-        setStatus("已保存");
+        setStatus("Saved");
         statusTimerRef.current = window.setTimeout(() => {
           setStatus(null);
           statusTimerRef.current = null;
         }, 10000);
-        
-        // 显示保存成功提示（会被useEffect自动清除）
-        setSaveStatus(`已保存价格：${payload.model}`);
-        
-        // 刷新 overview 数据以更新费用计算
+
+        // Show save success message (will be auto-cleared by useEffect)
+        setSaveStatus(`Price saved: ${payload.model}`);
+
+        // Refresh overview data to update cost calculations
         setRefreshTrigger((prev) => prev + 1);
       }
     } catch (err) {
       if (statusTimerRef.current !== null) {
         clearTimeout(statusTimerRef.current);
       }
-      setStatus("请求失败，请稍后重试");
+      setStatus("Request failed, please try again later");
       statusTimerRef.current = window.setTimeout(() => {
         setStatus(null);
         statusTimerRef.current = null;
@@ -801,7 +801,7 @@ export default function DashboardPage() {
     }
   };
 
-  // 删除价格
+  // Delete price
   const handleDeletePrice = async (model: string) => {
     try {
       const res = await fetch("/api/prices", {
@@ -814,7 +814,7 @@ export default function DashboardPage() {
         setRefreshTrigger((prev) => prev + 1);
       }
     } catch (err) {
-      console.error("删除失败", err);
+      console.error("Delete failed", err);
     }
   };
 
@@ -824,7 +824,7 @@ export default function DashboardPage() {
     setPendingDelete(null);
   };
 
-  // 打开编辑弹窗
+  // Open edit modal
   const openEditModal = (price: ModelPrice) => {
     setEditingPrice(price);
     setEditForm({
@@ -835,7 +835,7 @@ export default function DashboardPage() {
     });
   };
 
-  // 保存编辑
+  // Save edit
   const handleEditSave = async () => {
     if (!editingPrice) return;
     const payload = {
@@ -845,7 +845,7 @@ export default function DashboardPage() {
       outputPricePer1M: Number(editForm.outputPricePer1M)
     };
     try {
-      // 如果模型名改变了，先删除旧模型
+      // If model name changed, delete old model first
       if (editingPrice.model !== payload.model) {
         await fetch("/api/prices", {
           method: "DELETE",
@@ -868,7 +868,7 @@ export default function DashboardPage() {
         setRefreshTrigger((prev) => prev + 1);
       }
     } catch (err) {
-      console.error("保存失败", err);
+      console.error("Save failed", err);
     }
   };
 
@@ -878,7 +878,7 @@ export default function DashboardPage() {
         <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-500/50 bg-red-500/10 px-4 py-3 text-sm text-red-400">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
           <div>
-            <p className="font-semibold">加载失败</p>
+            <p className="font-semibold">Load Failed</p>
             <p className="text-red-300">{overviewError}</p>
           </div>
         </div>
@@ -887,7 +887,7 @@ export default function DashboardPage() {
       <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-slate-900"}`}>Usage Dashboard</h1>
-          <p className={`text-base ${darkMode ? "text-slate-400" : "text-slate-600"}`}>持久化的 CLIProxyAPI 使用统计与费用分析</p>
+          <p className={`text-base ${darkMode ? "text-slate-400" : "text-slate-600"}`}>Persistent CLIProxyAPI Usage Statistics & Cost Analysis</p>
         </div>
         <div className="flex items-center gap-4">
           <button
@@ -897,7 +897,7 @@ export default function DashboardPage() {
                 ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
                 : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
             }`}
-            title={darkMode ? "切换到亮色模式" : "切换到暗色模式"}
+            title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
           >
             {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
@@ -913,16 +913,16 @@ export default function DashboardPage() {
             }`}
           >
             <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
-            {syncing ? "同步中..." : "刷新数据"}
+            {syncing ? "Syncing..." : "Refresh Data"}
           </button>
           <div className="flex flex-col items-end gap-0.5">
             <div className={`flex items-center gap-2 text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
               <Activity className="h-4 w-4" />
-              {loadingOverview ? "加载中..." : overview ? "实时数据" : "暂无数据"}
+              {loadingOverview ? "Loading..." : overview ? "Live Data" : "No Data"}
             </div>
             {lastSyncTime && (
               <span className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-500"}`} suppressHydrationWarning>
-                上次同步: {mounted ? lastSyncTime.toLocaleTimeString() : "--:--:--"}
+                Last sync: {mounted ? lastSyncTime.toLocaleTimeString() : "--:--:--"}
               </span>
             )}
           </div>
@@ -930,7 +930,7 @@ export default function DashboardPage() {
       </header>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        <span className="text-sm uppercase tracking-wide text-slate-500">时间范围</span>
+        <span className="text-sm uppercase tracking-wide text-slate-500">Time Range</span>
         {[7, 14, 30].map((days) => (
           <button
             key={days}
@@ -946,7 +946,7 @@ export default function DashboardPage() {
                 : darkMode ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
             }`}
           >
-            最近 {days} 天
+            Last {days} days
           </button>
         ))}
         <div className="relative" ref={customPickerRef}>
@@ -962,7 +962,7 @@ export default function DashboardPage() {
                 : darkMode ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
             }`}
           >
-            自定义
+            Custom
           </button>
           {customPickerOpen ? (
             <div
@@ -971,7 +971,7 @@ export default function DashboardPage() {
               <div className="space-y-3 text-sm">
                 <div className="grid grid-cols-1 gap-2">
                   <label className={darkMode ? "text-slate-300" : "text-slate-700"}>
-                    开始日期
+                    Start Date
                     <input
                       type="date"
                       className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${darkMode ? "border-slate-700 bg-slate-800 text-white" : "border-slate-300 bg-white text-slate-900"}`}
@@ -981,7 +981,7 @@ export default function DashboardPage() {
                     />
                   </label>
                   <label className={darkMode ? "text-slate-300" : "text-slate-700"}>
-                    结束日期
+                    End Date
                     <input
                       type="date"
                       className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${darkMode ? "border-slate-700 bg-slate-800 text-white" : "border-slate-300 bg-white text-slate-900"}`}
@@ -1005,23 +1005,23 @@ export default function DashboardPage() {
                     }}
                     className={`rounded-lg px-3 py-1.5 text-xs font-medium ${darkMode ? "text-slate-300 hover:bg-slate-800" : "text-slate-700 hover:bg-slate-100"}`}
                   >
-                    取消
+                    Cancel
                   </button>
                   <button
                     type="button"
                     onClick={() => {
                       if (!customDraftStart || !customDraftEnd) {
-                        setCustomError("请选择开始和结束日期");
+                        setCustomError("Please select start and end dates");
                         return;
                       }
                       const startDate = new Date(customDraftStart);
                       const endDate = new Date(customDraftEnd);
                       if (!Number.isFinite(startDate.getTime()) || !Number.isFinite(endDate.getTime())) {
-                        setCustomError("日期无效");
+                        setCustomError("Invalid date");
                         return;
                       }
                       if (endDate < startDate) {
-                        setCustomError("结束日期需不早于开始日期");
+                        setCustomError("End date must not be earlier than start date");
                         return;
                       }
                       setCustomError(null);
@@ -1034,7 +1034,7 @@ export default function DashboardPage() {
                     }}
                     className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500"
                   >
-                    应用
+                    Apply
                   </button>
                 </div>
               </div>
@@ -1058,7 +1058,7 @@ export default function DashboardPage() {
             value={filterModelInput}
             onChange={setFilterModelInput}
             options={modelOptions}
-            placeholder="按模型过滤"
+            placeholder="Filter by model"
             darkMode={darkMode}
             onSelectOption={applyModelOption}
             onClear={() => {
@@ -1071,7 +1071,7 @@ export default function DashboardPage() {
             value={filterRouteInput}
             onChange={setFilterRouteInput}
             options={routeOptions}
-            placeholder="按 Key 过滤"
+            placeholder="Filter by key"
             darkMode={darkMode}
             onSelectOption={applyRouteOption}
             onClear={() => {
@@ -1084,7 +1084,7 @@ export default function DashboardPage() {
             onClick={applyFilters}
             className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${darkMode ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"}`}
           >
-            应用筛选
+            Apply Filters
           </button>
           {(filterModel || filterRoute) ? (
             <button
@@ -1097,36 +1097,36 @@ export default function DashboardPage() {
               }}
               className={`rounded-lg border px-3 py-1.5 text-sm transition ${darkMode ? "border-slate-700 bg-slate-800 text-slate-400 hover:border-slate-500" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
             >
-              清除
+              Clear
             </button>
           ) : null}
         </div>
-        {loadingOverview ? <span className="text-sm text-slate-400">加载中...</span> : null}
-        {/* {showEmpty ? <span className="text-sm text-slate-400">暂无数据，先触发同步</span> : null} */}
+        {loadingOverview ? <span className="text-sm text-slate-400">Loading...</span> : null}
+        {/* {showEmpty ? <span className="text-sm text-slate-400">No data, please sync first</span> : null} */}
       </div>
 
-      {/* 统计卡片 - 单行填满 */}
+      {/* Stats cards - single row */}
       <section className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
         {loadingOverview || !overviewData ? (
           <>
-            {/* 请求数 skeleton */}
+            {/* Requests skeleton */}
             <Skeleton className="h-28 rounded-2xl" />
-            {/* Tokens skeleton - 2列 */}
+            {/* Tokens skeleton - 2 columns */}
             <Skeleton className="col-span-2 h-28 rounded-2xl" />
-            {/* 成功率 skeleton */}
+            {/* Success rate skeleton */}
             <Skeleton className="h-28 rounded-2xl" />
             {/* TPM skeleton */}
             <Skeleton className="h-28 rounded-2xl" />
             {/* RPM skeleton */}
             <Skeleton className="h-28 rounded-2xl" />
-            {/* 费用 skeleton */}
+            {/* Cost skeleton */}
             <Skeleton className="h-28 rounded-2xl" />
           </>
         ) : (
           <>
-            {/* 请求数 */}
+            {/* Requests */}
             <div className={`animate-card-float rounded-2xl p-5 shadow-sm ring-1 transition-all duration-200 ${darkMode ? "bg-slate-800/50 ring-slate-700 hover:shadow-lg hover:shadow-slate-700/30 hover:ring-slate-600" : "bg-white ring-slate-200 hover:shadow-lg hover:ring-slate-300"}`} style={{ animationDelay: '0.05s' }}>
-              <div className={`text-sm uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>请求数</div>
+              <div className={`text-sm uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Requests</div>
               <div className={`mt-3 text-2xl font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>
                 {formatNumberWithCommas(overviewData.totalRequests)}
                 {lastInsertedDelta > 0 ? (
@@ -1142,7 +1142,7 @@ export default function DashboardPage() {
               </p>
             </div>
             
-            {/* Tokens - 占两列 */}
+            {/* Tokens - spans 2 columns */}
             <div className={`animate-card-float col-span-2 rounded-2xl p-5 shadow-sm ring-1 transition-all duration-200 ${darkMode ? "bg-slate-800/50 ring-slate-700 hover:shadow-lg hover:shadow-slate-700/30 hover:ring-slate-600" : "bg-white ring-slate-200 hover:shadow-lg hover:ring-slate-300"}`} style={{ animationDelay: '0.1s' }}>
               <div className="flex items-center justify-between">
                 <div className={`text-sm uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Tokens</div>
@@ -1155,56 +1155,56 @@ export default function DashboardPage() {
               </div>
               <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className={darkMode ? "text-slate-400" : "text-slate-500"}>输入</span>
+                  <span className={darkMode ? "text-slate-400" : "text-slate-500"}>Input</span>
                   <span className="font-medium" style={{ color: darkMode ? "#fb7185" : "#e11d48" }}>{formatNumberWithCommas(overviewData.totalInputTokens)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className={darkMode ? "text-slate-400" : "text-slate-500"}>输出</span>
+                  <span className={darkMode ? "text-slate-400" : "text-slate-500"}>Output</span>
                   <span className="font-medium" style={{ color: darkMode ? "#4ade80" : "#16a34a" }}>{formatNumberWithCommas(overviewData.totalOutputTokens)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className={darkMode ? "text-slate-400" : "text-slate-500"}>思考</span>
+                  <span className={darkMode ? "text-slate-400" : "text-slate-500"}>Reasoning</span>
                   <span className="font-medium" style={{ color: darkMode ? "#fbbf24" : "#d97706" }}>{formatNumberWithCommas(overviewData.totalReasoningTokens)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className={darkMode ? "text-slate-400" : "text-slate-500"}>缓存</span>
+                  <span className={darkMode ? "text-slate-400" : "text-slate-500"}>Cached</span>
                   <span className="font-medium" style={{ color: darkMode ? "#c084fc" : "#9333ea" }}>{formatNumberWithCommas(overviewData.totalCachedTokens)}</span>
                 </div>
               </div>
             </div>
             
-            {/* 预估费用 */}
+            {/* Estimated Cost */}
             <div className={`animate-card-float rounded-2xl p-5 shadow-sm ring-1 transition-all duration-200 ${darkMode ? "bg-gradient-to-br from-amber-500/20 to-amber-700/10 ring-amber-400/40 hover:shadow-lg hover:shadow-amber-500/20 hover:ring-amber-400/60" : "bg-amber-50 ring-amber-200 hover:shadow-lg hover:ring-amber-300"}`} style={{ animationDelay: '0.15s' }}>
-              <div className="text-sm uppercase tracking-wide text-amber-400">预估费用</div>
+              <div className="text-sm uppercase tracking-wide text-amber-400">Estimated Cost</div>
               <div className={`mt-3 text-2xl font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>{formatCurrency(overviewData.totalCost)}</div>
-              <p className={`mt-2 text-xs ${darkMode ? "text-amber-300/70" : "text-amber-700/70"}`}>基于模型价格</p>
+              <p className={`mt-2 text-xs ${darkMode ? "text-amber-300/70" : "text-amber-700/70"}`}>Based on model prices</p>
             </div>
 
             {/* TPM */}
             <div className={`animate-card-float rounded-2xl p-5 shadow-sm ring-1 transition-all duration-200 ${darkMode ? "bg-gradient-to-br from-emerald-600/20 to-emerald-800/10 ring-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/20 hover:ring-emerald-500/50" : "bg-emerald-50 ring-emerald-200 hover:shadow-lg hover:ring-emerald-300"}`} style={{ animationDelay: '0.2s' }}>
-              <div className="text-sm uppercase tracking-wide text-emerald-400">平均 TPM</div>
+              <div className="text-sm uppercase tracking-wide text-emerald-400">Avg TPM</div>
               <div className={`mt-3 text-2xl font-bold ${darkMode ? "text-white" : "text-slate-900"}`}>
                 {(overviewData.totalTokens / actualTimeSpan.minutes).toFixed(2)}
               </div>
-              <p className={`mt-2 text-xs ${darkMode ? "text-emerald-300/70" : "text-emerald-600/70"}`}>每分钟Token</p>
+              <p className={`mt-2 text-xs ${darkMode ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Tokens per minute</p>
             </div>
 
             {/* RPM */}
             <div className={`animate-card-float rounded-2xl p-5 shadow-sm ring-1 transition-all duration-200 ${darkMode ? "bg-gradient-to-br from-blue-600/20 to-blue-800/10 ring-blue-500/30 hover:shadow-lg hover:shadow-blue-500/20 hover:ring-blue-500/50" : "bg-blue-50 ring-blue-200 hover:shadow-lg hover:ring-blue-300"}`} style={{ animationDelay: '0.25s' }}>
-              <div className="text-sm uppercase tracking-wide text-blue-400">平均 RPM</div>
+              <div className="text-sm uppercase tracking-wide text-blue-400">Avg RPM</div>
               <div className={`mt-3 text-2xl font-bold ${darkMode ? "text-white" : "text-slate-900"}`}>
                 {(overviewData.totalRequests / actualTimeSpan.minutes).toFixed(2)}
               </div>
-              <p className={`mt-2 text-xs ${darkMode ? "text-blue-300/70" : "text-blue-600/70"}`}>每分钟请求</p>
+              <p className={`mt-2 text-xs ${darkMode ? "text-blue-300/70" : "text-blue-600/70"}`}>Requests per minute</p>
             </div>
 
-            {/* 日均请求 */}
+            {/* Avg daily Requests */}
             <div className={`animate-card-float rounded-2xl p-5 shadow-sm ring-1 transition-all duration-200 ${darkMode ? "bg-gradient-to-br from-purple-600/20 to-purple-800/10 ring-purple-500/30 hover:shadow-lg hover:shadow-purple-500/20 hover:ring-purple-500/50" : "bg-purple-50 ring-purple-200 hover:shadow-lg hover:ring-purple-300"}`} style={{ animationDelay: '0.3s' }}>
-              <div className="text-sm uppercase tracking-wide text-purple-400">日均请求 (RPD)</div>
+              <div className="text-sm uppercase tracking-wide text-purple-400">Avg Daily Requests (RPD)</div>
               <div className={`mt-3 text-2xl font-bold ${darkMode ? "text-white" : "text-slate-900"}`}>
                 {formatCompactNumber(Math.round(overviewData.totalRequests / actualTimeSpan.days))}
               </div>
-              <p className={`mt-2 text-xs ${darkMode ? "text-purple-300/70" : "text-purple-600/70"}`}>每日请求数</p>
+              <p className={`mt-2 text-xs ${darkMode ? "text-purple-300/70" : "text-purple-600/70"}`}>Requests per day</p>
             </div>
           </>
         )}
@@ -1218,14 +1218,14 @@ export default function DashboardPage() {
         ) : (
           <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-3 flex flex-col ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`} style={{ animationDelay: '0.15s' }}>
             <div className="flex items-center justify-between">
-              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>每日用量趋势</h2>
+              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Daily Usage Trend</h2>
               <div className="flex items-center gap-2">
                 <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{rangeSubtitle}</span>
                 <button
                   type="button"
                   onClick={() => setFullscreenChart("trend")}
                   className={`rounded-lg p-1.5 transition ${darkMode ? "text-slate-400 hover:bg-slate-700 hover:text-white" : "text-slate-500 hover:bg-slate-200 hover:text-slate-900"}`}
-                  title="全屏查看"
+                  title="View fullscreen"
                 >
                   <Maximize2 className="h-4 w-4" />
                 </button>
@@ -1234,8 +1234,8 @@ export default function DashboardPage() {
             <div className="mt-4 flex-1 min-h-64">
               {showEmpty ? (
                 <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 text-center">
-                  <p className="text-base text-slate-400">暂无图表数据</p>
-                  <p className="mt-1 text-sm text-slate-500">请先触发 /api/sync 同步数据</p>
+                  <p className="text-base text-slate-400">No chart data</p>
+                  <p className="mt-1 text-sm text-slate-500">Please trigger /api/sync to sync data first</p>
                 </div>
               ) : (
               <ResponsiveContainer width="100%" height="100%">
@@ -1285,11 +1285,11 @@ export default function DashboardPage() {
                           <div className="space-y-1">
                             {sortedPayload.map((entry: any, index: number) => {
                               let color = entry.color;
-                              if (entry.name === "请求数") color = darkMode ? "#60a5fa" : "#3b82f6";
+                              if (entry.name === "Requests") color = darkMode ? "#60a5fa" : "#3b82f6";
                               if (entry.name === "Tokens") color = darkMode ? "#4ade80" : "#16a34a";
-                              if (entry.name === "费用") color = "#fbbf24";
+                              if (entry.name === "Cost") color = "#fbbf24";
                               
-                              const value = entry.name === "费用" ? formatCurrency(entry.value) : formatNumberWithCommas(entry.value);
+                              const value = entry.name === "Cost" ? formatCurrency(entry.value) : formatNumberWithCommas(entry.value);
                               
                               return (
                                 <div key={index} className="flex items-center gap-2 text-sm">
@@ -1314,20 +1314,20 @@ export default function DashboardPage() {
                     wrapperStyle={{ paddingTop: 0, paddingBottom: 0, lineHeight: "24px", cursor: "pointer" }} 
                     onClick={handleTrendLegendClick}
                     formatter={(value: string) => {
-                      const keyMap: Record<string, string> = { "请求数": "requests", "Tokens": "tokens", "费用": "cost" };
+                      const keyMap: Record<string, string> = { "Requests": "requests", "Tokens": "tokens", "Cost": "cost" };
                       const key = keyMap[value];
                       const isVisible = trendVisible[key];
                       if (!isVisible) {
                         return <span style={{ color: darkMode ? "#94a3b8" : "#cbd5e1", textDecoration: "line-through" }}>{value}</span>;
                       }
-                      const colors: Record<string, string> = { "请求数": darkMode ? "#60a5fa" : "#3b82f6", "Tokens": darkMode ? "#4ade80" : "#16a34a", "费用": "#fbbf24" };
+                      const colors: Record<string, string> = { "Requests": darkMode ? "#60a5fa" : "#3b82f6", "Tokens": darkMode ? "#4ade80" : "#16a34a", "Cost": "#fbbf24" };
                       return <span style={{ color: colors[value] || "inherit", fontWeight: 500 }}>{value}</span>;
                     }}
                     itemSorter={(item: any) => ({ requests: 0, tokens: 1, cost: 2 } as Record<string, number>)[item?.dataKey] ?? 999}
                   />
-                  <Line hide={!trendVisible.requests} yAxisId={trendConfig.lineAxisMap.requests} type="monotone" dataKey="requests" stroke={darkMode ? "#60a5fa" : "#3b82f6"} strokeWidth={2} name="请求数" dot={{ r: 3, fill: darkMode ? "#60a5fa" : "#3b82f6", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
+                  <Line hide={!trendVisible.requests} yAxisId={trendConfig.lineAxisMap.requests} type="monotone" dataKey="requests" stroke={darkMode ? "#60a5fa" : "#3b82f6"} strokeWidth={2} name="Requests" dot={{ r: 3, fill: darkMode ? "#60a5fa" : "#3b82f6", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
                   <Line hide={!trendVisible.tokens} yAxisId={trendConfig.lineAxisMap.tokens} type="monotone" dataKey="tokens" stroke={darkMode ? "#4ade80" : "#16a34a"} strokeWidth={2} name="Tokens" dot={{ r: 3, fill: darkMode ? "#4ade80" : "#16a34a", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
-                  <Line hide={!trendVisible.cost} yAxisId={trendConfig.lineAxisMap.cost} type="monotone" dataKey="cost" stroke="#fbbf24" strokeWidth={2} name="费用" dot={{ r: 3, fill: "#fbbf24", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
+                  <Line hide={!trendVisible.cost} yAxisId={trendConfig.lineAxisMap.cost} type="monotone" dataKey="cost" stroke="#fbbf24" strokeWidth={2} name="Cost" dot={{ r: 3, fill: "#fbbf24", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
                 </LineChart>
               </ResponsiveContainer>
               )}
@@ -1335,7 +1335,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* 模型用量饼图 */}
+        {/* Model usage pie chart */}
         {loadingOverview || !overviewData ? (
           <div className="lg:col-span-2">
             <Skeleton className="h-[400px] rounded-2xl" />
@@ -1343,7 +1343,7 @@ export default function DashboardPage() {
         ) : (
           <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-2 flex flex-col ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`} style={{ animationDelay: '0.2s' }}>
             <div className="flex items-center justify-between">
-              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>模型用量分布</h2>
+              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Model Usage Distribution</h2>
               <div className="flex items-center gap-2">
                 <div className={`flex items-center gap-1 rounded-lg border p-0.5 ${darkMode ? "border-slate-700 bg-slate-800" : "border-slate-300 bg-slate-100"}`}>
                   <button
@@ -1356,14 +1356,14 @@ export default function DashboardPage() {
                     onClick={() => setPieMode("requests")}
                     className={`rounded-md px-2 py-1 text-xs font-medium transition ${pieMode === "requests" ? "bg-indigo-600 text-white" : darkMode ? "text-slate-400 hover:text-slate-200" : "text-slate-600 hover:text-slate-900"}`}
                   >
-                    请求
+                    Requests
                   </button>
                 </div>
                 <button
                   type="button"
                   onClick={() => setFullscreenChart("pie")}
                   className={`rounded-lg p-1.5 transition ${darkMode ? "text-slate-400 hover:bg-slate-700 hover:text-white" : "text-slate-500 hover:bg-slate-200 hover:text-slate-900"}`}
-                  title="全屏查看"
+                  title="View fullscreen"
                 >
                   <Maximize2 className="h-4 w-4" />
                 </button>
@@ -1372,11 +1372,11 @@ export default function DashboardPage() {
             <div className="mt-4 flex gap-4 h-[300px]">
               {showEmpty || overviewData.models.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 text-center">
-                  <p className="text-base text-slate-400">暂无模型数据</p>
+                  <p className="text-base text-slate-400">No model data</p>
                 </div>
               ) : (
               <>
-                {/* 饼图 */}
+                {/* Pie Chart */}
                 <div
                   ref={pieChartContainerRef}
                   className="shrink-0 w-64"
@@ -1434,7 +1434,7 @@ export default function DashboardPage() {
                               <p className={`mb-2 font-medium text-sm ${darkMode ? "text-slate-50" : "text-slate-900"}`}>{data.model}</p>
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2 text-sm">
-                                  <span className="text-blue-400 font-medium">请求数:</span>
+                                  <span className="text-blue-400 font-medium">Requests:</span>
                                   <span className={darkMode ? "text-slate-50" : "text-slate-700"}>{formatNumberWithCommas(data.requests)}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
@@ -1449,7 +1449,7 @@ export default function DashboardPage() {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                {/* 自定义图例 */}
+                {/* Custom legend */}
                 <div className="flex-1 overflow-y-auto pr-2 space-y-1 custom-scrollbar">
                   {[...overviewData.models]
                     .sort((a, b) => b[pieMode] - a[pieMode])
@@ -1493,7 +1493,7 @@ export default function DashboardPage() {
                         <div className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-600"} ml-5`}>
                           <span className="font-semibold">{percent.toFixed(1)}%</span>
                           <span className="mx-1.5">·</span>
-                          <span>{pieMode === "tokens" ? formatCompactNumber(item.tokens) : formatNumberWithCommas(item.requests)} {pieMode === "tokens" ? "tokens" : "次"}</span>
+                          <span>{pieMode === "tokens" ? formatCompactNumber(item.tokens) : formatNumberWithCommas(item.requests)} {pieMode === "tokens" ? "tokens" : "times"}</span>
                         </div>
                       </div>
                     );
@@ -1506,9 +1506,9 @@ export default function DashboardPage() {
         )}
       </section>
 
-      {/* 第二行：每小时负载 + 模型费用 */}
+      {/* Second row: hourly load + model costs */}
       <section className="mt-6 grid gap-6 lg:grid-cols-5">
-        {/* 每小时负载分布 */}
+        {/* Hourly Load Distribution */}
         {loadingOverview || !overviewData ? (
           <div className="lg:col-span-3">
             <Skeleton className="h-[400px] rounded-2xl" />
@@ -1517,7 +1517,7 @@ export default function DashboardPage() {
           <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-3 flex flex-col ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`} style={{ animationDelay: '0.25s' }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>每小时负载分布</h2>
+                <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Hourly Load Distribution</h2>
                 <div className="flex items-center gap-1">
                   {hourRangeOptions.map((opt) => (
                     <button
@@ -1537,13 +1537,13 @@ export default function DashboardPage() {
               <div className="flex items-center gap-2">
                 <span className={`flex items-center gap-1 text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
                   <Info className="h-3 w-3" />
-                  Token 类型分布
+                  Token Type Distribution
                 </span>
                 <button
                   type="button"
                   onClick={() => setFullscreenChart("stacked")}
                   className={`rounded-lg p-1.5 transition ${darkMode ? "text-slate-400 hover:bg-slate-700 hover:text-white" : "text-slate-500 hover:bg-slate-200 hover:text-slate-900"}`}
-                  title="全屏查看"
+                  title="View fullscreen"
                 >
                   <Maximize2 className="h-4 w-4" />
                 </button>
@@ -1552,8 +1552,8 @@ export default function DashboardPage() {
             <div className="mt-4 flex-1 min-h-64">
               {showEmpty ? (
                 <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 text-center">
-                  <p className="text-base text-slate-400">暂无小时数据</p>
-                  <p className="mt-1 text-sm text-slate-500">请先触发 /api/sync 同步数据</p>
+                  <p className="text-base text-slate-400">No hourly data</p>
+                  <p className="mt-1 text-sm text-slate-500">Please trigger /api/sync to sync data first</p>
                 </div>
               ) : (
               <ResponsiveContainer width="100%" height="100%">
@@ -1600,11 +1600,11 @@ export default function DashboardPage() {
                           <div className="space-y-1">
                             {sortedPayload.map((entry: any, index: number) => {
                               let color = entry.color;
-                              if (entry.name === "输入") color = darkMode ? "#fb7185" : "#e11d48";
-                              if (entry.name === "输出") color = darkMode ? "#4ade80" : "#16a34a";
-                              if (entry.name === "思考") color = darkMode ? "#fbbf24" : "#d97706";
-                              if (entry.name === "缓存") color = darkMode ? "#c084fc" : "#9333ea";
-                              if (entry.name === "请求数") color = darkMode ? "#60a5fa" : "#3b82f6";
+                              if (entry.name === "Input") color = darkMode ? "#fb7185" : "#e11d48";
+                              if (entry.name === "Output") color = darkMode ? "#4ade80" : "#16a34a";
+                              if (entry.name === "Reasoning") color = darkMode ? "#fbbf24" : "#d97706";
+                              if (entry.name === "Cached") color = darkMode ? "#c084fc" : "#9333ea";
+                              if (entry.name === "Requests") color = darkMode ? "#60a5fa" : "#3b82f6";
                               
                               return (
                                 <div key={index} className="flex items-center gap-2 text-sm">
@@ -1628,11 +1628,11 @@ export default function DashboardPage() {
                     onClick={handleHourlyLegendClick}
                     formatter={(value: string) => {
                       const keyMap: Record<string, string> = {
-                        "请求数": "requests",
-                        "输入": "inputTokens",
-                        "输出": "outputTokens",
-                        "思考": "reasoningTokens",
-                        "缓存": "cachedTokens"
+                        "Requests": "requests",
+                        "Input": "inputTokens",
+                        "Output": "outputTokens",
+                        "Reasoning": "reasoningTokens",
+                        "Cached": "cachedTokens"
                       };
                       const key = keyMap[value];
                       const isVisible = hourlyVisible[key];
@@ -1642,35 +1642,35 @@ export default function DashboardPage() {
                       }
 
                       const colors: Record<string, string> = {
-                        "请求数": darkMode ? "#60a5fa" : "#3b82f6",
-                        "输入": darkMode ? "#fb7185" : "#e11d48",
-                        "输出": darkMode ? "#4ade80" : "#16a34a",
-                        "思考": darkMode ? "#fbbf24" : "#d97706",
-                        "缓存": darkMode ? "#c084fc" : "#9333ea"
+                        "Requests": darkMode ? "#60a5fa" : "#3b82f6",
+                        "Input": darkMode ? "#fb7185" : "#e11d48",
+                        "Output": darkMode ? "#4ade80" : "#16a34a",
+                        "Reasoning": darkMode ? "#fbbf24" : "#d97706",
+                        "Cached": darkMode ? "#c084fc" : "#9333ea"
                       };
-                      return <span style={{ color: colors[value] || "inherit", fontWeight: 500 }} title="按住 Ctrl 点击可只显示该项">{value}</span>;
+                      return <span style={{ color: colors[value] || "inherit", fontWeight: 500 }} title="Hold Ctrl and click to show only this item">{value}</span>;
                     }}
                     itemSorter={(item: any) => ({ requests: 0, inputTokens: 1, outputTokens: 2, reasoningTokens: 3, cachedTokens: 4 } as Record<string, number>)[item?.dataKey] ?? 999}
                     payload={[
-                      { value: "请求数", type: "line", id: "requests", color: "#3b82f6", dataKey: "requests" },
-                      { value: "输入", type: "square", id: "inputTokens", color: "#e11d48", dataKey: "inputTokens" },
-                      { value: "输出", type: "square", id: "outputTokens", color: "#16a34a", dataKey: "outputTokens" },
-                      { value: "思考", type: "square", id: "reasoningTokens", color: "#d97706", dataKey: "reasoningTokens" },
-                      { value: "缓存", type: "square", id: "cachedTokens", color: "#9333ea", dataKey: "cachedTokens" },
+                      { value: "Requests", type: "line", id: "requests", color: "#3b82f6", dataKey: "requests" },
+                      { value: "Input", type: "square", id: "inputTokens", color: "#e11d48", dataKey: "inputTokens" },
+                      { value: "Output", type: "square", id: "outputTokens", color: "#16a34a", dataKey: "outputTokens" },
+                      { value: "Reasoning", type: "square", id: "reasoningTokens", color: "#d97706", dataKey: "reasoningTokens" },
+                      { value: "Cached", type: "square", id: "cachedTokens", color: "#9333ea", dataKey: "cachedTokens" },
                     ]}
                   />
-                  {/* 堆积柱状图 - 柔和配色，仅顶部圆角，增强动画 */}
-                  <Bar hide={!hourlyVisible.inputTokens} yAxisId="right" dataKey="inputTokens" name="输入" stackId="tokens" fill="url(#gradInput)" fillOpacity={0.8} animationDuration={600} barSize={24} />
-                  <Bar hide={!hourlyVisible.outputTokens} yAxisId="right" dataKey="outputTokens" name="输出" stackId="tokens" fill="url(#gradOutput)" fillOpacity={0.8} animationDuration={600} barSize={24} />
-                  <Bar hide={!hourlyVisible.reasoningTokens} yAxisId="right" dataKey="reasoningTokens" name="思考" stackId="tokens" fill="url(#gradReasoning)" fillOpacity={0.8} animationDuration={600} barSize={24} />
-                  <Bar hide={!hourlyVisible.cachedTokens} yAxisId="right" dataKey="cachedTokens" name="缓存" stackId="tokens" fill="url(#gradCached)" fillOpacity={0.8} radius={[4, 4, 0, 0]} animationDuration={600} barSize={24} />
-                  {/* 曲线在最上层 - 带描边突出显示 */}
+                  {/* Stacked bar chart - soft colors, top rounded corners, enhanced animation */}
+                  <Bar hide={!hourlyVisible.inputTokens} yAxisId="right" dataKey="inputTokens" name="Input" stackId="tokens" fill="url(#gradInput)" fillOpacity={0.8} animationDuration={600} barSize={24} />
+                  <Bar hide={!hourlyVisible.outputTokens} yAxisId="right" dataKey="outputTokens" name="Output" stackId="tokens" fill="url(#gradOutput)" fillOpacity={0.8} animationDuration={600} barSize={24} />
+                  <Bar hide={!hourlyVisible.reasoningTokens} yAxisId="right" dataKey="reasoningTokens" name="Reasoning" stackId="tokens" fill="url(#gradReasoning)" fillOpacity={0.8} animationDuration={600} barSize={24} />
+                  <Bar hide={!hourlyVisible.cachedTokens} yAxisId="right" dataKey="cachedTokens" name="Cached" stackId="tokens" fill="url(#gradCached)" fillOpacity={0.8} radius={[4, 4, 0, 0]} animationDuration={600} barSize={24} />
+                  {/* Line on top layer - with stroke highlight */}
                   <Line 
                     hide={!hourlyVisible.requests}
                     yAxisId="left" 
                     type="monotone" 
                     dataKey="requests" 
-                    name="请求数" 
+                    name="Requests" 
                     stroke={darkMode ? "#60a5fa" : "#3b82f6"} 
                     strokeWidth={3}
                     dot={{ r: 3, fill: darkMode ? "#60a5fa" : "#3b82f6", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} 
@@ -1683,7 +1683,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* 模型费用 */}
+        {/* Model costs */}
         {loadingOverview || !overviewData ? (
           <div className="lg:col-span-2">
             <Skeleton className="h-[400px] rounded-2xl" />
@@ -1691,17 +1691,17 @@ export default function DashboardPage() {
         ) : (
           <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-2 ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`} style={{ animationDelay: '0.3s' }}>
             <div className="flex items-center justify-between">
-              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>预估模型费用</h2>
-              <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>基于配置的价格</span>
+              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Estimated Model Costs</h2>
+              <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Based on configured prices</span>
             </div>
             <div className="scrollbar-slim mt-3 max-h-80 min-h-[14rem] space-y-2 overflow-y-auto">
               {showEmpty ? (
                 <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 py-6 text-center">
-                  <p className="text-base text-slate-400">暂无模型数据</p>
+                  <p className="text-base text-slate-400">No model data</p>
                 </div>
               ) : sortedModelsByCost.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 py-6 text-center">
-                <p className="text-base text-slate-400">无匹配的模型</p>
+                <p className="text-base text-slate-400">No matching models</p>
               </div>
             ) : (
               sortedModelsByCost.map((model) => (
@@ -1712,7 +1712,7 @@ export default function DashboardPage() {
                   <div>
                     <p className={`text-sm font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>{model.model}</p>
                     <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
-                      {formatNumberWithCommas(model.requests)} 请求数 • {formatCompactNumber(model.tokens)} tokens
+                      {formatNumberWithCommas(model.requests)} Requests • {formatCompactNumber(model.tokens)} tokens
                     </p>
                   </div>
                   <div className={`text-base font-semibold ${darkMode ? "text-emerald-400" : "text-emerald-600"}`}>{formatCurrency(model.cost)}</div>
@@ -1732,11 +1732,11 @@ export default function DashboardPage() {
         <section className={`animate-card-float mt-8 rounded-2xl p-6 shadow-sm ring-1 ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`} style={{ animationDelay: '0.35s' }}>
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>模型价格配置</h2>
-              <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>设置每百万 tokens 单价，费用计算将立即更新</p>
+              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Model Price Configuration</h2>
+              <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Set price per million tokens, cost calculation will update immediately</p>
             </div>
             {status ? (
-              <p className={`text-xs ${status === "已保存" ? "text-emerald-400" : "text-red-400"}`}>
+              <p className={`text-xs ${status === "Saved" ? "text-emerald-400" : "text-red-400"}`}>
                 {status}
               </p>
             ) : null}
@@ -1746,18 +1746,18 @@ export default function DashboardPage() {
           <form onSubmit={handleSubmit} className={`rounded-xl border p-5 lg:col-span-2 ${darkMode ? "border-slate-700 bg-slate-800/50" : "border-slate-200 bg-slate-50"}`}>
             <div className="grid gap-4">
               <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-                模型名称
+                Model Name
                 <ComboBox
                   value={form.model}
                   onChange={(val) => setForm((f) => ({ ...f, model: val }))}
                   options={priceModelOptions}
-                  placeholder="gpt-4o（支持通配符如 gemini-2*）"
+                  placeholder="gpt-4o（Supports wildcards like gemini-2*）"
                   darkMode={darkMode}
                   className="mt-1 w-full"
                 />
               </label>
               <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-                输入（$ / M tokens）
+                Input（$ / M tokens）
                 <input
                   type="number"
                   step="0.01"
@@ -1768,18 +1768,18 @@ export default function DashboardPage() {
                 />
               </label>
               <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-                缓存输入（$ / M tokens）
+                CachedInput（$ / M tokens）
                 <input
                   type="number"
                   step="0.01"
                   className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${darkMode ? "border-slate-700 bg-slate-900 text-white placeholder-slate-500" : "border-slate-300 bg-white text-slate-900 placeholder-slate-400"}`}
-                  placeholder="0.5（可选，默认为 0）"
+                  placeholder="0.5（Optional, defaults to 0）"
                   value={form.cachedInputPricePer1M}
                   onChange={(e) => setForm((f) => ({ ...f, cachedInputPricePer1M: e.target.value }))}
                 />
               </label>
               <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-                输出（$ / M tokens）
+                Output（$ / M tokens）
                 <input
                   type="number"
                   step="0.01"
@@ -1795,7 +1795,7 @@ export default function DashboardPage() {
                 className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-600 disabled:opacity-60"
               >
                 <Save className="mr-2 h-4 w-4" />
-                {saving ? "保存中..." : "保存价格"}
+                {saving ? "Saving..." : "Save Price"}
               </button>
             </div>
           </form>
@@ -1807,9 +1807,9 @@ export default function DashboardPage() {
                   <div>
                     <p className={`text-base font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>{price.model}</p>
                     <p className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
-                      ${price.inputPricePer1M}/M 输入
-                      {price.cachedInputPricePer1M > 0 && ` • $${price.cachedInputPricePer1M}/M 缓存`}
-                      {" • "}${price.outputPricePer1M}/M 输出
+                      ${price.inputPricePer1M}/M Input
+                      {price.cachedInputPricePer1M > 0 && ` • $${price.cachedInputPricePer1M}/M Cached`}
+                      {" • "}${price.outputPricePer1M}/M Output
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -1817,7 +1817,7 @@ export default function DashboardPage() {
                       type="button"
                       onClick={() => openEditModal(price)}
                       className={`rounded-lg p-2 transition ${darkMode ? "text-slate-400 hover:bg-slate-700 hover:text-white" : "text-slate-500 hover:bg-slate-200 hover:text-slate-900"}`}
-                      title="编辑"
+                      title="Edit"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
@@ -1825,7 +1825,7 @@ export default function DashboardPage() {
                       type="button"
                       onClick={() => setPendingDelete(price.model)}
                       className={`rounded-lg p-2 transition ${darkMode ? "text-red-400 hover:bg-red-900/50 hover:text-red-300" : "text-red-500 hover:bg-red-100 hover:text-red-700"}`}
-                      title="删除"
+                      title="Delete"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -1833,7 +1833,7 @@ export default function DashboardPage() {
                 </div>
               )) : (
                 <div className={`flex flex-col items-center justify-center rounded-xl border border-dashed py-8 text-center ${darkMode ? "border-slate-700 bg-slate-800/30" : "border-slate-300 bg-slate-50"}`}>
-                  <p className="text-base text-slate-400">暂无已配置价格</p>
+                  <p className="text-base text-slate-400">No configured prices</p>
                 </div>
               )}
             </div>
@@ -1842,26 +1842,26 @@ export default function DashboardPage() {
         </section>
       )}
 
-      {/* 编辑价格模态框 */}
+      {/* Edit price modal */}
       <Modal
         isOpen={!!editingPrice}
         onClose={() => setEditingPrice(null)}
-        title="编辑价格"
+        title="Edit Price"
         darkMode={darkMode}
       >
         <div className="mt-4 grid gap-3">
           <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-            模型名称
+            Model Name
             <input
               type="text"
               className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${darkMode ? "border-slate-700 bg-slate-900 text-white placeholder-slate-500" : "border-slate-300 bg-white text-slate-900 placeholder-slate-400"}`}
-              placeholder="模型名称"
+              placeholder="Model Name"
               value={editForm.model}
               onChange={(e) => setEditForm((f) => ({ ...f, model: e.target.value }))}
             />
           </label>
           <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-            输入（$ / M tokens）
+            Input（$ / M tokens）
             <input
               type="number"
               step="0.01"
@@ -1871,7 +1871,7 @@ export default function DashboardPage() {
             />
           </label>
           <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-            缓存输入（$ / M tokens）
+            CachedInput（$ / M tokens）
             <input
               type="number"
               step="0.01"
@@ -1881,7 +1881,7 @@ export default function DashboardPage() {
             />
           </label>
           <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-            输出（$ / M tokens）
+            Output（$ / M tokens）
             <input
               type="number"
               step="0.01"
@@ -1896,28 +1896,28 @@ export default function DashboardPage() {
               onClick={() => setEditingPrice(null)}
               className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${darkMode ? "border-slate-600 text-slate-300 hover:bg-slate-700" : "border-slate-300 text-slate-700 hover:bg-slate-100"}`}
             >
-              取消
+              Cancel
             </button>
             <button
               type="button"
               onClick={handleEditSave}
               className="flex-1 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
             >
-              保存
+              Save
             </button>
           </div>
         </div>
       </Modal>
 
-      {/* 删除价格确认模态框 */}
+      {/* Delete price confirmation modal */}
       <Modal
         isOpen={!!pendingDelete}
         onClose={() => setPendingDelete(null)}
-        title="确认删除"
+        title="Confirm Delete"
         darkMode={darkMode}
       >
         <p className={`mt-2 text-sm ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
-          删除模型 {pendingDelete} 的价格配置？此操作不可恢复。
+          Delete model {pendingDelete}&apos;s price configuration? This action cannot be undone.
         </p>
         <div className="mt-4 flex gap-2">
           <button
@@ -1925,25 +1925,25 @@ export default function DashboardPage() {
             onClick={() => setPendingDelete(null)}
             className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${darkMode ? "border-slate-600 text-slate-300 hover:bg-slate-700" : "border-slate-300 text-slate-700 hover:bg-slate-100"}`}
           >
-            取消
+            Cancel
           </button>
           <button
             type="button"
             onClick={confirmDeletePrice}
             className="flex-1 rounded-lg border border-red-400 px-3 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-500/10"
           >
-            确认删除
+            Confirm Delete
           </button>
         </div>
       </Modal>
 
-      {/* 全屏图表模态框 */}
+      {/* Fullscreen chart modal */}
       <Modal
         isOpen={!!fullscreenChart}
         onClose={() => setFullscreenChart(null)}
         title={
           fullscreenChart === "stacked" || fullscreenChart === "pie" ? undefined :
-          fullscreenChart === "trend" ? "每日请求与 Token 趋势" :
+          fullscreenChart === "trend" ? "Daily Requests & Token Trend" :
           ""
         }
         darkMode={darkMode}
@@ -1999,11 +1999,11 @@ export default function DashboardPage() {
                         <div className="space-y-1">
                           {sortedPayload.map((entry: any, index: number) => {
                             let color = entry.color;
-                            if (entry.name === "请求数") color = darkMode ? "#60a5fa" : "#3b82f6";
+                            if (entry.name === "Requests") color = darkMode ? "#60a5fa" : "#3b82f6";
                             if (entry.name === "Tokens") color = darkMode ? "#4ade80" : "#16a34a";
-                            if (entry.name === "费用") color = "#fbbf24";
+                            if (entry.name === "Cost") color = "#fbbf24";
                             
-                            const value = entry.name === "费用" ? formatCurrency(entry.value) : formatNumberWithCommas(entry.value);
+                            const value = entry.name === "Cost" ? formatCurrency(entry.value) : formatNumberWithCommas(entry.value);
                             
                             return (
                               <div key={index} className="flex items-center gap-2 text-sm">
@@ -2028,27 +2028,27 @@ export default function DashboardPage() {
                   wrapperStyle={{ paddingTop: 0, paddingBottom: 0, lineHeight: "24px", cursor: "pointer" }} 
                   onClick={handleTrendLegendClick}
                   formatter={(value: string) => {
-                    const keyMap: Record<string, string> = { "请求数": "requests", "Tokens": "tokens", "费用": "cost" };
+                    const keyMap: Record<string, string> = { "Requests": "requests", "Tokens": "tokens", "Cost": "cost" };
                     const key = keyMap[value];
                     const isVisible = trendVisible[key];
                     if (!isVisible) {
                       return <span style={{ color: darkMode ? "#94a3b8" : "#cbd5e1", textDecoration: "line-through" }}>{value}</span>;
                     }
-                    const colors: Record<string, string> = { "请求数": darkMode ? "#60a5fa" : "#3b82f6", "Tokens": darkMode ? "#4ade80" : "#16a34a", "费用": "#fbbf24" };
+                    const colors: Record<string, string> = { "Requests": darkMode ? "#60a5fa" : "#3b82f6", "Tokens": darkMode ? "#4ade80" : "#16a34a", "Cost": "#fbbf24" };
                     return <span style={{ color: colors[value] || "inherit", fontWeight: 500 }}>{value}</span>;
                   }}
                   itemSorter={(item: any) => ({ requests: 0, tokens: 1, cost: 2 } as Record<string, number>)[item?.dataKey] ?? 999}
                 />
-                <Line hide={!trendVisible.requests} yAxisId={trendConfig.lineAxisMap.requests} type="monotone" dataKey="requests" stroke={darkMode ? "#60a5fa" : "#3b82f6"} strokeWidth={2} name="请求数" dot={{ r: 3, fill: darkMode ? "#60a5fa" : "#3b82f6", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
+                <Line hide={!trendVisible.requests} yAxisId={trendConfig.lineAxisMap.requests} type="monotone" dataKey="requests" stroke={darkMode ? "#60a5fa" : "#3b82f6"} strokeWidth={2} name="Requests" dot={{ r: 3, fill: darkMode ? "#60a5fa" : "#3b82f6", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
                 <Line hide={!trendVisible.tokens} yAxisId={trendConfig.lineAxisMap.tokens} type="monotone" dataKey="tokens" stroke={darkMode ? "#4ade80" : "#16a34a"} strokeWidth={2} name="Tokens" dot={{ r: 3, fill: darkMode ? "#4ade80" : "#16a34a", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
-                <Line hide={!trendVisible.cost} yAxisId={trendConfig.lineAxisMap.cost} type="monotone" dataKey="cost" stroke="#fbbf24" strokeWidth={2} name="费用" dot={{ r: 3, fill: "#fbbf24", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
+                <Line hide={!trendVisible.cost} yAxisId={trendConfig.lineAxisMap.cost} type="monotone" dataKey="cost" stroke="#fbbf24" strokeWidth={2} name="Cost" dot={{ r: 3, fill: "#fbbf24", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
               </LineChart>
             </ResponsiveContainer>
           )}
           {fullscreenChart === "pie" && overviewData && overviewData.models.length > 0 && (
             <div className="flex h-full flex-col gap-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-lg font-semibold text-white">模型用量分布</h3>
+                <h3 className="text-lg font-semibold text-white">Model Usage Distribution</h3>
                 <div className="flex items-center gap-1 pr-5">
                   <button
                     type="button"
@@ -2070,12 +2070,12 @@ export default function DashboardPage() {
                         : darkMode ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
                     }`}
                   >
-                    请求数
+                    Requests
                   </button>
                 </div>
               </div>
               <div className="flex gap-6 flex-1">
-                {/* 饼图 */}
+                {/* Pie Chart */}
                 <div
                   ref={pieChartFullscreenContainerRef}
                   className="flex-1"
@@ -2133,7 +2133,7 @@ export default function DashboardPage() {
                               <p className={`mb-2 font-medium text-sm ${darkMode ? "text-slate-50" : "text-slate-900"}`}>{data.model}</p>
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2 text-sm">
-                                  <span className="text-blue-400 font-medium">请求数:</span>
+                                  <span className="text-blue-400 font-medium">Requests:</span>
                                   <span className={darkMode ? "text-slate-50" : "text-slate-700"}>{formatNumberWithCommas(data.requests)}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
@@ -2148,7 +2148,7 @@ export default function DashboardPage() {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                {/* 自定义图例 */}
+                {/* Custom legend */}
                 <div className="w-80 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
                   {[...overviewData.models]
                     .sort((a, b) => b[pieMode] - a[pieMode])
@@ -2192,7 +2192,7 @@ export default function DashboardPage() {
                           <div className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-600"} ml-6`}>
                             <span className="font-semibold">{percent.toFixed(1)}%</span>
                             <span className="mx-1.5">·</span>
-                            <span>{pieMode === "tokens" ? formatCompactNumber(item.tokens) : formatNumberWithCommas(item.requests)} {pieMode === "tokens" ? "tokens" : "次"}</span>
+                            <span>{pieMode === "tokens" ? formatCompactNumber(item.tokens) : formatNumberWithCommas(item.requests)} {pieMode === "tokens" ? "tokens" : "times"}</span>
                           </div>
                         </div>
                     );
@@ -2205,7 +2205,7 @@ export default function DashboardPage() {
             <div className="flex h-full flex-col gap-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-lg font-semibold text-white">每小时负载分布</h3>
+                  <h3 className="text-lg font-semibold text-white">Hourly Load Distribution</h3>
                   <div className="flex items-center gap-1">
                     {hourRangeOptions.map((opt) => (
                       <button
@@ -2232,7 +2232,7 @@ export default function DashboardPage() {
                         : darkMode ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
                     }`}
                   >
-                    堆积面积图
+                    Stacked Area Chart
                   </button>
                   <button
                     type="button"
@@ -2243,7 +2243,7 @@ export default function DashboardPage() {
                         : darkMode ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
                     }`}
                   >
-                    堆积柱状图
+                    Stacked Bar Chart
                   </button>
                 </div>
               </div>
@@ -2291,11 +2291,11 @@ export default function DashboardPage() {
                           <div className="space-y-1">
                             {sortedPayload.map((entry: any, index: number) => {
                               let color = entry.color;
-                              if (entry.name === "输入") color = darkMode ? "#fb7185" : "#e11d48";
-                              if (entry.name === "输出") color = darkMode ? "#4ade80" : "#16a34a";
-                              if (entry.name === "思考") color = darkMode ? "#fbbf24" : "#d97706";
-                              if (entry.name === "缓存") color = darkMode ? "#c084fc" : "#9333ea";
-                              if (entry.name === "请求数") color = darkMode ? "#60a5fa" : "#3b82f6";
+                              if (entry.name === "Input") color = darkMode ? "#fb7185" : "#e11d48";
+                              if (entry.name === "Output") color = darkMode ? "#4ade80" : "#16a34a";
+                              if (entry.name === "Reasoning") color = darkMode ? "#fbbf24" : "#d97706";
+                              if (entry.name === "Cached") color = darkMode ? "#c084fc" : "#9333ea";
+                              if (entry.name === "Requests") color = darkMode ? "#60a5fa" : "#3b82f6";
                               
                               return (
                                 <div key={index} className="flex items-center gap-2 text-sm">
@@ -2319,11 +2319,11 @@ export default function DashboardPage() {
                     onClick={handleHourlyLegendClick}
                     formatter={(value: string) => {
                       const keyMap: Record<string, string> = {
-                        "请求数": "requests",
-                        "输入": "inputTokens",
-                        "输出": "outputTokens",
-                        "思考": "reasoningTokens",
-                        "缓存": "cachedTokens"
+                        "Requests": "requests",
+                        "Input": "inputTokens",
+                        "Output": "outputTokens",
+                        "Reasoning": "reasoningTokens",
+                        "Cached": "cachedTokens"
                       };
                       const key = keyMap[value];
                       const isVisible = hourlyVisible[key];
@@ -2333,46 +2333,46 @@ export default function DashboardPage() {
                       }
 
                       const colors: Record<string, string> = {
-                        "请求数": darkMode ? "#60a5fa" : "#3b82f6",
-                        "输入": darkMode ? "#fb7185" : "#e11d48",
-                        "输出": darkMode ? "#4ade80" : "#16a34a",
-                        "思考": darkMode ? "#fbbf24" : "#d97706",
-                        "缓存": darkMode ? "#c084fc" : "#9333ea"
+                        "Requests": darkMode ? "#60a5fa" : "#3b82f6",
+                        "Input": darkMode ? "#fb7185" : "#e11d48",
+                        "Output": darkMode ? "#4ade80" : "#16a34a",
+                        "Reasoning": darkMode ? "#fbbf24" : "#d97706",
+                        "Cached": darkMode ? "#c084fc" : "#9333ea"
                       };
-                      return <span style={{ color: colors[value] || "inherit", fontWeight: 500 }} title="按住 Ctrl 点击可只显示该项">{value}</span>;
+                      return <span style={{ color: colors[value] || "inherit", fontWeight: 500 }} title="Hold Ctrl and click to show only this item">{value}</span>;
                     }}
                     itemSorter={(item: any) => ({ requests: 0, inputTokens: 1, outputTokens: 2, reasoningTokens: 3, cachedTokens: 4 } as Record<string, number>)[item?.dataKey] ?? 999}
                     payload={[
-                      { value: "请求数", type: "line", id: "requests", color: "#3b82f6", dataKey: "requests" },
-                      { value: "输入", type: "square", id: "inputTokens", color: "#e11d48", dataKey: "inputTokens" },
-                      { value: "输出", type: "square", id: "outputTokens", color: "#16a34a", dataKey: "outputTokens" },
-                      { value: "思考", type: "square", id: "reasoningTokens", color: "#d97706", dataKey: "reasoningTokens" },
-                      { value: "缓存", type: "square", id: "cachedTokens", color: "#9333ea", dataKey: "cachedTokens" },
+                      { value: "Requests", type: "line", id: "requests", color: "#3b82f6", dataKey: "requests" },
+                      { value: "Input", type: "square", id: "inputTokens", color: "#e11d48", dataKey: "inputTokens" },
+                      { value: "Output", type: "square", id: "outputTokens", color: "#16a34a", dataKey: "outputTokens" },
+                      { value: "Reasoning", type: "square", id: "reasoningTokens", color: "#d97706", dataKey: "reasoningTokens" },
+                      { value: "Cached", type: "square", id: "cachedTokens", color: "#9333ea", dataKey: "cachedTokens" },
                     ]}
                   />
-                  {/* 堆积图层：支持柱状与面积切换 */}
+                  {/* Stacked layers: supports bar and area switching */}
                   {fullscreenHourlyMode === "area" ? (
                     <>
-                      <Area hide={!hourlyVisible.inputTokens} yAxisId="right" dataKey="inputTokens" name="输入" stackId="tokens" type="monotone" stroke="#fca5a5" fill="url(#gradInputFS)" fillOpacity={0.35} animationDuration={600} />
-                      <Area hide={!hourlyVisible.outputTokens} yAxisId="right" dataKey="outputTokens" name="输出" stackId="tokens" type="monotone" stroke="#4ade80" fill="url(#gradOutputFS)" fillOpacity={0.35} animationDuration={600} />
-                      <Area hide={!hourlyVisible.reasoningTokens} yAxisId="right" dataKey="reasoningTokens" name="思考" stackId="tokens" type="monotone" stroke="#fbbf24" fill="url(#gradReasoningFS)" fillOpacity={0.35} animationDuration={600} />
-                      <Area hide={!hourlyVisible.cachedTokens} yAxisId="right" dataKey="cachedTokens" name="缓存" stackId="tokens" type="monotone" stroke="#c084fc" fill="url(#gradCachedFS)" fillOpacity={0.35} animationDuration={600} />
+                      <Area hide={!hourlyVisible.inputTokens} yAxisId="right" dataKey="inputTokens" name="Input" stackId="tokens" type="monotone" stroke="#fca5a5" fill="url(#gradInputFS)" fillOpacity={0.35} animationDuration={600} />
+                      <Area hide={!hourlyVisible.outputTokens} yAxisId="right" dataKey="outputTokens" name="Output" stackId="tokens" type="monotone" stroke="#4ade80" fill="url(#gradOutputFS)" fillOpacity={0.35} animationDuration={600} />
+                      <Area hide={!hourlyVisible.reasoningTokens} yAxisId="right" dataKey="reasoningTokens" name="Reasoning" stackId="tokens" type="monotone" stroke="#fbbf24" fill="url(#gradReasoningFS)" fillOpacity={0.35} animationDuration={600} />
+                      <Area hide={!hourlyVisible.cachedTokens} yAxisId="right" dataKey="cachedTokens" name="Cached" stackId="tokens" type="monotone" stroke="#c084fc" fill="url(#gradCachedFS)" fillOpacity={0.35} animationDuration={600} />
                     </>
                   ) : (
                     <>
-                      <Bar hide={!hourlyVisible.inputTokens} yAxisId="right" dataKey="inputTokens" name="输入" stackId="tokens" fill="url(#gradInputFS)" fillOpacity={0.8} animationDuration={600} barSize={32} />
-                      <Bar hide={!hourlyVisible.outputTokens} yAxisId="right" dataKey="outputTokens" name="输出" stackId="tokens" fill="url(#gradOutputFS)" fillOpacity={0.8} animationDuration={600} barSize={32} />
-                      <Bar hide={!hourlyVisible.reasoningTokens} yAxisId="right" dataKey="reasoningTokens" name="思考" stackId="tokens" fill="url(#gradReasoningFS)" fillOpacity={0.8} animationDuration={600} barSize={32} />
-                      <Bar hide={!hourlyVisible.cachedTokens} yAxisId="right" dataKey="cachedTokens" name="缓存" stackId="tokens" fill="url(#gradCachedFS)" fillOpacity={0.8} animationDuration={600} barSize={32} />
+                      <Bar hide={!hourlyVisible.inputTokens} yAxisId="right" dataKey="inputTokens" name="Input" stackId="tokens" fill="url(#gradInputFS)" fillOpacity={0.8} animationDuration={600} barSize={32} />
+                      <Bar hide={!hourlyVisible.outputTokens} yAxisId="right" dataKey="outputTokens" name="Output" stackId="tokens" fill="url(#gradOutputFS)" fillOpacity={0.8} animationDuration={600} barSize={32} />
+                      <Bar hide={!hourlyVisible.reasoningTokens} yAxisId="right" dataKey="reasoningTokens" name="Reasoning" stackId="tokens" fill="url(#gradReasoningFS)" fillOpacity={0.8} animationDuration={600} barSize={32} />
+                      <Bar hide={!hourlyVisible.cachedTokens} yAxisId="right" dataKey="cachedTokens" name="Cached" stackId="tokens" fill="url(#gradCachedFS)" fillOpacity={0.8} animationDuration={600} barSize={32} />
                     </>
                   )}
-                  {/* 曲线在最上层 - 带描边突出显示 */}
+                  {/* Line on top layer - with stroke highlight */}
                   <Line 
                     hide={!hourlyVisible.requests}
                     yAxisId="left" 
                     type="monotone" 
                     dataKey="requests" 
-                    name="请求数" 
+                    name="Requests" 
                     stroke={darkMode ? "#60a5fa" : "#3b82f6"} 
                     strokeWidth={fullscreenHourlyMode === "area" ? 2.3 : 3}
                     strokeOpacity={1}
@@ -2386,14 +2386,14 @@ export default function DashboardPage() {
         </div>
       </Modal>
 
-      {/* Toast 通知 - 右上角显示 */}
+      {/* Toast notifications - top right display */}
       {syncStatus && (
         <div
           onClick={() => closeSyncStatus()}
           className={`fixed right-6 top-24 z-50 max-w-[290px] cursor-pointer rounded-lg border px-4 py-3 shadow-lg transition-opacity hover:opacity-90 ${
             syncStatusClosing ? "animate-toast-out" : "animate-toast-in"
           } ${
-            syncStatus.includes("失败") || syncStatus.includes("超时")
+            syncStatus.includes("failed") || syncStatus.includes("timeout")
               ? darkMode
                 ? "border-rose-500/30 bg-rose-950/60 text-rose-200"
                 : "border-rose-300 bg-rose-50 text-rose-800"
@@ -2404,7 +2404,7 @@ export default function DashboardPage() {
         >
           <div className="flex items-center gap-2.5">
             <span className="text-xl animate-emoji-pop">
-              {syncStatus.includes("失败") || syncStatus.includes("超时") ? "❌" : "✅"}
+              {syncStatus.includes("failed") || syncStatus.includes("timeout") ? "❌" : "✅"}
             </span>
             <span className="text-sm font-medium">{syncStatus}</span>
           </div>
@@ -2545,7 +2545,7 @@ function ComboBox({
           className={`absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 transition ${
             darkMode ? "text-slate-400 hover:bg-slate-700 hover:text-slate-200" : "text-slate-500 hover:bg-slate-200 hover:text-slate-700"
           }`}
-          title="清除"
+          title="Clear"
         >
           <X className="h-3.5 w-3.5" />
         </button>

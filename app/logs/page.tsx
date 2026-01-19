@@ -16,11 +16,11 @@ type ErrorLogEntry = {
 
 type FetchMode = "full" | "incremental";
 
-// 格式化 Unix 时间戳为人性化时间（中国时区）
+// Format Unix timestamp to human-readable time (Asia/Shanghai timezone)
 function formatTimestamp(ts: number | undefined): string {
   if (!ts) return "";
   const date = new Date(ts * 1000);
-  return date.toLocaleString("zh-CN", {
+  return date.toLocaleString("en-US", {
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
@@ -31,7 +31,7 @@ function formatTimestamp(ts: number | undefined): string {
   });
 }
 
-// 格式化文件大小
+// Format file size
 function formatSize(bytes: number | undefined): string {
   if (!bytes) return "? bytes";
   if (bytes < 1024) return `${bytes} B`;
@@ -61,12 +61,12 @@ export default function LogsPage() {
     return saved === "true";
   });
 
-  // 按时间倒序排序的 errorLogs
+  // Sort errorLogs in reverse chronological order
   const sortedErrorLogs = useMemo(() => {
     return [...errorLogs].sort((a, b) => (b.modified ?? 0) - (a.modified ?? 0));
   }, [errorLogs]);
 
-  // 保存 hideManagement 状态到 localStorage
+  // Save hideManagement state to localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem("hideManagement", String(hideManagement));
@@ -74,35 +74,35 @@ export default function LogsPage() {
   }, [hideManagement]);
 
   const latestText = useMemo(() => {
-    if (!latestTs) return "无";
+    if (!latestTs) return "None";
     const date = new Date(latestTs * 1000);
-    return date.toLocaleString("zh-CN", { 
-      month: "2-digit", 
-      day: "2-digit", 
-      hour: "2-digit", 
+    return date.toLocaleString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
       hour12: false
     });
   }, [latestTs]);
 
-  // 将日期时间字符串转为 Unix 时间戳
+  // Convert date-time string to Unix timestamp
   const parseDateTime = (value: string): number | null => {
     if (!value) return null;
-    // 如果是纯数字，当作时间戳
+    // If pure number, treat as timestamp
     if (/^\d+$/.test(value)) return parseInt(value, 10);
-    // 尝试解析日期时间
+    // Try parsing date-time
     const date = new Date(value);
     return isNaN(date.getTime()) ? null : Math.floor(date.getTime() / 1000);
   };
 
-  // 获取日期时间输入值用于显示
+  // Get date-time input value for display
   const getDateTimeInputValue = (): string => {
     if (!afterInput) return "";
-    // 如果是时间戳，转换为 datetime-local 格式
+    // If timestamp, convert to datetime-local format
     if (/^\d+$/.test(afterInput)) {
       const date = new Date(parseInt(afterInput, 10) * 1000);
-      // 格式: YYYY-MM-DDTHH:mm
+      // Format: YYYY-MM-DDTHH:mm
       const pad = (n: number) => String(n).padStart(2, "0");
       return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
     }
@@ -132,9 +132,9 @@ export default function LogsPage() {
       const data: LogsResponse & { error?: string } = await res.json();
       
       if (!res.ok) {
-        // 处理特定错误
+        // Handle specific errors
         if (data.error === "logging to file disabled") {
-          setError("文件日志未开启，请在 CLIProxy 配置中启用 logging-to-file");
+          setError("File logging not enabled. Enable logging-to-file in CLIProxy config");
         } else {
           setError(data.error || res.statusText);
         }
@@ -145,7 +145,7 @@ export default function LogsPage() {
       setLines(data.lines ?? []);
       setLatestTs(typeof data["latest-timestamp"] === "number" ? data["latest-timestamp"] : null);
     } catch (err) {
-      setError((err as Error).message || "加载失败");
+      setError((err as Error).message || "Failed to load");
     } finally {
       setLoading(false);
     }
@@ -160,7 +160,7 @@ export default function LogsPage() {
       const data = await res.json();
       setErrorLogs(Array.isArray(data?.files) ? data.files : []);
     } catch (err) {
-      setErrorLogError((err as Error).message || "加载失败");
+      setErrorLogError((err as Error).message || "Failed to load");
     } finally {
       setErrorLogLoading(false);
     }
@@ -177,15 +177,15 @@ export default function LogsPage() {
       setErrorLogName(name);
       setErrorLogContent(text);
     } catch (err) {
-      setErrorLogError((err as Error).message || "加载失败");
+      setErrorLogError((err as Error).message || "Failed to load");
     } finally {
       setErrorLogContentLoading(false);
     }
   }, []);
 
-  // 初始加载：默认加载最近 1h 的日志
+  // Initial load: default to loading logs from last 1 hour
   useEffect(() => {
-    const timestamp = String(Math.floor(Date.now() / 1000 - 3600)); // 1 小时前
+    const timestamp = String(Math.floor(Date.now() / 1000 - 3600)); // 1 hour ago
     setAfterInput(timestamp);
     setLoading(true);
     setError(null);
@@ -194,7 +194,7 @@ export default function LogsPage() {
       .then(data => {
         if (data.error) {
           if (data.error === "logging to file disabled") {
-            setError("文件日志未开启，请在 CLIProxy 配置中启用 logging-to-file");
+            setError("File logging not enabled. Enable logging-to-file in CLIProxy config");
           } else {
             setError(data.error);
           }
@@ -204,11 +204,11 @@ export default function LogsPage() {
           setLatestTs(typeof data["latest-timestamp"] === "number" ? data["latest-timestamp"] : null);
         }
       })
-      .catch(err => setError(err.message || "加载失败"))
+      .catch(err => setError(err.message || "Failed to load"))
       .finally(() => setLoading(false));
   }, []);
 
-  // 当时间筛选改变时自动重新加载
+  // Automatically reload when time filter changes
   useEffect(() => {
     if (afterInput) {
       fetchLogs("full");
@@ -226,29 +226,29 @@ export default function LogsPage() {
       <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Logs</h1>
-          <p className="text-base text-slate-400">展示 /logs 最新输出，未持久化</p>
+          <p className="text-base text-slate-400">Showing latest /logs output, not persisted</p>
         </div>
         <div className="flex items-center gap-3 text-sm text-slate-300">
           <button
             onClick={() => fetchLogs("full")}
             className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 font-semibold hover:border-slate-500"
-            title="重新加载所有日志（可通过起始时间筛选）"
+            title="Reload all logs (filterable by start time)"
           >
-            重新加载
+            Reload
           </button>
           <button
             onClick={() => fetchLogs("incremental")}
             className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 font-semibold hover:border-slate-500"
-            title="仅获取上次记录之后的新日志"
+            title="Get only new logs after last record"
           >
-            获取最新日志
+            Get latest logs
           </button>
         </div>
       </header>
 
       <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-300">
         <label className="flex items-center gap-2">
-          <span>起始时间</span>
+          <span>Start time</span>
           <input
             type="datetime-local"
             value={getDateTimeInputValue()}
@@ -259,20 +259,20 @@ export default function LogsPage() {
             <button
               onClick={() => setAfterInput("")}
               className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-1.5 text-xs hover:border-slate-500"
-              title="清除"
+              title="Clear"
             >
-              清除
+              Clear
             </button>
           )}
         </label>
         <span className="text-slate-400">|</span>
-        <span>最新记录: {latestText}</span>
+        <span>Latest record: {latestText}</span>
         <span className="text-slate-400">|</span>
         <div className="flex items-center gap-2">
           {[1, 6, 24].map((hours) => {
-            // 计算当前按钮对应的时间戳
+            // Calculate timestamp for current button
             const buttonTimestamp = String(Math.floor(Date.now() / 1000 - hours * 3600));
-            // 检查是否接近当前选择的时间（允许 60 秒误差）
+            // Check if close to currently selected time (allow 60s margin)
             const isActive = afterInput && Math.abs(parseInt(afterInput, 10) - parseInt(buttonTimestamp, 10)) < 60;
             
             return (
@@ -281,7 +281,7 @@ export default function LogsPage() {
                 onClick={() => {
                   const timestamp = String(Math.floor(Date.now() / 1000 - hours * 3600));
                   setAfterInput(timestamp);
-                  // 自动加载日志
+                  // Auto load logs
                   setLoading(true);
                   setError(null);
                   fetch(`/api/logs?after=${timestamp}`, { cache: "no-store" })
@@ -289,7 +289,7 @@ export default function LogsPage() {
                     .then(data => {
                       if (data.error) {
                         if (data.error === "logging to file disabled") {
-                          setError("文件日志未开启，请在 CLIProxy 配置中启用 logging-to-file");
+                          setError("File logging not enabled. Enable logging-to-file in CLIProxy config");
                         } else {
                           setError(data.error);
                         }
@@ -299,7 +299,7 @@ export default function LogsPage() {
                         setLatestTs(typeof data["latest-timestamp"] === "number" ? data["latest-timestamp"] : null);
                       }
                     })
-                    .catch(err => setError(err.message || "加载失败"))
+                    .catch(err => setError(err.message || "Failed to load"))
                     .finally(() => setLoading(false));
                 }}
                 className={`rounded-lg border px-3 py-1.5 font-semibold transition ${
@@ -308,7 +308,7 @@ export default function LogsPage() {
                     : 'border-slate-700 bg-slate-800 hover:border-slate-500'
                 }`}
               >
-                最近 {hours}h
+                Last {hours}h
               </button>
             );
           })}
@@ -330,7 +330,7 @@ export default function LogsPage() {
               }`}
             />
           </button>
-          <span>隐藏 /v0/management</span>
+          <span>Hide /v0/management</span>
         </label>
       </div>
 
@@ -339,7 +339,7 @@ export default function LogsPage() {
         {loading ? (
           <Skeleton className="h-40" />
         ) : lines.length === 0 ? (
-          <p className="text-base text-slate-400">未读取到日志，检查是否开启“日志到文件”配置项</p>
+          <p className="text-base text-slate-400">No logs found. Check if file logging is enabled</p>
         ) : (
           <pre className="mt-2 max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-slate-900/80 p-4 text-sm text-slate-100">
             {lines
@@ -357,14 +357,14 @@ export default function LogsPage() {
               onClick={fetchErrorLogs}
               className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-sm font-semibold hover:border-slate-500"
             >
-              刷新列表
+              Refresh list
             </button>
           </div>
           {errorLogError ? <p className="mt-2 text-sm text-red-400">{errorLogError}</p> : null}
           {errorLogLoading ? (
             <Skeleton className="mt-3 h-24" />
           ) : errorLogs.length === 0 ? (
-            <p className="mt-3 text-base text-slate-400">暂无 error log 文件</p>
+            <p className="mt-3 text-base text-slate-400">No error log files</p>
           ) : (
             <div className="mt-3 max-h-96 overflow-y-auto divide-y divide-slate-700">
               {sortedErrorLogs.map((file) => (
@@ -377,7 +377,7 @@ export default function LogsPage() {
                     onClick={() => fetchErrorLogFile(file.name)}
                     className="shrink-0 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-sm font-semibold hover:border-slate-500"
                   >
-                    查看
+                    View
                   </button>
                 </div>
               ))}
@@ -387,7 +387,7 @@ export default function LogsPage() {
 
         <div className="rounded-2xl bg-slate-800/50 p-4 shadow-sm ring-1 ring-slate-700">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="shrink-0 text-lg font-semibold text-white">error log 内容</h2>
+            <h2 className="shrink-0 text-lg font-semibold text-white">Error log content</h2>
             {errorLogName ? <span className="min-w-0 truncate text-sm text-slate-400" title={errorLogName}>{errorLogName}</span> : null}
           </div>
           {errorLogContentLoading ? (
@@ -397,7 +397,7 @@ export default function LogsPage() {
               {errorLogContent}
             </pre>
           ) : (
-            <p className="mt-3 text-base text-slate-400">选择一个文件查看内容</p>
+            <p className="mt-3 text-base text-slate-400">Select a file to view</p>
           )}
         </div>
       </section>

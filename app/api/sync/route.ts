@@ -27,14 +27,14 @@ async function hashPassword(value: string) {
 }
 
 async function isAuthorized(request: Request) {
-  // 检查 Bearer token（用于 cron job 等外部调用）
+  // Check Bearer token (for cron jobs and external calls)
   const allowed = [config.password, config.cronSecret].filter(Boolean).map((v) => `Bearer ${v}`);
   if (allowed.length > 0) {
     const auth = request.headers.get("authorization") || "";
     if (allowed.includes(auth)) return true;
   }
-  
-  // 检查用户的 dashboard cookie（用于前端调用）
+
+  // Check user's dashboard cookie (for frontend calls)
   if (PASSWORD) {
     const cookieStore = await cookies();
     const authCookie = cookieStore.get(COOKIE_NAME);
@@ -43,7 +43,7 @@ async function isAuthorized(request: Request) {
       if (authCookie.value === expectedToken) return true;
     }
   }
-  
+
   return false;
 }
 

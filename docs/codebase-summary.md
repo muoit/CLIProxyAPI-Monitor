@@ -294,7 +294,7 @@ Return ExplorePoint[] with model/tokens metadata
 
 ### Language & Timezone
 
-- **Language:** Simplified Chinese (zh-CN)
+- **Language:** English (en-US)
 - **Fixed Timezone:** Asia/Shanghai (UTC+8)
 - **Number Format:** Compact notation (1.5M, 1.2k)
 - **Currency:** USD with $ prefix and thousand separators
@@ -304,7 +304,7 @@ Return ExplorePoint[] with model/tokens metadata
 All date grouping uses explicit `date_trunc()` in Asia/Shanghai timezone:
 - Daily aggregations grouped by date in Shanghai
 - Hourly aggregations with timezone conversion
-- Timestamp display formatted with `zh-CN` locale
+- Timestamp display formatted with `en-US` locale
 
 ---
 
@@ -344,7 +344,7 @@ All date grouping uses explicit `date_trunc()` in Asia/Shanghai timezone:
 ### Frontend Error Handling
 
 - Try-catch blocks in async operations
-- User-friendly error messages (Chinese localized)
+- User-friendly error messages (English localized)
 - Fallback UI for loading/error states
 - Loading skeletons during data fetch
 

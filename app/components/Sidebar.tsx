@@ -7,9 +7,9 @@ import { useEffect, useState, useCallback } from "react";
 import { Modal } from "./Modal";
 
 const links = [
-  { href: "/", label: "仪表盘", icon: BarChart3 },
-  { href: "/explore", label: "数据探索", icon: Activity },
-  { href: "/logs", label: "日志", icon: FileText }
+  { href: "/", label: "Dashboard", icon: BarChart3 },
+  { href: "/explore", label: "Data Exploration", icon: Activity },
+  { href: "/logs", label: "Logs", icon: FileText }
 ];
 
 export default function Sidebar() {
@@ -131,7 +131,7 @@ export default function Sidebar() {
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors text-slate-400 hover:bg-slate-800 hover:text-white"
           >
             <ExternalLink className="h-5 w-5" />
-            前往 CPAMC
+            Go to CPAMC
           </a>
         ) : null}
       </nav>
@@ -140,7 +140,7 @@ export default function Sidebar() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-slate-400">
             <Activity className="h-4 w-4" />
-            上游使用统计
+            Upstream Stats
           </div>
           <button
             onClick={handleUsageToggle}
@@ -170,26 +170,26 @@ export default function Sidebar() {
             className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white disabled:opacity-50"
           >
             <LogOut className="h-4 w-4" />
-            {loggingOut ? "退出中..." : "退出登录"}
+            {loggingOut ? "Signing out..." : "Sign out"}
           </button>
         </div>
       </div>
       <Modal
         isOpen={showUsageConfirm}
         onClose={() => setShowUsageConfirm(false)}
-        title="关闭上游使用统计？"
+        title="Disable Upstream Usage Statistics?"
         darkMode={true}
         className="bg-slate-900 ring-1 ring-slate-700"
         backdropClassName="bg-black/60"
       >
-        <p className="mt-2 text-sm text-slate-400">关闭后将停止 CLIProxyAPI 记录使用数据，需要时可再次开启。</p>
+        <p className="mt-2 text-sm text-slate-400">This will stop CLIProxyAPI from recording usage data. You can re-enable it when needed.</p>
         <div className="mt-4 flex gap-2">
           <button
             type="button"
             onClick={() => setShowUsageConfirm(false)}
             className="flex-1 rounded-lg border border-slate-600 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800"
           >
-            取消
+            Cancel
           </button>
           <button
             type="button"
@@ -200,7 +200,7 @@ export default function Sidebar() {
             className="flex-1 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-500"
             disabled={usageStatsLoading}
           >
-            确认关闭
+            Confirm Disable
           </button>
         </div>
       </Modal>
