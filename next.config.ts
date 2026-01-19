@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* 启用 Next.js 16 实验性视图过渡支持 */
+  // Enable standalone output for Docker deployment
+  output: "standalone",
+  // Enable Next.js 16 experimental view transition support
   experimental: {
     viewTransition: true,
   },
