@@ -14,3 +14,4 @@ bun.lockb
 .drizzle
 
 .idea
+/.claude/skills/.venv/
