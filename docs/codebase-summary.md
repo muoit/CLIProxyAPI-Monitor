@@ -77,7 +77,7 @@ CLIProxyAPI-Monitor/
 
 | Page | Purpose | Key Features |
 |------|---------|--------------|
-| Dashboard (`/`) | Main analytics view | Hourly trends, model breakdown, token composition, pricing config |
+| Dashboard (`/`) | Main analytics view | Hourly trends, model breakdown, token composition, Top 10 API Keys, pricing config |
 | Explore (`/explore`) | Multi-model analysis | Scatter plots, area charts, series filtering, zoom/pan |
 | Logs (`/logs`) | Error & app logs | Dual-view logs, file browser, timestamp formatting |
 | Login (`/login`) | Password entry | Rate limiting, exponential backoff, auth feedback |
@@ -89,7 +89,7 @@ CLIProxyAPI-Monitor/
 | `/api/auth/verify` | POST | Password validation & session | None (public) |
 | `/api/auth/logout` | POST | Clear session cookie | Session cookie |
 | `/api/sync` | GET/POST | Upstream data ingestion | Bearer token, session, or password |
-| `/api/overview` | GET | Dashboard aggregation | Session cookie |
+| `/api/overview` | GET | Dashboard aggregation + top routes | Session cookie |
 | `/api/explore` | GET | Time-series data | Session cookie |
 | `/api/prices` | GET/POST/DELETE | Model pricing CRUD | Session cookie |
 | `/api/logs` | GET | App logs proxy | Session cookie |
@@ -110,6 +110,29 @@ CLIProxyAPI-Monitor/
    - Columns: id, occurred_at, synced_at, route, model, total_tokens, input_tokens, output_tokens, reasoning_tokens, cached_tokens, total_requests, success_count, failure_count, is_error, raw
    - Unique Index: (occurred_at, route, model) - prevents duplicate ingestion
    - Purpose: Analytics aggregation and cost calculation
+
+---
+
+## Key Types
+
+### RouteUsage
+
+Represents aggregated usage metrics for a specific API route.
+
+**Definition:**
+```typescript
+type RouteUsage = {
+  route: string;
+  totalRequests: number;
+  successCount: number;
+  failureCount: number;
+  totalTokens: number;
+  inputTokens: number;
+  outputTokens: number;
+}
+```
+
+**Usage:** Returned in `/api/overview` response within `topRoutes` array, sorted by totalRequests descending, limited to TOP_ROUTES_LIMIT (default: 10).
 
 ---
 
@@ -209,19 +232,20 @@ GET /api/overview (with optional filters)
     ↓
 Time range normalization (Asia/Shanghai timezone)
     ↓
-Promise.all() executes 9 parallel queries:
+Promise.all() executes 10 parallel queries:
   - Total metrics aggregation
   - Per-model breakdown with pagination
   - Daily aggregations
   - Hourly aggregations
   - Token composition
   - Available models/routes
+  - Top 10 routes by totalRequests (NEW)
     ↓
 Cost calculation via priceMap
     ↓
 30-second TTL cache (LRU eviction, 100 max entries)
     ↓
-Return structured response
+Return structured response (includes topRoutes array)
 ```
 
 ### Explore Query Flow
@@ -251,6 +275,7 @@ Return ExplorePoint[] with model/tokens metadata
 | DATABASE_URL | string | PostgreSQL connection string | Required |
 | PASSWORD | string | Dashboard login password | Falls back to CLIPROXY_SECRET_KEY |
 | CRON_SECRET | string | Vercel Cron authentication | Required |
+| TOP_ROUTES_LIMIT | number | Number of top routes to fetch (default: 10) | 10 |
 
 **Base URL Normalization:**
 - Ensures HTTPS protocol

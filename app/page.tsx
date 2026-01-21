@@ -5,14 +5,14 @@ import { ResponsiveContainer, LineChart, Line, Area, CartesianGrid, XAxis, YAxis
 import type { TooltipProps } from "recharts";
 import { formatCurrency, formatNumber, formatCompactNumber, formatNumberWithCommas, formatHourLabel } from "@/lib/utils";
 import { AlertTriangle, Info, LucideIcon, Activity, RefreshCw, Moon, Sun, Maximize2, CalendarRange, X } from "lucide-react";
-import type { UsageOverview, UsageSeriesPoint } from "@/lib/types";
+import type { UsageOverview, UsageSeriesPoint, RouteUsage } from "@/lib/types";
 import { Modal } from "@/app/components/Modal";
 
 // Pie chart colors - soft palette
 const PIE_COLORS = ["#60a5fa", "#4ade80", "#fbbf24", "#c084fc", "#f472b6", "#38bdf8", "#a3e635", "#fb923c"];
 
 type OverviewMeta = { page: number; pageSize: number; totalModels: number; totalPages: number };
-type OverviewAPIResponse = { overview: UsageOverview | null; empty: boolean; days: number; meta?: OverviewMeta; filters?: { models: string[]; routes: string[] } };
+type OverviewAPIResponse = { overview: UsageOverview | null; empty: boolean; days: number; meta?: OverviewMeta; filters?: { models: string[]; routes: string[] }; topRoutes?: RouteUsage[] };
 
 const hourFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Shanghai",
@@ -104,6 +104,7 @@ export default function DashboardPage() {
   const [overview, setOverview] = useState<UsageOverview | null>(null);
   const [overviewError, setOverviewError] = useState<string | null>(null);
   const [overviewEmpty, setOverviewEmpty] = useState(false);
+  const [topRoutes, setTopRoutes] = useState<RouteUsage[]>([]);
   const [loadingOverview, setLoadingOverview] = useState(true);
   const [rangeInit] = useState(() => {
     const defaultEnd = new Date();
@@ -165,6 +166,7 @@ export default function DashboardPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [ready, setReady] = useState(false);
   const [pieMode, setPieMode] = useState<"tokens" | "requests">("tokens");
+  const [routesSortMode, setRoutesSortMode] = useState<"tokens" | "requests">("tokens");
   const [darkMode, setDarkMode] = useState(true);
   const [fullscreenChart, setFullscreenChart] = useState<"trend" | "pie" | "stacked" | null>(null);
   const [hoveredPieIndex, setHoveredPieIndex] = useState<number | null>(null);
@@ -580,6 +582,7 @@ export default function DashboardPage() {
         setModelOptions(Array.from(new Set(data.filters?.models ?? [])));
         setRouteOptions(Array.from(new Set(data.filters?.routes ?? [])));
         setAppliedDays(data.days ?? rangeDays);
+        setTopRoutes(data.topRoutes ?? []);
       } catch (err) {
         if (!active) return;
         const error = err as Error;
@@ -599,7 +602,14 @@ export default function DashboardPage() {
 
   const overviewData = overview;
   const showEmpty = overviewEmpty || !overview;
-  
+
+  const sortedTopRoutes = useMemo(() => {
+    if (!topRoutes.length) return [];
+    return [...topRoutes].sort((a, b) =>
+      routesSortMode === "tokens" ? b.tokens - a.tokens : b.requests - a.requests
+    );
+  }, [topRoutes, routesSortMode]);
+
   const hourlySeries = useMemo(() => {
     if (!overviewData?.byHour) return [] as UsageSeriesPoint[];
     if (hourRange === "all") return overviewData.byHour;
@@ -1528,6 +1538,66 @@ export default function DashboardPage() {
                   <div className={`text-base font-semibold ${darkMode ? "text-emerald-400" : "text-emerald-600"}`}>{formatCurrency(model.cost)}</div>
                 </div>
               ))
+              )}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Third row: Top 10 API Keys */}
+      <section className="mt-6 grid gap-6 lg:grid-cols-5">
+        {loadingOverview || !overviewData ? (
+          <div className="lg:col-span-2">
+            <div className={`h-[400px] rounded-2xl ${darkMode ? "bg-slate-800/50" : "bg-slate-200"} animate-pulse`} />
+          </div>
+        ) : (
+          <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-2 ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`} style={{ animationDelay: '0.35s' }}>
+            <div className="flex items-center justify-between">
+              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Top 10 API Keys</h2>
+              <div className={`flex items-center gap-1 rounded-lg border p-0.5 ${darkMode ? "border-slate-700 bg-slate-800" : "border-slate-300 bg-slate-100"}`}>
+                <button
+                  onClick={() => setRoutesSortMode("tokens")}
+                  className={`rounded-md px-2 py-1 text-xs font-medium transition ${routesSortMode === "tokens" ? "bg-indigo-600 text-white" : darkMode ? "text-slate-400 hover:text-slate-200" : "text-slate-600 hover:text-slate-900"}`}
+                >
+                  Token
+                </button>
+                <button
+                  onClick={() => setRoutesSortMode("requests")}
+                  className={`rounded-md px-2 py-1 text-xs font-medium transition ${routesSortMode === "requests" ? "bg-indigo-600 text-white" : darkMode ? "text-slate-400 hover:text-slate-200" : "text-slate-600 hover:text-slate-900"}`}
+                >
+                  Requests
+                </button>
+              </div>
+            </div>
+            <div className="scrollbar-slim mt-3 max-h-80 min-h-[14rem] space-y-2 overflow-y-auto">
+              {showEmpty || sortedTopRoutes.length === 0 ? (
+                <div className={`flex flex-col items-center justify-center rounded-xl border border-dashed py-6 text-center ${darkMode ? "border-slate-700 bg-slate-800/30" : "border-slate-300 bg-slate-50"}`}>
+                  <p className={`text-base ${darkMode ? "text-slate-400" : "text-slate-500"}`}>No route data</p>
+                </div>
+              ) : (
+                sortedTopRoutes.map((route, index) => (
+                  <div
+                    key={route.route}
+                    className={`flex items-center justify-between rounded-xl border px-4 py-2.5 ${darkMode ? "border-slate-700 bg-slate-800/80" : "border-slate-200 bg-white"}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${darkMode ? "bg-slate-700 text-slate-300" : "bg-slate-100 text-slate-600"}`}>
+                        {index + 1}
+                      </span>
+                      <div>
+                        <p className={`text-sm font-semibold truncate max-w-[180px] ${darkMode ? "text-white" : "text-slate-900"}`} title={route.route}>
+                          {route.route}
+                        </p>
+                        <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
+                          {formatNumberWithCommas(route.requests)} Requests • {formatCompactNumber(route.tokens)} tokens
+                        </p>
+                      </div>
+                    </div>
+                    <div className={`text-base font-semibold ${darkMode ? "text-emerald-400" : "text-emerald-600"}`}>
+                      {formatCurrency(route.cost)}
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           </div>

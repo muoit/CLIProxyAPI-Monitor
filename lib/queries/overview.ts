@@ -2,12 +2,20 @@ import { and, eq, sql, gte, lte } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { modelPrices, usageRecords } from "@/lib/db/schema";
-import type { UsageOverview, ModelUsage, UsageSeriesPoint } from "@/lib/types";
+import type { UsageOverview, ModelUsage, UsageSeriesPoint, RouteUsage } from "@/lib/types";
 import { estimateCost, priceMap } from "@/lib/usage";
 
 type PriceRow = typeof modelPrices.$inferSelect;
 type ModelAggRow = {
   model: string;
+  requests: number;
+  tokens: number;
+  inputTokens: number;
+  outputTokens: number;
+  cachedTokens: number;
+};
+type RouteAggRow = {
+  route: string;
   requests: number;
   tokens: number;
   inputTokens: number;
@@ -84,7 +92,7 @@ function normalizePageSize(value?: number | null) {
 export async function getOverview(
   daysInput?: number,
   opts?: { model?: string | null; route?: string | null; page?: number | null; pageSize?: number | null; start?: string | Date | null; end?: string | Date | null }
-): Promise<{ overview: UsageOverview; empty: boolean; days: number; meta: OverviewMeta; filters: { models: string[]; routes: string[] } }> {
+): Promise<{ overview: UsageOverview; empty: boolean; days: number; meta: OverviewMeta; filters: { models: string[]; routes: string[] }; topRoutes: RouteUsage[] }> {
   const startDate = parseDateInput(opts?.start);
   const endDate = parseDateInput(opts?.end);
   const hasCustomRange = startDate && endDate && endDate >= startDate;
@@ -101,8 +109,11 @@ export async function getOverview(
   const baseWhere = baseWhereParts.length ? and(...baseWhereParts) : undefined;
 
   const filterWhereParts: SQL[] = [...baseWhereParts];
-  if (opts?.model) filterWhereParts.push(eq(usageRecords.model, opts.model));
-  if (opts?.route) filterWhereParts.push(eq(usageRecords.route, opts.route));
+  // Validate and sanitize string inputs (max length 500 chars)
+  const sanitizedModel = opts?.model && typeof opts.model === "string" ? opts.model.slice(0, 500) : null;
+  const sanitizedRoute = opts?.route && typeof opts.route === "string" ? opts.route.slice(0, 500) : null;
+  if (sanitizedModel) filterWhereParts.push(eq(usageRecords.model, sanitizedModel));
+  if (sanitizedRoute) filterWhereParts.push(eq(usageRecords.route, sanitizedRoute));
   const filterWhere = filterWhereParts.length ? and(...filterWhereParts) : undefined;
 
   const dayExpr = sql`date_trunc('day', ${usageRecords.occurredAt} at time zone 'Asia/Shanghai')`;
@@ -200,6 +211,21 @@ export async function getOverview(
     .groupBy(usageRecords.route)
     .orderBy(usageRecords.route);
 
+  const byRoutePromise: Promise<RouteAggRow[]> = db
+    .select({
+      route: usageRecords.route,
+      requests: sql<number>`sum(${usageRecords.totalRequests})`,
+      tokens: sql<number>`sum(${usageRecords.totalTokens})`,
+      inputTokens: sql<number>`sum(${usageRecords.inputTokens})`,
+      outputTokens: sql<number>`sum(${usageRecords.outputTokens})`,
+      cachedTokens: sql<number>`coalesce(sum(${usageRecords.cachedTokens}), 0)`
+    })
+    .from(usageRecords)
+    .where(filterWhere)
+    .groupBy(usageRecords.route)
+    .orderBy(sql`sum(${usageRecords.totalRequests}) desc`)
+    .limit(10);
+
   const [
     totalsRowResult,
     priceRows,
@@ -209,7 +235,8 @@ export async function getOverview(
     byDayModelRows,
     byHourRows,
     availableModelsRows,
-    availableRoutesRows
+    availableRoutesRows,
+    byRouteRows
   ] = await Promise.all([
     totalsPromise,
     pricePromise,
@@ -219,7 +246,8 @@ export async function getOverview(
     byDayModelPromise,
     byHourPromise,
     availableModelsPromise,
-    availableRoutesPromise
+    availableRoutesPromise,
+    byRoutePromise
   ]);
 
   const totalsRow =
@@ -312,11 +340,40 @@ export async function getOverview(
     routes: availableRoutesRows.map((r) => r.route).filter(Boolean)
   };
 
+  // Calculate average pricing from configured prices for route cost estimation
+  const avgInputPrice = priceRows.length > 0
+    ? priceRows.reduce((sum, p) => sum + Number(p.inputPricePer1M), 0) / priceRows.length
+    : 3;
+  const avgCachedPrice = priceRows.length > 0
+    ? priceRows.reduce((sum, p) => sum + Number(p.cachedInputPricePer1M), 0) / priceRows.length
+    : 0.3;
+  const avgOutputPrice = priceRows.length > 0
+    ? priceRows.reduce((sum, p) => sum + Number(p.outputPricePer1M), 0) / priceRows.length
+    : 15;
+
+  // Transform top routes with estimated cost (using average pricing since no model breakdown per route)
+  const topRoutes: RouteUsage[] = byRouteRows.map((row) => {
+    const inputCost = (toNumber(row.inputTokens) - toNumber(row.cachedTokens)) / 1_000_000 * avgInputPrice;
+    const cachedCost = toNumber(row.cachedTokens) / 1_000_000 * avgCachedPrice;
+    const outputCost = toNumber(row.outputTokens) / 1_000_000 * avgOutputPrice;
+    const cost = inputCost + cachedCost + outputCost;
+    return {
+      route: row.route,
+      requests: toNumber(row.requests),
+      tokens: toNumber(row.tokens),
+      inputTokens: toNumber(row.inputTokens),
+      outputTokens: toNumber(row.outputTokens),
+      cachedTokens: toNumber(row.cachedTokens),
+      cost: Number(cost.toFixed(4))
+    };
+  });
+
   return {
     overview,
     empty: totalRequests === 0,
     days,
     meta: { page, pageSize, totalModels, totalPages },
-    filters
+    filters,
+    topRoutes
   };
 }

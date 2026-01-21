@@ -12,6 +12,7 @@ type CachedOverview = {
     days: number;
     meta?: Awaited<ReturnType<typeof getOverview>>["meta"];
     filters?: Awaited<ReturnType<typeof getOverview>>["filters"];
+    topRoutes?: Awaited<ReturnType<typeof getOverview>>["topRoutes"];
   };
 };
 
@@ -75,7 +76,7 @@ export async function GET(request: Request) {
       return NextResponse.json(cached, { status: 200 });
     }
 
-    const { overview, empty, days: appliedDays, meta, filters } = await getOverview(days, {
+    const { overview, empty, days: appliedDays, meta, filters, topRoutes } = await getOverview(days, {
       model: model || undefined,
       route: route || undefined,
       page,
@@ -84,7 +85,7 @@ export async function GET(request: Request) {
       end
     });
 
-    const payload = { overview, empty, days: appliedDays, meta, filters };
+    const payload = { overview, empty, days: appliedDays, meta, filters, topRoutes };
     setCached(cacheKey, payload);
     return NextResponse.json(payload, { status: 200 });
   } catch (error) {

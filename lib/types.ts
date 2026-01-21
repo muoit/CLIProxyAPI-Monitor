@@ -14,6 +14,16 @@ export type ModelUsage = {
   cost: number;
 };
 
+export type RouteUsage = {
+  route: string;
+  requests: number;
+  tokens: number;
+  inputTokens: number;
+  outputTokens: number;
+  cachedTokens: number;
+  cost: number;
+};
+
 export type UsageSeriesPoint = {
   label: string;
   requests: number;
