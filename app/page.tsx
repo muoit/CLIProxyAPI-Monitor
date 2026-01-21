@@ -740,9 +740,9 @@ export default function DashboardPage() {
               <Activity className="h-4 w-4" />
               {loadingOverview ? "Loading..." : overview ? "Live Data" : "No Data"}
             </div>
-            {lastSyncTime && (
-              <span className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-500"}`} suppressHydrationWarning>
-                Last sync: {mounted ? lastSyncTime.toLocaleTimeString() : "--:--:--"}
+            {mounted && lastSyncTime && (
+              <span className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-500"}`}>
+                Last sync: {lastSyncTime.toLocaleTimeString()}
               </span>
             )}
           </div>
@@ -761,7 +761,7 @@ export default function DashboardPage() {
               setCustomPickerOpen(false);
             }}
             className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
-              rangeMode === "preset" && rangeDays === days
+              mounted && rangeMode === "preset" && rangeDays === days
                 ? "border-indigo-500 bg-indigo-600 text-white"
                 : darkMode ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
             }`}
