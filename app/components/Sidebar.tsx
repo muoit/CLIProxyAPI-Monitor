@@ -2,42 +2,21 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { BarChart3, FileText, Activity, LogOut, Github, ExternalLink } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
-import { Modal } from "./Modal";
+import { BarChart3, FileText, Activity, LogOut, Github, ExternalLink, Settings } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const links = [
   { href: "/", label: "Dashboard", icon: BarChart3 },
   { href: "/explore", label: "Data Exploration", icon: Activity },
-  { href: "/logs", label: "Logs", icon: FileText }
+  { href: "/logs", label: "Logs", icon: FileText },
+  { href: "/settings", label: "Settings", icon: Settings }
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [usageStatsEnabled, setUsageStatsEnabled] = useState<boolean | null>(null);
-  const [usageStatsLoading, setUsageStatsLoading] = useState(false);
-  const [showUsageConfirm, setShowUsageConfirm] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [cpamcLink, setCpamcLink] = useState<string | null>(null);
-
-  const loadToggle = useCallback(async () => {
-    setUsageStatsLoading(true);
-    try {
-      const res = await fetch("/api/usage-statistics-enabled", { cache: "no-store" });
-      if (!res.ok) throw new Error("load failed");
-      const data = await res.json();
-      setUsageStatsEnabled(Boolean(data["usage-statistics-enabled"]));
-    } catch {
-      setUsageStatsEnabled(null);
-    } finally {
-      setUsageStatsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadToggle();
-  }, [loadToggle]);
 
   useEffect(() => {
     let active = true;
@@ -59,34 +38,6 @@ export default function Sidebar() {
       active = false;
     };
   }, []);
-
-  const applyUsageToggle = async (nextEnabled: boolean) => {
-    setUsageStatsLoading(true);
-    try {
-      const res = await fetch("/api/usage-statistics-enabled", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ value: nextEnabled })
-      });
-      if (!res.ok) throw new Error("toggle failed");
-      const data = await res.json();
-      setUsageStatsEnabled(Boolean(data["usage-statistics-enabled"]));
-    } catch {
-      // ignore
-    } finally {
-      setUsageStatsLoading(false);
-    }
-  };
-
-  const handleUsageToggle = () => {
-    if (usageStatsEnabled === null) return;
-    const nextEnabled = !usageStatsEnabled;
-    if (!nextEnabled) {
-      setShowUsageConfirm(true);
-      return;
-    }
-    applyUsageToggle(nextEnabled);
-  };
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -137,24 +88,6 @@ export default function Sidebar() {
       </nav>
 
       <div className="mt-auto border-t border-slate-800 px-4 pt-4 pb-2 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-slate-400">
-            <Activity className="h-4 w-4" />
-            Upstream Stats
-          </div>
-          <button
-            onClick={handleUsageToggle}
-            disabled={usageStatsLoading || usageStatsEnabled === null}
-            className={`rounded-full px-3 py-1 text-sm font-semibold transition ${
-              usageStatsEnabled
-                ? "bg-emerald-600 text-white"
-                : "border border-slate-600 text-slate-400"
-            } ${usageStatsLoading ? "opacity-70" : ""}`}
-          >
-            {usageStatsLoading ? "..." : usageStatsEnabled ? "ON" : "OFF"}
-          </button>
-        </div>
-        
         <div className="flex items-center gap-2">
           <a
             href="https://github.com/sxjeru/CLIProxyAPI-Monitor"
@@ -174,36 +107,6 @@ export default function Sidebar() {
           </button>
         </div>
       </div>
-      <Modal
-        isOpen={showUsageConfirm}
-        onClose={() => setShowUsageConfirm(false)}
-        title="Disable Upstream Usage Statistics?"
-        darkMode={true}
-        className="bg-slate-900 ring-1 ring-slate-700"
-        backdropClassName="bg-black/60"
-      >
-        <p className="mt-2 text-sm text-slate-400">This will stop CLIProxyAPI from recording usage data. You can re-enable it when needed.</p>
-        <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            onClick={() => setShowUsageConfirm(false)}
-            className="flex-1 rounded-lg border border-slate-600 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setShowUsageConfirm(false);
-              applyUsageToggle(false);
-            }}
-            className="flex-1 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-500"
-            disabled={usageStatsLoading}
-          >
-            Confirm Disable
-          </button>
-        </div>
-      </Modal>
     </aside>
   );
 }

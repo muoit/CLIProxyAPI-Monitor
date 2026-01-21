@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo, useRef, startTransition, type FormEvent } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef, startTransition } from "react";
 import { ResponsiveContainer, LineChart, Line, Area, CartesianGrid, XAxis, YAxis, Tooltip, BarChart, Bar, Legend, ComposedChart, PieChart, Pie, Cell } from "recharts";
 import type { TooltipProps } from "recharts";
 import { formatCurrency, formatNumber, formatCompactNumber, formatNumberWithCommas, formatHourLabel } from "@/lib/utils";
-import { AlertTriangle, Info, LucideIcon, Activity, Save, RefreshCw, Moon, Sun, Pencil, Trash2, Maximize2, CalendarRange, X } from "lucide-react";
-import type { ModelPrice, UsageOverview, UsageSeriesPoint } from "@/lib/types";
+import { AlertTriangle, Info, LucideIcon, Activity, RefreshCw, Moon, Sun, Maximize2, CalendarRange, X } from "lucide-react";
+import type { UsageOverview, UsageSeriesPoint } from "@/lib/types";
 import { Modal } from "@/app/components/Modal";
 
 // Pie chart colors - soft palette
@@ -13,13 +13,6 @@ const PIE_COLORS = ["#60a5fa", "#4ade80", "#fbbf24", "#c084fc", "#f472b6", "#38b
 
 type OverviewMeta = { page: number; pageSize: number; totalModels: number; totalPages: number };
 type OverviewAPIResponse = { overview: UsageOverview | null; empty: boolean; days: number; meta?: OverviewMeta; filters?: { models: string[]; routes: string[] } };
-
-type PriceForm = {
-  model: string;
-  inputPricePer1M: string;
-  cachedInputPricePer1M: string;
-  outputPricePer1M: string;
-};
 
 const hourFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Shanghai",
@@ -104,7 +97,6 @@ function buildHourlySeries(series: UsageSeriesPoint[], rangeHours?: number) {
 
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
-  const [prices, setPrices] = useState<ModelPrice[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -152,12 +144,8 @@ export default function DashboardPage() {
   const [filterModel, setFilterModel] = useState<string | undefined>(undefined);
   const [filterRoute, setFilterRoute] = useState<string | undefined>(undefined);
   const [page, setPage] = useState(1);
-  const [form, setForm] = useState<PriceForm>({ model: "", inputPricePer1M: "", cachedInputPricePer1M: "", outputPricePer1M: "" });
-  const [status, setStatus] = useState<string | null>(null);
-  const statusTimerRef = useRef<number | null>(null);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const saveStatusTimerRef = useRef<number | null>(null);
-  const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
   const syncStatusTimerRef = useRef<number | null>(null);
@@ -178,8 +166,6 @@ export default function DashboardPage() {
   const [ready, setReady] = useState(false);
   const [pieMode, setPieMode] = useState<"tokens" | "requests">("tokens");
   const [darkMode, setDarkMode] = useState(true);
-  const [editingPrice, setEditingPrice] = useState<ModelPrice | null>(null);
-  const [editForm, setEditForm] = useState<PriceForm>({ model: "", inputPricePer1M: "", cachedInputPricePer1M: "", outputPricePer1M: "" });
   const [fullscreenChart, setFullscreenChart] = useState<"trend" | "pie" | "stacked" | null>(null);
   const [hoveredPieIndex, setHoveredPieIndex] = useState<number | null>(null);
   const [pieTooltipOpen, setPieTooltipOpen] = useState(false);
@@ -187,7 +173,6 @@ export default function DashboardPage() {
   const pieChartFullscreenContainerRef = useRef<HTMLDivElement | null>(null);
   const pieLegendClearTimerRef = useRef<number | null>(null);
   const syncingRef = useRef(false);
-  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -556,27 +541,6 @@ export default function DashboardPage() {
   }, [customPickerOpen]);
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch("/api/prices", { cache: "no-store" });
-        if (!res.ok) return;
-        const data: ModelPrice[] = await res.json();
-        setPrices(
-          data.map((p) => ({
-            model: p.model,
-            inputPricePer1M: Number(p.inputPricePer1M),
-            cachedInputPricePer1M: Number(p.cachedInputPricePer1M),
-            outputPricePer1M: Number(p.outputPricePer1M)
-          }))
-        );
-      } catch (err) {
-        console.warn("Failed to load prices", err);
-      }
-    };
-    load();
-  }, []);
-
-  useEffect(() => {
     if (!ready) return;
     if (rangeMode === "custom" && (!customStart || !customEnd)) return;
 
@@ -655,14 +619,6 @@ export default function DashboardPage() {
     { key: "72h", label: "Last 72 hours" }
   ];
 
-  const priceModelOptions = useMemo(() => {
-    const names = new Set<string>();
-    modelOptions.forEach((m) => names.add(m));
-    prices.forEach((p) => names.add(p.model));
-    overviewData?.models?.forEach((m) => names.add(m.model));
-    return Array.from(names);
-  }, [modelOptions, prices, overviewData?.models]);
-
   const sortedModelsByCost = useMemo(() => {
     const models = overviewData?.models ?? [];
     return [...models].sort((a, b) => b.cost - a.cost);
@@ -724,152 +680,6 @@ export default function DashboardPage() {
     setFilterRouteInput(val);
     setFilterRoute(val.trim() || undefined);
     setPage(1);
-  };
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setStatus(null);
-    setSaving(true);
-
-    const payload = {
-      model: form.model.trim(),
-      inputPricePer1M: Number(form.inputPricePer1M),
-      cachedInputPricePer1M: Number(form.cachedInputPricePer1M) || 0,
-      outputPricePer1M: Number(form.outputPricePer1M)
-    };
-
-    if (!payload.model || Number.isNaN(payload.inputPricePer1M) || Number.isNaN(payload.outputPricePer1M)) {
-      if (statusTimerRef.current !== null) {
-        clearTimeout(statusTimerRef.current);
-      }
-      setStatus("Please enter valid model name and prices");
-      statusTimerRef.current = window.setTimeout(() => {
-        setStatus(null);
-        statusTimerRef.current = null;
-      }, 10000);
-      setSaving(false);
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/prices", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) {
-        if (statusTimerRef.current !== null) {
-          clearTimeout(statusTimerRef.current);
-        }
-        setStatus("Save failed, please check backend logs/environment variables");
-        statusTimerRef.current = window.setTimeout(() => {
-          setStatus(null);
-          statusTimerRef.current = null;
-        }, 10000);
-      } else {
-        setPrices((prev: ModelPrice[]) => {
-          const others = prev.filter((p) => p.model !== payload.model);
-          return [...others, payload].sort((a, b) => a.model.localeCompare(b.model));
-        });
-        setForm({ model: "", inputPricePer1M: "", cachedInputPricePer1M: "", outputPricePer1M: "" });
-        if (statusTimerRef.current !== null) {
-          clearTimeout(statusTimerRef.current);
-        }
-        setStatus("Saved");
-        statusTimerRef.current = window.setTimeout(() => {
-          setStatus(null);
-          statusTimerRef.current = null;
-        }, 10000);
-
-        // Show save success message (will be auto-cleared by useEffect)
-        setSaveStatus(`Price saved: ${payload.model}`);
-
-        // Refresh overview data to update cost calculations
-        setRefreshTrigger((prev) => prev + 1);
-      }
-    } catch (err) {
-      if (statusTimerRef.current !== null) {
-        clearTimeout(statusTimerRef.current);
-      }
-      setStatus("Request failed, please try again later");
-      statusTimerRef.current = window.setTimeout(() => {
-        setStatus(null);
-        statusTimerRef.current = null;
-      }, 10000);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Delete price
-  const handleDeletePrice = async (model: string) => {
-    try {
-      const res = await fetch("/api/prices", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model })
-      });
-      if (res.ok) {
-        setPrices((prev) => prev.filter((p) => p.model !== model));
-        setRefreshTrigger((prev) => prev + 1);
-      }
-    } catch (err) {
-      console.error("Delete failed", err);
-    }
-  };
-
-  const confirmDeletePrice = async () => {
-    if (!pendingDelete) return;
-    await handleDeletePrice(pendingDelete);
-    setPendingDelete(null);
-  };
-
-  // Open edit modal
-  const openEditModal = (price: ModelPrice) => {
-    setEditingPrice(price);
-    setEditForm({
-      model: price.model,
-      inputPricePer1M: String(price.inputPricePer1M),
-      cachedInputPricePer1M: String(price.cachedInputPricePer1M || 0),
-      outputPricePer1M: String(price.outputPricePer1M)
-    });
-  };
-
-  // Save edit
-  const handleEditSave = async () => {
-    if (!editingPrice) return;
-    const payload = {
-      model: editForm.model.trim(),
-      inputPricePer1M: Number(editForm.inputPricePer1M),
-      cachedInputPricePer1M: Number(editForm.cachedInputPricePer1M) || 0,
-      outputPricePer1M: Number(editForm.outputPricePer1M)
-    };
-    try {
-      // If model name changed, delete old model first
-      if (editingPrice.model !== payload.model) {
-        await fetch("/api/prices", {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ model: editingPrice.model })
-        });
-      }
-      
-      const res = await fetch("/api/prices", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        setPrices((prev) => {
-          const others = prev.filter((p) => p.model !== editingPrice.model && p.model !== payload.model);
-          return [...others, payload].sort((a, b) => a.model.localeCompare(b.model));
-        });
-        setEditingPrice(null);
-        setRefreshTrigger((prev) => prev + 1);
-      }
-    } catch (err) {
-      console.error("Save failed", err);
-    }
   };
 
   return (
@@ -1723,219 +1533,6 @@ export default function DashboardPage() {
           </div>
         )}
       </section>
-
-      {loadingOverview || !overviewData ? (
-        <div className="mt-8">
-          <Skeleton className="h-[500px] rounded-2xl" />
-        </div>
-      ) : (
-        <section className={`animate-card-float mt-8 rounded-2xl p-6 shadow-sm ring-1 ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`} style={{ animationDelay: '0.35s' }}>
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Model Price Configuration</h2>
-              <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Set price per million tokens, cost calculation will update immediately</p>
-            </div>
-            {status ? (
-              <p className={`text-xs ${status === "Saved" ? "text-emerald-400" : "text-red-400"}`}>
-                {status}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="mt-6 grid gap-6 lg:grid-cols-5">
-          <form onSubmit={handleSubmit} className={`rounded-xl border p-5 lg:col-span-2 ${darkMode ? "border-slate-700 bg-slate-800/50" : "border-slate-200 bg-slate-50"}`}>
-            <div className="grid gap-4">
-              <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-                Model Name
-                <ComboBox
-                  value={form.model}
-                  onChange={(val) => setForm((f) => ({ ...f, model: val }))}
-                  options={priceModelOptions}
-                  placeholder="gpt-4o（Supports wildcards like gemini-2*）"
-                  darkMode={darkMode}
-                  className="mt-1 w-full"
-                />
-              </label>
-              <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-                Input（$ / M tokens）
-                <input
-                  type="number"
-                  step="0.01"
-                  className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${darkMode ? "border-slate-700 bg-slate-900 text-white placeholder-slate-500" : "border-slate-300 bg-white text-slate-900 placeholder-slate-400"}`}
-                  placeholder="2.5"
-                  value={form.inputPricePer1M}
-                  onChange={(e) => setForm((f) => ({ ...f, inputPricePer1M: e.target.value }))}
-                />
-              </label>
-              <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-                CachedInput（$ / M tokens）
-                <input
-                  type="number"
-                  step="0.01"
-                  className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${darkMode ? "border-slate-700 bg-slate-900 text-white placeholder-slate-500" : "border-slate-300 bg-white text-slate-900 placeholder-slate-400"}`}
-                  placeholder="0.5（Optional, defaults to 0）"
-                  value={form.cachedInputPricePer1M}
-                  onChange={(e) => setForm((f) => ({ ...f, cachedInputPricePer1M: e.target.value }))}
-                />
-              </label>
-              <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-                Output（$ / M tokens）
-                <input
-                  type="number"
-                  step="0.01"
-                  className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${darkMode ? "border-slate-700 bg-slate-900 text-white placeholder-slate-500" : "border-slate-300 bg-white text-slate-900 placeholder-slate-400"}`}
-                  placeholder="10"
-                  value={form.outputPricePer1M}
-                  onChange={(e) => setForm((f) => ({ ...f, outputPricePer1M: e.target.value }))}
-                />
-              </label>
-              <button
-                type="submit"
-                disabled={saving}
-                className="inline-flex items-center justify-center rounded-lg bg-indigo-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-600 disabled:opacity-60"
-              >
-                <Save className="mr-2 h-4 w-4" />
-                {saving ? "Saving..." : "Save Price"}
-              </button>
-            </div>
-          </form>
-
-          <div className="lg:col-span-3">
-            <div className="scrollbar-slim grid max-h-[400px] gap-3 overflow-y-auto pr-1">
-              {prices.length ? prices.map((price) => (
-                <div key={price.model} className={`flex items-center justify-between rounded-xl border px-4 py-3 ${darkMode ? "border-slate-700 bg-slate-800/50" : "border-slate-200 bg-slate-50"}`}>
-                  <div>
-                    <p className={`text-base font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>{price.model}</p>
-                    <p className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
-                      ${price.inputPricePer1M}/M Input
-                      {price.cachedInputPricePer1M > 0 && ` • $${price.cachedInputPricePer1M}/M Cached`}
-                      {" • "}${price.outputPricePer1M}/M Output
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => openEditModal(price)}
-                      className={`rounded-lg p-2 transition ${darkMode ? "text-slate-400 hover:bg-slate-700 hover:text-white" : "text-slate-500 hover:bg-slate-200 hover:text-slate-900"}`}
-                      title="Edit"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPendingDelete(price.model)}
-                      className={`rounded-lg p-2 transition ${darkMode ? "text-red-400 hover:bg-red-900/50 hover:text-red-300" : "text-red-500 hover:bg-red-100 hover:text-red-700"}`}
-                      title="Delete"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              )) : (
-                <div className={`flex flex-col items-center justify-center rounded-xl border border-dashed py-8 text-center ${darkMode ? "border-slate-700 bg-slate-800/30" : "border-slate-300 bg-slate-50"}`}>
-                  <p className="text-base text-slate-400">No configured prices</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-        </section>
-      )}
-
-      {/* Edit price modal */}
-      <Modal
-        isOpen={!!editingPrice}
-        onClose={() => setEditingPrice(null)}
-        title="Edit Price"
-        darkMode={darkMode}
-      >
-        <div className="mt-4 grid gap-3">
-          <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-            Model Name
-            <input
-              type="text"
-              className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${darkMode ? "border-slate-700 bg-slate-900 text-white placeholder-slate-500" : "border-slate-300 bg-white text-slate-900 placeholder-slate-400"}`}
-              placeholder="Model Name"
-              value={editForm.model}
-              onChange={(e) => setEditForm((f) => ({ ...f, model: e.target.value }))}
-            />
-          </label>
-          <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-            Input（$ / M tokens）
-            <input
-              type="number"
-              step="0.01"
-              className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${darkMode ? "border-slate-700 bg-slate-900 text-white placeholder-slate-500" : "border-slate-300 bg-white text-slate-900 placeholder-slate-400"}`}
-              value={editForm.inputPricePer1M}
-              onChange={(e) => setEditForm((f) => ({ ...f, inputPricePer1M: e.target.value }))}
-            />
-          </label>
-          <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-            CachedInput（$ / M tokens）
-            <input
-              type="number"
-              step="0.01"
-              className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${darkMode ? "border-slate-700 bg-slate-900 text-white placeholder-slate-500" : "border-slate-300 bg-white text-slate-900 placeholder-slate-400"}`}
-              value={editForm.cachedInputPricePer1M}
-              onChange={(e) => setEditForm((f) => ({ ...f, cachedInputPricePer1M: e.target.value }))}
-            />
-          </label>
-          <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
-            Output（$ / M tokens）
-            <input
-              type="number"
-              step="0.01"
-              className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${darkMode ? "border-slate-700 bg-slate-900 text-white placeholder-slate-500" : "border-slate-300 bg-white text-slate-900 placeholder-slate-400"}`}
-              value={editForm.outputPricePer1M}
-              onChange={(e) => setEditForm((f) => ({ ...f, outputPricePer1M: e.target.value }))}
-            />
-          </label>
-          <div className="mt-2 flex gap-2">
-            <button
-              type="button"
-              onClick={() => setEditingPrice(null)}
-              className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${darkMode ? "border-slate-600 text-slate-300 hover:bg-slate-700" : "border-slate-300 text-slate-700 hover:bg-slate-100"}`}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleEditSave}
-              className="flex-1 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
-            >
-              Save
-            </button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Delete price confirmation modal */}
-      <Modal
-        isOpen={!!pendingDelete}
-        onClose={() => setPendingDelete(null)}
-        title="Confirm Delete"
-        darkMode={darkMode}
-      >
-        <p className={`mt-2 text-sm ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
-          Delete model {pendingDelete}&apos;s price configuration? This action cannot be undone.
-        </p>
-        <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            onClick={() => setPendingDelete(null)}
-            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${darkMode ? "border-slate-600 text-slate-300 hover:bg-slate-700" : "border-slate-300 text-slate-700 hover:bg-slate-100"}`}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={confirmDeletePrice}
-            className="flex-1 rounded-lg border border-red-400 px-3 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-500/10"
-          >
-            Confirm Delete
-          </button>
-        </div>
-      </Modal>
 
       {/* Fullscreen chart modal */}
       <Modal
