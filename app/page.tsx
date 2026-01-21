@@ -166,7 +166,7 @@ export default function DashboardPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [ready, setReady] = useState(false);
   const [pieMode, setPieMode] = useState<"tokens" | "requests">("tokens");
-  const [routesSortMode, setRoutesSortMode] = useState<"tokens" | "requests">("tokens");
+  const [routesSortMode, setRoutesSortMode] = useState<"tokens" | "cost">("tokens");
   const [darkMode, setDarkMode] = useState(true);
   const [fullscreenChart, setFullscreenChart] = useState<"trend" | "pie" | "stacked" | null>(null);
   const [hoveredPieIndex, setHoveredPieIndex] = useState<number | null>(null);
@@ -606,7 +606,7 @@ export default function DashboardPage() {
   const sortedTopRoutes = useMemo(() => {
     if (!topRoutes.length) return [];
     return [...topRoutes].sort((a, b) =>
-      routesSortMode === "tokens" ? b.tokens - a.tokens : b.requests - a.requests
+      routesSortMode === "tokens" ? b.tokens - a.tokens : b.cost - a.cost
     );
   }, [topRoutes, routesSortMode]);
 
@@ -1562,10 +1562,10 @@ export default function DashboardPage() {
                   Token
                 </button>
                 <button
-                  onClick={() => setRoutesSortMode("requests")}
-                  className={`rounded-md px-2 py-1 text-xs font-medium transition ${routesSortMode === "requests" ? "bg-indigo-600 text-white" : darkMode ? "text-slate-400 hover:text-slate-200" : "text-slate-600 hover:text-slate-900"}`}
+                  onClick={() => setRoutesSortMode("cost")}
+                  className={`rounded-md px-2 py-1 text-xs font-medium transition ${routesSortMode === "cost" ? "bg-indigo-600 text-white" : darkMode ? "text-slate-400 hover:text-slate-200" : "text-slate-600 hover:text-slate-900"}`}
                 >
-                  Requests
+                  Cost
                 </button>
               </div>
             </div>

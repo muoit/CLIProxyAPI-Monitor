@@ -22,6 +22,13 @@ type RouteAggRow = {
   outputTokens: number;
   cachedTokens: number;
 };
+type RouteModelAggRow = {
+  route: string;
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  cachedTokens: number;
+};
 type TotalsRow = {
   totalRequests: number;
   totalTokens: number;
@@ -226,6 +233,19 @@ export async function getOverview(
     .orderBy(sql`sum(${usageRecords.totalRequests}) desc`)
     .limit(10);
 
+  // Query breakdown by route + model for accurate cost calculation
+  const byRouteModelPromise: Promise<RouteModelAggRow[]> = db
+    .select({
+      route: usageRecords.route,
+      model: usageRecords.model,
+      inputTokens: sql<number>`sum(${usageRecords.inputTokens})`,
+      outputTokens: sql<number>`sum(${usageRecords.outputTokens})`,
+      cachedTokens: sql<number>`coalesce(sum(${usageRecords.cachedTokens}), 0)`
+    })
+    .from(usageRecords)
+    .where(filterWhere)
+    .groupBy(usageRecords.route, usageRecords.model);
+
   const [
     totalsRowResult,
     priceRows,
@@ -236,7 +256,8 @@ export async function getOverview(
     byHourRows,
     availableModelsRows,
     availableRoutesRows,
-    byRouteRows
+    byRouteRows,
+    byRouteModelRows
   ] = await Promise.all([
     totalsPromise,
     pricePromise,
@@ -247,7 +268,8 @@ export async function getOverview(
     byHourPromise,
     availableModelsPromise,
     availableRoutesPromise,
-    byRoutePromise
+    byRoutePromise,
+    byRouteModelPromise
   ]);
 
   const totalsRow =
@@ -340,33 +362,27 @@ export async function getOverview(
     routes: availableRoutesRows.map((r) => r.route).filter(Boolean)
   };
 
-  // Calculate average pricing from configured prices for route cost estimation
-  const avgInputPrice = priceRows.length > 0
-    ? priceRows.reduce((sum, p) => sum + Number(p.inputPricePer1M), 0) / priceRows.length
-    : 3;
-  const avgCachedPrice = priceRows.length > 0
-    ? priceRows.reduce((sum, p) => sum + Number(p.cachedInputPricePer1M), 0) / priceRows.length
-    : 0.3;
-  const avgOutputPrice = priceRows.length > 0
-    ? priceRows.reduce((sum, p) => sum + Number(p.outputPricePer1M), 0) / priceRows.length
-    : 15;
+  // Calculate cost per route using accurate model-based pricing
+  const routeCostMap = new Map<string, number>();
+  for (const row of byRouteModelRows) {
+    const cost = estimateCost(
+      { inputTokens: toNumber(row.inputTokens), cachedTokens: toNumber(row.cachedTokens), outputTokens: toNumber(row.outputTokens) },
+      row.model,
+      prices
+    );
+    routeCostMap.set(row.route, (routeCostMap.get(row.route) ?? 0) + cost);
+  }
 
-  // Transform top routes with estimated cost (using average pricing since no model breakdown per route)
-  const topRoutes: RouteUsage[] = byRouteRows.map((row) => {
-    const inputCost = (toNumber(row.inputTokens) - toNumber(row.cachedTokens)) / 1_000_000 * avgInputPrice;
-    const cachedCost = toNumber(row.cachedTokens) / 1_000_000 * avgCachedPrice;
-    const outputCost = toNumber(row.outputTokens) / 1_000_000 * avgOutputPrice;
-    const cost = inputCost + cachedCost + outputCost;
-    return {
-      route: row.route,
-      requests: toNumber(row.requests),
-      tokens: toNumber(row.tokens),
-      inputTokens: toNumber(row.inputTokens),
-      outputTokens: toNumber(row.outputTokens),
-      cachedTokens: toNumber(row.cachedTokens),
-      cost: Number(cost.toFixed(4))
-    };
-  });
+  // Transform top routes with accurate cost from model breakdown
+  const topRoutes: RouteUsage[] = byRouteRows.map((row) => ({
+    route: row.route,
+    requests: toNumber(row.requests),
+    tokens: toNumber(row.tokens),
+    inputTokens: toNumber(row.inputTokens),
+    outputTokens: toNumber(row.outputTokens),
+    cachedTokens: toNumber(row.cachedTokens),
+    cost: Number((routeCostMap.get(row.route) ?? 0).toFixed(4))
+  }));
 
   return {
     overview,
