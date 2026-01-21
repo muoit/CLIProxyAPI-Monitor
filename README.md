@@ -23,7 +23,7 @@ pnpm install
 cp .env.example .env
 
 # Start database (Docker)
-docker-compose up -d
+docker compose -f docker-compose.dev.yml up -d
 
 # Initialize database
 pnpm run db:push
