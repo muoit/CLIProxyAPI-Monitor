@@ -12,15 +12,26 @@ import { Modal } from "@/app/components/Modal";
 const PIE_COLORS = ["#60a5fa", "#4ade80", "#fbbf24", "#c084fc", "#f472b6", "#38bdf8", "#a3e635", "#fb923c"];
 
 type OverviewMeta = { page: number; pageSize: number; totalModels: number; totalPages: number };
-type OverviewAPIResponse = { overview: UsageOverview | null; empty: boolean; days: number; meta?: OverviewMeta; filters?: { models: string[]; routes: string[] }; topRoutes?: RouteUsage[] };
+type OverviewAPIResponse = { overview: UsageOverview | null; empty: boolean; days: number; meta?: OverviewMeta; filters?: { models: string[]; routes: string[] }; topRoutes?: RouteUsage[]; timezone?: string };
 
-const hourFormatter = new Intl.DateTimeFormat("en-CA", {
-  timeZone: "Asia/Shanghai",
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  hour12: false
-});
+const DEFAULT_TIMEZONE = process.env.NEXT_PUBLIC_TIMEZONE || "Asia/Shanghai";
+
+// Cache formatters to avoid creating new instances on each call
+const formatterCache = new Map<string, Intl.DateTimeFormat>();
+function getHourFormatter(tz: string) {
+  let formatter = formatterCache.get(tz);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: tz,
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      hour12: false
+    });
+    formatterCache.set(tz, formatter);
+  }
+  return formatter;
+}
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -48,15 +59,16 @@ const numericTooltipFormatter: TooltipProps<number, string>["formatter"] = (valu
   return [formatNumberWithCommas(numericValue), name];
 };
 
-function formatHourKeyFromTs(ts: number) {
-  const parts = hourFormatter.formatToParts(new Date(ts));
+function formatHourKeyFromTs(ts: number, tz: string = DEFAULT_TIMEZONE) {
+  const formatter = getHourFormatter(tz);
+  const parts = formatter.formatToParts(new Date(ts));
   const month = parts.find((p) => p.type === "month")?.value ?? "00";
   const day = parts.find((p) => p.type === "day")?.value ?? "00";
   const hour = parts.find((p) => p.type === "hour")?.value ?? "00";
   return `${month}-${day} ${hour}`;
 }
 
-function buildHourlySeries(series: UsageSeriesPoint[], rangeHours?: number) {
+function buildHourlySeries(series: UsageSeriesPoint[], rangeHours?: number, tz: string = DEFAULT_TIMEZONE) {
   if (!series.length) return [] as UsageSeriesPoint[];
 
   const withTs = series
@@ -80,7 +92,7 @@ function buildHourlySeries(series: UsageSeriesPoint[], rangeHours?: number) {
       filled.push(rest);
     } else {
       filled.push({
-        label: formatHourKeyFromTs(ts),
+        label: formatHourKeyFromTs(ts, tz),
         timestamp: new Date(ts).toISOString(),
         requests: 0,
         tokens: 0,
@@ -105,6 +117,7 @@ export default function DashboardPage() {
   const [overviewError, setOverviewError] = useState<string | null>(null);
   const [overviewEmpty, setOverviewEmpty] = useState(false);
   const [topRoutes, setTopRoutes] = useState<RouteUsage[]>([]);
+  const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE);
   const [loadingOverview, setLoadingOverview] = useState(true);
   const [rangeInit] = useState(() => {
     const defaultEnd = new Date();
@@ -556,6 +569,12 @@ export default function DashboardPage() {
         if (rangeMode === "custom") {
           params.set("start", customStart);
           params.set("end", customEnd);
+        } else if (rangeDays === 1) {
+          // "Today" - from midnight today to now
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          params.set("start", formatDateInputValue(today));
+          params.set("end", formatDateInputValue(new Date()));
         } else {
           params.set("days", String(rangeDays));
         }
@@ -583,6 +602,7 @@ export default function DashboardPage() {
         setRouteOptions(Array.from(new Set(data.filters?.routes ?? [])));
         setAppliedDays(data.days ?? rangeDays);
         setTopRoutes(data.topRoutes ?? []);
+        if (data.timezone) setTimezone(data.timezone);
       } catch (err) {
         if (!active) return;
         const error = err as Error;
@@ -614,8 +634,8 @@ export default function DashboardPage() {
     if (!overviewData?.byHour) return [] as UsageSeriesPoint[];
     if (hourRange === "all") return overviewData.byHour;
     const hours = hourRange === "24h" ? 24 : 72;
-    return buildHourlySeries(overviewData.byHour, hours);
-  }, [hourRange, overviewData?.byHour]);
+    return buildHourlySeries(overviewData.byHour, hours, timezone);
+  }, [hourRange, overviewData?.byHour, timezone]);
 
   useEffect(() => {
     if (fullscreenChart === "stacked") {
@@ -670,8 +690,11 @@ export default function DashboardPage() {
     if (rangeMode === "custom" && customStart && customEnd) {
       return `${customStart} ~ ${customEnd} (${appliedDays} days)`;
     }
+    if (rangeDays === 1) {
+      return "Today";
+    }
     return `Last ${appliedDays} days`;
-  }, [rangeMode, customStart, customEnd, appliedDays]);
+  }, [rangeMode, customStart, customEnd, appliedDays, rangeDays]);
 
 
   const applyFilters = () => {
@@ -751,7 +774,7 @@ export default function DashboardPage() {
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <span className="text-sm uppercase tracking-wide text-slate-500">Time Range</span>
-        {[7, 14, 30].map((days) => (
+        {[1, 7, 14, 30].map((days) => (
           <button
             key={days}
             onClick={() => {
@@ -766,7 +789,7 @@ export default function DashboardPage() {
                 : darkMode ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
             }`}
           >
-            Last {days} days
+            {days === 1 ? "Today" : `Last ${days} days`}
           </button>
         ))}
         <div className="relative" ref={customPickerRef}>
