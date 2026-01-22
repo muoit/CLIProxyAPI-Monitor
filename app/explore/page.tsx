@@ -174,8 +174,10 @@ function computeTimeTicks([min, max]: [number, number], maxTickCount = 8): numbe
   return ticks;
 }
 
+const TIMEZONE = process.env.NEXT_PUBLIC_TIMEZONE || "Asia/Shanghai";
+
 const timeFormatter = new Intl.DateTimeFormat("en-US", {
-  timeZone: "Asia/Shanghai",
+  timeZone: TIMEZONE,
   month: "2-digit",
   day: "2-digit",
   hour: "2-digit",

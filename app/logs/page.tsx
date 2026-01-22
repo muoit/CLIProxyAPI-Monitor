@@ -16,7 +16,9 @@ type ErrorLogEntry = {
 
 type FetchMode = "full" | "incremental";
 
-// Format Unix timestamp to human-readable time (Asia/Shanghai timezone)
+const TIMEZONE = process.env.NEXT_PUBLIC_TIMEZONE || "Asia/Shanghai";
+
+// Format Unix timestamp to human-readable time
 function formatTimestamp(ts: number | undefined): string {
   if (!ts) return "";
   const date = new Date(ts * 1000);
@@ -27,7 +29,7 @@ function formatTimestamp(ts: number | undefined): string {
     minute: "2-digit",
     second: "2-digit",
     hour12: false,
-    timeZone: "Asia/Shanghai"
+    timeZone: TIMEZONE
   });
 }
 

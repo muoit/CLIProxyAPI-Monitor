@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { assertEnv } from "@/lib/config";
+import { assertEnv, config } from "@/lib/config";
 import { getOverview } from "@/lib/queries/overview";
 
 export const runtime = "nodejs";
@@ -85,7 +85,7 @@ export async function GET(request: Request) {
       end
     });
 
-    const payload = { overview, empty, days: appliedDays, meta, filters, topRoutes };
+    const payload = { overview, empty, days: appliedDays, meta, filters, topRoutes, timezone: config.timezone };
     setCached(cacheKey, payload);
     return NextResponse.json(payload, { status: 200 });
   } catch (error) {

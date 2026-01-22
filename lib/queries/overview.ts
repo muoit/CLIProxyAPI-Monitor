@@ -4,6 +4,9 @@ import { db } from "@/lib/db/client";
 import { modelPrices, usageRecords } from "@/lib/db/schema";
 import type { UsageOverview, ModelUsage, UsageSeriesPoint, RouteUsage } from "@/lib/types";
 import { estimateCost, priceMap } from "@/lib/usage";
+import { config } from "@/lib/config";
+
+const TIMEZONE = config.timezone;
 
 type PriceRow = typeof modelPrices.$inferSelect;
 type ModelAggRow = {
@@ -123,8 +126,8 @@ export async function getOverview(
   if (sanitizedRoute) filterWhereParts.push(eq(usageRecords.route, sanitizedRoute));
   const filterWhere = filterWhereParts.length ? and(...filterWhereParts) : undefined;
 
-  const dayExpr = sql`date_trunc('day', ${usageRecords.occurredAt} at time zone 'Asia/Shanghai')`;
-  const hourExpr = sql`date_trunc('hour', ${usageRecords.occurredAt} at time zone 'Asia/Shanghai')`;
+  const dayExpr = sql`date_trunc('day', ${usageRecords.occurredAt} at time zone ${sql.raw(`'${TIMEZONE}'`)})`;
+  const hourExpr = sql`date_trunc('hour', ${usageRecords.occurredAt} at time zone ${sql.raw(`'${TIMEZONE}'`)})`;
 
   const totalsPromise: Promise<TotalsRow[]> = db
     .select({
@@ -191,7 +194,7 @@ export async function getOverview(
   const byHourPromise: Promise<HourAggRow[]> = db
     .select({
       label: sql<string>`to_char(${hourExpr}, 'MM-DD HH24')`,
-      hourStart: sql<Date>`(${hourExpr}) at time zone 'Asia/Shanghai'`,
+      hourStart: sql<Date>`(${hourExpr}) at time zone ${sql.raw(`'${TIMEZONE}'`)}`,
       requests: sql<number>`sum(${usageRecords.totalRequests})`,
       tokens: sql<number>`sum(${usageRecords.totalTokens})`,
       inputTokens: sql<number>`sum(${usageRecords.inputTokens})`,

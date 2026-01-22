@@ -10,6 +10,20 @@ const baseUrl = normalizeBaseUrl(process.env.CLIPROXY_API_BASE_URL);
 const password = process.env.PASSWORD || process.env.CLIPROXY_SECRET_KEY || "";
 const cronSecret = process.env.CRON_SECRET || "";
 
+// Default timezone constant - single source of truth
+export const DEFAULT_TIMEZONE = "Asia/Shanghai";
+
+// Validate timezone format to prevent SQL injection
+// Only allows: letters, underscores, forward slashes (e.g., Asia/Ho_Chi_Minh, America/New_York)
+const VALID_TZ_REGEX = /^[A-Za-z_/]+$/;
+function validateTimezone(tz: string): string {
+  return VALID_TZ_REGEX.test(tz) ? tz : DEFAULT_TIMEZONE;
+}
+
+// Timezone for date/time display and database queries
+// Examples: Asia/Ho_Chi_Minh, America/New_York, Europe/London, UTC
+const timezone = validateTimezone(process.env.TIMEZONE || DEFAULT_TIMEZONE);
+
 export const config = {
   cliproxy: {
     baseUrl,
@@ -17,7 +31,8 @@ export const config = {
   },
   postgresUrl: process.env.DATABASE_URL || "",
   password,
-  cronSecret
+  cronSecret,
+  timezone
 };
 
 export function assertEnv() {

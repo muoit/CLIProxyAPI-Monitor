@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   experimental: {
     viewTransition: true,
   },
+  // Expose TIMEZONE to client-side
+  env: {
+    NEXT_PUBLIC_TIMEZONE: process.env.TIMEZONE || "Asia/Shanghai",
+  },
 };
 
 export default nextConfig;
