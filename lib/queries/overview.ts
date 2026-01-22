@@ -42,7 +42,15 @@ type TotalsRow = {
   successCount: number;
   failureCount: number;
 };
-type DayAggRow = { label: string; requests: number; tokens: number };
+type DayAggRow = {
+  label: string;
+  requests: number;
+  tokens: number;
+  inputTokens: number;
+  outputTokens: number;
+  reasoningTokens: number;
+  cachedTokens: number;
+};
 type DayModelAggRow = { label: string; model: string; inputTokens: number; outputTokens: number; cachedTokens: number };
 type HourAggRow = { 
   label: string;
@@ -170,7 +178,11 @@ export async function getOverview(
     .select({
       label: sql<string>`to_char(${dayExpr}, 'YYYY-MM-DD')`,
       requests: sql<number>`sum(${usageRecords.totalRequests})`,
-      tokens: sql<number>`sum(${usageRecords.totalTokens})`
+      tokens: sql<number>`sum(${usageRecords.totalTokens})`,
+      inputTokens: sql<number>`sum(${usageRecords.inputTokens})`,
+      outputTokens: sql<number>`sum(${usageRecords.outputTokens})`,
+      reasoningTokens: sql<number>`coalesce(sum(${usageRecords.reasoningTokens}), 0)`,
+      cachedTokens: sql<number>`coalesce(sum(${usageRecords.cachedTokens}), 0)`
     })
     .from(usageRecords)
     .where(filterWhere)
@@ -318,6 +330,10 @@ export async function getOverview(
     label: row.label,
     requests: toNumber(row.requests),
     tokens: toNumber(row.tokens),
+    inputTokens: toNumber(row.inputTokens),
+    outputTokens: toNumber(row.outputTokens),
+    reasoningTokens: toNumber(row.reasoningTokens),
+    cachedTokens: toNumber(row.cachedTokens),
     cost: Number((dailyCostMap.get(row.label) ?? 0).toFixed(2))
   }));
 

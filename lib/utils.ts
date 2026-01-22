@@ -32,14 +32,12 @@ export function formatCompactNumber(value: number) {
   return value.toString();
 }
 
-// 格式化小时标签：MM-DD HH -> MM/DD HH:00
-export function formatHourLabel(label: string) {
-  // 新格式: "12-15 08" -> "12/15 08:00"
+// Format hour label: "MM-DD HH" -> "HH:00" (hourOnly) or "MM/DD HH:00" (full)
+export function formatHourLabel(label: string, hourOnly = false) {
   const parts = label.split(' ');
   if (parts.length === 2) {
     const [monthDay, hour] = parts;
-    return `${monthDay.replace('-', '/')} ${hour}:00`;
+    return hourOnly ? `${hour}:00` : `${monthDay.replace('-', '/')} ${hour}:00`;
   }
-  // 兼容旧格式: "00" -> "00:00"
   return `${label}:00`;
 }

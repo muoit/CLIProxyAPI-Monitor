@@ -14,26 +14,6 @@ const PIE_COLORS = ["#60a5fa", "#4ade80", "#fbbf24", "#c084fc", "#f472b6", "#38b
 type OverviewMeta = { page: number; pageSize: number; totalModels: number; totalPages: number };
 type OverviewAPIResponse = { overview: UsageOverview | null; empty: boolean; days: number; meta?: OverviewMeta; filters?: { models: string[]; routes: string[] }; topRoutes?: RouteUsage[]; timezone?: string };
 
-const DEFAULT_TIMEZONE = process.env.NEXT_PUBLIC_TIMEZONE || "Asia/Shanghai";
-
-// Cache formatters to avoid creating new instances on each call
-const formatterCache = new Map<string, Intl.DateTimeFormat>();
-function getHourFormatter(tz: string) {
-  let formatter = formatterCache.get(tz);
-  if (!formatter) {
-    formatter = new Intl.DateTimeFormat("en-CA", {
-      timeZone: tz,
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      hour12: false
-    });
-    formatterCache.set(tz, formatter);
-  }
-  return formatter;
-}
-
-const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function formatDateInputValue(date: Date) {
@@ -59,53 +39,6 @@ const numericTooltipFormatter: TooltipProps<number, string>["formatter"] = (valu
   return [formatNumberWithCommas(numericValue), name];
 };
 
-function formatHourKeyFromTs(ts: number, tz: string = DEFAULT_TIMEZONE) {
-  const formatter = getHourFormatter(tz);
-  const parts = formatter.formatToParts(new Date(ts));
-  const month = parts.find((p) => p.type === "month")?.value ?? "00";
-  const day = parts.find((p) => p.type === "day")?.value ?? "00";
-  const hour = parts.find((p) => p.type === "hour")?.value ?? "00";
-  return `${month}-${day} ${hour}`;
-}
-
-function buildHourlySeries(series: UsageSeriesPoint[], rangeHours?: number, tz: string = DEFAULT_TIMEZONE) {
-  if (!series.length) return [] as UsageSeriesPoint[];
-
-  const withTs = series
-    .map((point) => ({ ...point, ts: point.timestamp ? new Date(point.timestamp).getTime() : Number.NaN }))
-    .filter((point) => Number.isFinite(point.ts))
-    .sort((a, b) => (a.ts ?? 0) - (b.ts ?? 0));
-
-  if (!withTs.length) return series;
-  if (!rangeHours) return withTs.map(({ ts, ...rest }) => rest);
-
-  const end = withTs[withTs.length - 1].ts as number;
-  const start = end - (rangeHours - 1) * HOUR_MS;
-  const bucket = new Map<number, UsageSeriesPoint & { ts: number }>();
-  withTs.forEach((point) => bucket.set(point.ts as number, point as UsageSeriesPoint & { ts: number }));
-
-  const filled: UsageSeriesPoint[] = [];
-  for (let ts = start; ts <= end; ts += HOUR_MS) {
-    const existing = bucket.get(ts);
-    if (existing) {
-      const { ts: _, ...rest } = existing;
-      filled.push(rest);
-    } else {
-      filled.push({
-        label: formatHourKeyFromTs(ts, tz),
-        timestamp: new Date(ts).toISOString(),
-        requests: 0,
-        tokens: 0,
-        inputTokens: 0,
-        outputTokens: 0,
-        reasoningTokens: 0,
-        cachedTokens: 0
-      });
-    }
-  }
-
-  return filled;
-}
 
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
@@ -117,7 +50,6 @@ export default function DashboardPage() {
   const [overviewError, setOverviewError] = useState<string | null>(null);
   const [overviewEmpty, setOverviewEmpty] = useState(false);
   const [topRoutes, setTopRoutes] = useState<RouteUsage[]>([]);
-  const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE);
   const [loadingOverview, setLoadingOverview] = useState(true);
   const [rangeInit] = useState(() => {
     const defaultEnd = new Date();
@@ -150,7 +82,6 @@ export default function DashboardPage() {
   const [customDraftEnd, setCustomDraftEnd] = useState(rangeInit.end);
   const [customError, setCustomError] = useState<string | null>(null);
   const customPickerRef = useRef<HTMLDivElement | null>(null);
-  const [hourRange, setHourRange] = useState<"all" | "24h" | "72h">("all");
   const [modelOptions, setModelOptions] = useState<string[]>([]);
   const [routeOptions, setRouteOptions] = useState<string[]>([]);
   const [filterModelInput, setFilterModelInput] = useState("");
@@ -602,7 +533,6 @@ export default function DashboardPage() {
         setRouteOptions(Array.from(new Set(data.filters?.routes ?? [])));
         setAppliedDays(data.days ?? rangeDays);
         setTopRoutes(data.topRoutes ?? []);
-        if (data.timezone) setTimezone(data.timezone);
       } catch (err) {
         if (!active) return;
         const error = err as Error;
@@ -630,24 +560,29 @@ export default function DashboardPage() {
     );
   }, [topRoutes, routesSortMode]);
 
-  const hourlySeries = useMemo(() => {
-    if (!overviewData?.byHour) return [] as UsageSeriesPoint[];
-    if (hourRange === "all") return overviewData.byHour;
-    const hours = hourRange === "24h" ? 24 : 72;
-    return buildHourlySeries(overviewData.byHour, hours, timezone);
-  }, [hourRange, overviewData?.byHour, timezone]);
+  // Usage Trend data: hourly for "Today", daily for other ranges
+  const trendData = useMemo(() => {
+    if (!overviewData) return [];
+    return rangeDays === 1 ? overviewData.byHour : overviewData.byDay;
+  }, [overviewData, rangeDays]);
+
+  // Load Distribution data: same logic as trendData
+  const loadDistributionData = useMemo(() => {
+    if (!overviewData) return [];
+    return rangeDays === 1 ? overviewData.byHour : overviewData.byDay;
+  }, [overviewData, rangeDays]);
+
+  // Check if showing hourly data (for label formatting)
+  const isHourlyView = rangeDays === 1;
+
+  // Format label for hourly view - show only hour for Today, full date+hour otherwise
+  const formatLabel = useCallback((label: string) => formatHourLabel(label, true), []);
 
   useEffect(() => {
     if (fullscreenChart === "stacked") {
       setFullscreenHourlyMode("area");
     }
   }, [fullscreenChart]);
-
-  const hourRangeOptions: { key: "all" | "24h" | "72h"; label: string }[] = [
-    { key: "all", label: "All" },
-    { key: "24h", label: "Last 24 hours" },
-    { key: "72h", label: "Last 72 hours" }
-  ];
 
   const sortedModelsByCost = useMemo(() => {
     const models = overviewData?.models ?? [];
@@ -1061,7 +996,7 @@ export default function DashboardPage() {
         ) : (
           <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-3 flex flex-col ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`} style={{ animationDelay: '0.15s' }}>
             <div className="flex items-center justify-between">
-              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Daily Usage Trend</h2>
+              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Usage Trend</h2>
               <div className="flex items-center gap-2">
                 <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{rangeSubtitle}</span>
                 <button
@@ -1082,9 +1017,9 @@ export default function DashboardPage() {
                 </div>
               ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={overviewData.byDay} margin={{ top: 0, right: 12, left: 0, bottom: 0 }}>
+                <LineChart data={trendData} margin={{ top: 0, right: 12, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke="#334155" strokeDasharray="5 5" />
-                  <XAxis dataKey="label" stroke="#94a3b8" fontSize={12} />
+                  <XAxis dataKey="label" stroke="#94a3b8" fontSize={12} tickFormatter={isHourlyView ? formatLabel : undefined} />
                   <YAxis 
                     yAxisId="left" 
                     stroke={trendConfig.leftAxis.color} 
@@ -1351,7 +1286,7 @@ export default function DashboardPage() {
 
       {/* Second row: hourly load + model costs */}
       <section className="mt-6 grid gap-6 lg:grid-cols-5">
-        {/* Hourly Load Distribution */}
+        {/* Load Distribution */}
         {loadingOverview || !overviewData ? (
           <div className="lg:col-span-3">
             <Skeleton className="h-[400px] rounded-2xl" />
@@ -1360,22 +1295,10 @@ export default function DashboardPage() {
           <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-3 flex flex-col ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`} style={{ animationDelay: '0.25s' }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Hourly Load Distribution</h2>
-                <div className="flex items-center gap-1">
-                  {hourRangeOptions.map((opt) => (
-                    <button
-                      key={opt.key}
-                      onClick={() => setHourRange(opt.key)}
-                      className={`rounded-md border px-2 py-1 text-xs transition ${
-                        hourRange === opt.key
-                          ? "border-indigo-500 bg-indigo-600 text-white"
-                          : darkMode ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+                <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Load Distribution</h2>
+                <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                  {isHourlyView ? "Hourly" : "Daily"}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className={`flex items-center gap-1 text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
@@ -1400,7 +1323,7 @@ export default function DashboardPage() {
                 </div>
               ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={hourlySeries} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                <ComposedChart data={loadDistributionData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gradInput" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#fca5a5" />
@@ -1420,7 +1343,7 @@ export default function DashboardPage() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#334155" : "#e2e8f0"} />
-                  <XAxis dataKey="label" stroke={darkMode ? "#94a3b8" : "#64748b"} fontSize={12} tickFormatter={formatHourLabel} />
+                  <XAxis dataKey="label" stroke={darkMode ? "#94a3b8" : "#64748b"} fontSize={12} tickFormatter={isHourlyView ? formatLabel : undefined} />
                   <YAxis yAxisId="left" stroke={darkMode ? "#60a5fa" : "#3b82f6"} tickFormatter={(v) => formatCompactNumber(v)} fontSize={12} />
                   <YAxis yAxisId="right" orientation="right" stroke={darkMode ? "#94a3b8" : "#64748b"} tickFormatter={(v) => formatCompactNumber(v)} fontSize={12} />
                   <Tooltip 
@@ -1439,7 +1362,7 @@ export default function DashboardPage() {
                             color: darkMode ? "#f8fafc" : "#0f172a"
                           }}
                         >
-                          <p className={`mb-2 font-medium text-sm ${darkMode ? "text-slate-50" : "text-slate-900"}`}>{label ? formatHourLabel(String(label)) : ''}</p>
+                          <p className={`mb-2 font-medium text-sm ${darkMode ? "text-slate-50" : "text-slate-900"}`}>{label ? (isHourlyView ? formatLabel(String(label)) : String(label)) : ''}</p>
                           <div className="space-y-1">
                             {sortedPayload.map((entry: any, index: number) => {
                               let color = entry.color;
@@ -1633,7 +1556,7 @@ export default function DashboardPage() {
         onClose={() => setFullscreenChart(null)}
         title={
           fullscreenChart === "stacked" || fullscreenChart === "pie" ? undefined :
-          fullscreenChart === "trend" ? "Daily Requests & Token Trend" :
+          fullscreenChart === "trend" ? `${isHourlyView ? "Hourly" : "Daily"} Requests & Token Trend` :
           ""
         }
         darkMode={darkMode}
@@ -1643,9 +1566,9 @@ export default function DashboardPage() {
         <div className="mt-4 h-[70vh]">
           {fullscreenChart === "trend" && overviewData && (
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={overviewData.byDay} margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
+              <LineChart data={trendData} margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
                 <CartesianGrid stroke="#334155" strokeDasharray="5 5" />
-                <XAxis dataKey="label" stroke="#94a3b8" fontSize={12} />
+                <XAxis dataKey="label" stroke="#94a3b8" fontSize={12} tickFormatter={isHourlyView ? formatLabel : undefined} />
                 <YAxis 
                   yAxisId="left" 
                   stroke={trendConfig.leftAxis.color} 
@@ -1895,22 +1818,10 @@ export default function DashboardPage() {
             <div className="flex h-full flex-col gap-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-lg font-semibold text-white">Hourly Load Distribution</h3>
-                  <div className="flex items-center gap-1">
-                    {hourRangeOptions.map((opt) => (
-                      <button
-                        key={opt.key}
-                        onClick={() => setHourRange(opt.key)}
-                        className={`rounded-md border px-2 py-1 text-xs transition ${
-                          hourRange === opt.key
-                            ? "border-indigo-500 bg-indigo-600 text-white"
-                            : darkMode ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
+                  <h3 className="text-lg font-semibold text-white">Load Distribution</h3>
+                  <span className="text-xs text-slate-400">
+                    {isHourlyView ? "Hourly" : "Daily"}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1 pr-5">
                   <button
@@ -1938,7 +1849,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={hourlySeries} margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
+                <ComposedChart data={loadDistributionData} margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gradInputFS" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#fca5a5" />
@@ -1958,7 +1869,7 @@ export default function DashboardPage() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#334155" : "#e2e8f0"} />
-                  <XAxis dataKey="label" stroke={darkMode ? "#94a3b8" : "#64748b"} fontSize={12} tickFormatter={formatHourLabel} />
+                  <XAxis dataKey="label" stroke={darkMode ? "#94a3b8" : "#64748b"} fontSize={12} tickFormatter={isHourlyView ? formatLabel : undefined} />
                   <YAxis yAxisId="left" stroke={darkMode ? "#60a5fa" : "#3b82f6"} tickFormatter={(v) => formatCompactNumber(v)} fontSize={12} />
                   <YAxis yAxisId="right" orientation="right" stroke={darkMode ? "#94a3b8" : "#64748b"} tickFormatter={(v) => formatCompactNumber(v)} fontSize={12} />
                   <Tooltip 
@@ -1977,7 +1888,7 @@ export default function DashboardPage() {
                             color: darkMode ? "#f8fafc" : "#0f172a"
                           }}
                         >
-                          <p className={`mb-2 font-medium text-sm ${darkMode ? "text-slate-50" : "text-slate-900"}`}>{label ? formatHourLabel(String(label)) : ''}</p>
+                          <p className={`mb-2 font-medium text-sm ${darkMode ? "text-slate-50" : "text-slate-900"}`}>{label ? (isHourlyView ? formatLabel(String(label)) : String(label)) : ''}</p>
                           <div className="space-y-1">
                             {sortedPayload.map((entry: any, index: number) => {
                               let color = entry.color;
