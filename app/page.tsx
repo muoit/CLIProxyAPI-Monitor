@@ -54,7 +54,7 @@ export default function DashboardPage() {
   const [rangeInit] = useState(() => {
     const defaultEnd = new Date();
     const defaultStart = new Date(defaultEnd.getTime() - 6 * DAY_MS);
-    const fallback = { mode: "preset" as const, days: 14, start: formatDateInputValue(defaultStart), end: formatDateInputValue(defaultEnd) };
+    const fallback = { mode: "preset" as const, days: 1, start: formatDateInputValue(defaultStart), end: formatDateInputValue(defaultEnd) };
     if (typeof window === "undefined") return fallback;
     const saved = window.localStorage.getItem("rangeSelection");
     if (!saved) return fallback;
