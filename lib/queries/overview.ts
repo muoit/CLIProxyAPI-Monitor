@@ -52,6 +52,7 @@ type DayAggRow = {
   cachedTokens: number;
 };
 type DayModelAggRow = { label: string; model: string; inputTokens: number; outputTokens: number; cachedTokens: number };
+type HourModelAggRow = { label: string; model: string; inputTokens: number; outputTokens: number; cachedTokens: number };
 type HourAggRow = { 
   label: string;
   hourStart: Date | string;
@@ -219,6 +220,19 @@ export async function getOverview(
     .groupBy(hourExpr)
     .orderBy(hourExpr);
 
+  const byHourModelPromise: Promise<HourModelAggRow[]> = db
+    .select({
+      label: sql<string>`to_char(${hourExpr}, 'MM-DD HH24')`,
+      model: usageRecords.model,
+      inputTokens: sql<number>`sum(${usageRecords.inputTokens})`,
+      outputTokens: sql<number>`sum(${usageRecords.outputTokens})`,
+      cachedTokens: sql<number>`coalesce(sum(${usageRecords.cachedTokens}), 0)`
+    })
+    .from(usageRecords)
+    .where(filterWhere)
+    .groupBy(hourExpr, usageRecords.model)
+    .orderBy(hourExpr, usageRecords.model);
+
   const availableModelsPromise: Promise<{ model: string }[]> = db
     .select({ model: usageRecords.model })
     .from(usageRecords)
@@ -269,6 +283,7 @@ export async function getOverview(
     byDayRows,
     byDayModelRows,
     byHourRows,
+    byHourModelRows,
     availableModelsRows,
     availableRoutesRows,
     byRouteRows,
@@ -281,6 +296,7 @@ export async function getOverview(
     byDayPromise,
     byDayModelPromise,
     byHourPromise,
+    byHourModelPromise,
     availableModelsPromise,
     availableRoutesPromise,
     byRoutePromise,
@@ -326,6 +342,16 @@ export async function getOverview(
     dailyCostMap.set(row.label, (dailyCostMap.get(row.label) ?? 0) + cost);
   }
 
+  const hourlyCostMap = new Map<string, number>();
+  for (const row of byHourModelRows) {
+    const cost = estimateCost(
+      { inputTokens: toNumber(row.inputTokens), cachedTokens: toNumber(row.cachedTokens), outputTokens: toNumber(row.outputTokens) },
+      row.model,
+      prices
+    );
+    hourlyCostMap.set(row.label, (hourlyCostMap.get(row.label) ?? 0) + cost);
+  }
+
   const byDay: UsageSeriesPoint[] = byDayRows.map((row) => ({
     label: row.label,
     requests: toNumber(row.requests),
@@ -348,7 +374,8 @@ export async function getOverview(
     inputTokens: toNumber(row.inputTokens),
     outputTokens: toNumber(row.outputTokens),
     reasoningTokens: toNumber(row.reasoningTokens),
-    cachedTokens: toNumber(row.cachedTokens)
+    cachedTokens: toNumber(row.cachedTokens),
+    cost: Number((hourlyCostMap.get(row.label) ?? 0).toFixed(2))
   }));
 
   const totalCost = models.reduce((acc, cur) => acc + cur.cost, 0);
