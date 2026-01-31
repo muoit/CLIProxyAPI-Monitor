@@ -36,6 +36,12 @@ export type UsageSeriesPoint = {
   timestamp?: string;
 };
 
+// Time-series token data grouped by route (top N routes + "Other")
+export type RouteTokenSeriesPoint = {
+  label: string;
+  [routeOrOther: string]: number | string; // route names as keys, token counts as values
+};
+
 export type UsageOverview = {
   totalRequests: number;
   totalTokens: number;

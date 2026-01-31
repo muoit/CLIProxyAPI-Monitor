@@ -2,7 +2,7 @@ import { and, eq, sql, gte, lte } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { modelPrices, usageRecords } from "@/lib/db/schema";
-import type { UsageOverview, ModelUsage, UsageSeriesPoint, RouteUsage } from "@/lib/types";
+import type { UsageOverview, ModelUsage, UsageSeriesPoint, RouteUsage, RouteTokenSeriesPoint } from "@/lib/types";
 import { estimateCost, priceMap } from "@/lib/usage";
 import { config } from "@/lib/config";
 
@@ -63,6 +63,7 @@ type HourAggRow = {
   reasoningTokens: number;
   cachedTokens: number;
 };
+type RouteTimeAggRow = { label: string; route: string; tokens: number };
 type OverviewMeta = { page: number; pageSize: number; totalModels: number; totalPages: number };
 
 function toNumber(value: unknown): number {
@@ -108,10 +109,55 @@ function normalizePageSize(value?: number | null) {
   return Math.min(Math.max(Math.floor(value), 5), 500);
 }
 
+const TOP_ROUTES_FOR_CHART = 5;
+
+// Aggregate time-series rows into top N routes + "Other"
+function buildRouteTokenSeries(
+  dayRows: RouteTimeAggRow[],
+  hourRows: RouteTimeAggRow[]
+): { byDay: RouteTokenSeriesPoint[]; byHour: RouteTokenSeriesPoint[]; routes: string[] } {
+  function aggregate(rows: RouteTimeAggRow[]) {
+    // Sum tokens per route across all time points to find top routes
+    const routeTotals = new Map<string, number>();
+    for (const row of rows) {
+      routeTotals.set(row.route, (routeTotals.get(row.route) ?? 0) + toNumber(row.tokens));
+    }
+    // Sort by total tokens desc, take top N
+    const sorted = [...routeTotals.entries()].sort((a, b) => b[1] - a[1]);
+    const topRouteNames = sorted.slice(0, TOP_ROUTES_FOR_CHART).map(([name]) => name);
+    const topSet = new Set(topRouteNames);
+
+    // Group by label (time point), with top routes as keys and "Other" for rest
+    const labelMap = new Map<string, RouteTokenSeriesPoint>();
+    for (const row of rows) {
+      if (!labelMap.has(row.label)) {
+        const point: RouteTokenSeriesPoint = { label: row.label };
+        for (const r of topRouteNames) point[r] = 0;
+        point["Other"] = 0;
+        labelMap.set(row.label, point);
+      }
+      const point = labelMap.get(row.label)!;
+      const tokens = toNumber(row.tokens);
+      if (topSet.has(row.route)) {
+        point[row.route] = (point[row.route] as number) + tokens;
+      } else {
+        point["Other"] = (point["Other"] as number) + tokens;
+      }
+    }
+    return { points: [...labelMap.values()], routes: topRouteNames };
+  }
+
+  const dayResult = aggregate(dayRows);
+  const hourResult = aggregate(hourRows);
+  // Use whichever has more data to determine top route names
+  const routes = dayResult.routes.length >= hourResult.routes.length ? dayResult.routes : hourResult.routes;
+  return { byDay: dayResult.points, byHour: hourResult.points, routes };
+}
+
 export async function getOverview(
   daysInput?: number,
   opts?: { model?: string | null; route?: string | null; page?: number | null; pageSize?: number | null; start?: string | Date | null; end?: string | Date | null }
-): Promise<{ overview: UsageOverview; empty: boolean; days: number; meta: OverviewMeta; filters: { models: string[]; routes: string[] }; topRoutes: RouteUsage[] }> {
+): Promise<{ overview: UsageOverview; empty: boolean; days: number; meta: OverviewMeta; filters: { models: string[]; routes: string[] }; topRoutes: RouteUsage[]; tokensByRoute: { byDay: RouteTokenSeriesPoint[]; byHour: RouteTokenSeriesPoint[]; routes: string[] } }> {
   const startDate = parseDateInput(opts?.start);
   const endDate = parseDateInput(opts?.end);
   const hasCustomRange = startDate && endDate && endDate >= startDate;
@@ -262,6 +308,29 @@ export async function getOverview(
     .orderBy(sql`sum(${usageRecords.totalRequests}) desc`)
     .limit(10);
 
+  // Token by route over time (for stacked bar chart)
+  const tokensByRouteDayPromise: Promise<RouteTimeAggRow[]> = db
+    .select({
+      label: sql<string>`to_char(${dayExpr}, 'YYYY-MM-DD')`,
+      route: usageRecords.route,
+      tokens: sql<number>`sum(${usageRecords.totalTokens})`
+    })
+    .from(usageRecords)
+    .where(filterWhere)
+    .groupBy(dayExpr, usageRecords.route)
+    .orderBy(dayExpr);
+
+  const tokensByRouteHourPromise: Promise<RouteTimeAggRow[]> = db
+    .select({
+      label: sql<string>`to_char(${hourExpr}, 'MM-DD HH24')`,
+      route: usageRecords.route,
+      tokens: sql<number>`sum(${usageRecords.totalTokens})`
+    })
+    .from(usageRecords)
+    .where(filterWhere)
+    .groupBy(hourExpr, usageRecords.route)
+    .orderBy(hourExpr);
+
   // Query breakdown by route + model for accurate cost calculation
   const byRouteModelPromise: Promise<RouteModelAggRow[]> = db
     .select({
@@ -287,7 +356,9 @@ export async function getOverview(
     availableModelsRows,
     availableRoutesRows,
     byRouteRows,
-    byRouteModelRows
+    byRouteModelRows,
+    tokensByRouteDayRows,
+    tokensByRouteHourRows
   ] = await Promise.all([
     totalsPromise,
     pricePromise,
@@ -300,7 +371,9 @@ export async function getOverview(
     availableModelsPromise,
     availableRoutesPromise,
     byRoutePromise,
-    byRouteModelPromise
+    byRouteModelPromise,
+    tokensByRouteDayPromise,
+    tokensByRouteHourPromise
   ]);
 
   const totalsRow =
@@ -430,12 +503,16 @@ export async function getOverview(
     cost: Number((routeCostMap.get(row.route) ?? 0).toFixed(4))
   }));
 
+  // Build top 5 routes by total tokens + "Other" time series
+  const tokensByRoute = buildRouteTokenSeries(tokensByRouteDayRows, tokensByRouteHourRows);
+
   return {
     overview,
     empty: totalRequests === 0,
     days,
     meta: { page, pageSize, totalModels, totalPages },
     filters,
-    topRoutes
+    topRoutes,
+    tokensByRoute
   };
 }

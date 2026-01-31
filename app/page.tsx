@@ -5,14 +5,16 @@ import { ResponsiveContainer, LineChart, Line, Area, CartesianGrid, XAxis, YAxis
 import type { TooltipProps } from "recharts";
 import { formatCurrency, formatNumber, formatCompactNumber, formatNumberWithCommas, formatHourLabel } from "@/lib/utils";
 import { AlertTriangle, Info, LucideIcon, Activity, RefreshCw, Moon, Sun, Maximize2, CalendarRange, X } from "lucide-react";
-import type { UsageOverview, UsageSeriesPoint, RouteUsage } from "@/lib/types";
+import type { UsageOverview, UsageSeriesPoint, RouteUsage, RouteTokenSeriesPoint } from "@/lib/types";
 import { Modal } from "@/app/components/Modal";
+import { TokenByRouteChart } from "@/app/components/token-by-route-chart";
 
 // Pie chart colors - soft palette
 const PIE_COLORS = ["#60a5fa", "#4ade80", "#fbbf24", "#c084fc", "#f472b6", "#38bdf8", "#a3e635", "#fb923c"];
 
 type OverviewMeta = { page: number; pageSize: number; totalModels: number; totalPages: number };
-type OverviewAPIResponse = { overview: UsageOverview | null; empty: boolean; days: number; meta?: OverviewMeta; filters?: { models: string[]; routes: string[] }; topRoutes?: RouteUsage[]; timezone?: string };
+type TokensByRouteData = { byDay: RouteTokenSeriesPoint[]; byHour: RouteTokenSeriesPoint[]; routes: string[] };
+type OverviewAPIResponse = { overview: UsageOverview | null; empty: boolean; days: number; meta?: OverviewMeta; filters?: { models: string[]; routes: string[] }; topRoutes?: RouteUsage[]; tokensByRoute?: TokensByRouteData; timezone?: string };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -50,6 +52,7 @@ export default function DashboardPage() {
   const [overviewError, setOverviewError] = useState<string | null>(null);
   const [overviewEmpty, setOverviewEmpty] = useState(false);
   const [topRoutes, setTopRoutes] = useState<RouteUsage[]>([]);
+  const [tokensByRoute, setTokensByRoute] = useState<TokensByRouteData | null>(null);
   const [loadingOverview, setLoadingOverview] = useState(true);
   const [rangeInit] = useState(() => {
     const defaultEnd = new Date();
@@ -533,6 +536,7 @@ export default function DashboardPage() {
         setRouteOptions(Array.from(new Set(data.filters?.routes ?? [])));
         setAppliedDays(data.days ?? rangeDays);
         setTopRoutes(data.topRoutes ?? []);
+        setTokensByRoute(data.tokensByRoute ?? null);
       } catch (err) {
         if (!active) return;
         const error = err as Error;
@@ -565,6 +569,16 @@ export default function DashboardPage() {
     if (!overviewData) return [];
     return rangeDays === 1 ? overviewData.byHour : overviewData.byDay;
   }, [overviewData, rangeDays]);
+
+  // Token by Route chart data: hourly for "Today", daily for other ranges
+  const tokenByRouteData = useMemo(() => {
+    if (!tokensByRoute) return [];
+    return rangeDays === 1 ? tokensByRoute.byHour : tokensByRoute.byDay;
+  }, [tokensByRoute, rangeDays]);
+
+  const tokenByRouteNames = useMemo(() => {
+    return tokensByRoute?.routes ?? [];
+  }, [tokensByRoute]);
 
   // Load Distribution data: same logic as trendData
   const loadDistributionData = useMemo(() => {
@@ -1490,11 +1504,32 @@ export default function DashboardPage() {
         )}
       </section>
 
-      {/* Third row: Top 10 API Keys */}
+      {/* Third row: Token by Route chart + Top 10 API Keys */}
       <section className="mt-6 grid gap-6 lg:grid-cols-5">
+        {/* Token Usage by API Route — stacked bar chart over time */}
+        {loadingOverview || !overviewData ? (
+          <div className="lg:col-span-3">
+            <div className={`h-[400px] animate-pulse rounded-2xl ${darkMode ? "bg-slate-800/50" : "bg-slate-200"}`} />
+          </div>
+        ) : (
+          <div className={`animate-card-float flex flex-col rounded-2xl p-6 shadow-sm ring-1 lg:col-span-3 ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`} style={{ animationDelay: '0.32s' }}>
+            <h2 className={`mb-3 text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Token Usage by API Route</h2>
+            <div className="min-h-[14rem] flex-1" style={{ height: 320 }}>
+              <TokenByRouteChart
+                data={tokenByRouteData}
+                routes={tokenByRouteNames}
+                darkMode={darkMode}
+                isHourly={isHourlyView}
+                formatLabel={formatLabel}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Top 10 API Keys */}
         {loadingOverview || !overviewData ? (
           <div className="lg:col-span-2">
-            <div className={`h-[400px] rounded-2xl ${darkMode ? "bg-slate-800/50" : "bg-slate-200"} animate-pulse`} />
+            <div className={`h-[400px] animate-pulse rounded-2xl ${darkMode ? "bg-slate-800/50" : "bg-slate-200"}`} />
           </div>
         ) : (
           <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-2 ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`} style={{ animationDelay: '0.35s' }}>
@@ -1516,8 +1551,8 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="scrollbar-slim mt-3 max-h-80 min-h-[14rem] space-y-2 overflow-y-auto">
-              {showEmpty || sortedTopRoutes.length === 0 ? (
-                <div className={`flex flex-col items-center justify-center rounded-xl border border-dashed py-6 text-center ${darkMode ? "border-slate-700 bg-slate-800/30" : "border-slate-300 bg-slate-50"}`}>
+              {showEmpty || !sortedTopRoutes.length ? (
+                <div className={`flex items-center justify-center rounded-xl border border-dashed py-6 ${darkMode ? "border-slate-700 bg-slate-800/30" : "border-slate-300 bg-slate-50"}`}>
                   <p className={`text-base ${darkMode ? "text-slate-400" : "text-slate-500"}`}>No route data</p>
                 </div>
               ) : (
@@ -1531,7 +1566,7 @@ export default function DashboardPage() {
                         {index + 1}
                       </span>
                       <div>
-                        <p className={`text-sm font-semibold truncate max-w-[180px] ${darkMode ? "text-white" : "text-slate-900"}`} title={route.route}>
+                        <p className={`max-w-[180px] truncate text-sm font-semibold ${darkMode ? "text-white" : "text-slate-900"}`} title={route.route}>
                           {route.route}
                         </p>
                         <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
