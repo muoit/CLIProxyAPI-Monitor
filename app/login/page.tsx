@@ -87,29 +87,29 @@ function LoginPageContent() {
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Background blur effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-850 to-zinc-900" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/10 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-violet-900/10 via-transparent to-transparent" />
       
       {/* Decorative grid */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
 
       {/* Login card */}
       <div className="relative z-10 w-full max-w-md px-6">
-        <div className="bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-700/50 p-8">
+        <div className="bg-zinc-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-zinc-700/50 p-8">
           {/* Logo area */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+            <div className="w-16 h-16 bg-indigo-500/80 rounded-2xl flex items-center justify-center mb-4">
               <LockKeyhole className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-100">CLIProxyAPI Dashboard</h1>
-            <p className="text-slate-400 mt-2">Please enter password to continue</p>
+            <h1 className="text-2xl font-bold text-zinc-100">CLIProxyAPI Dashboard</h1>
+            <p className="text-zinc-400 mt-2">Please enter password to continue</p>
           </div>
 
           {/* Login form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-zinc-300 mb-2">
                 Password
               </label>
               <input
@@ -121,7 +121,7 @@ function LoginPageContent() {
                   if (error) setError("");
                 }}
                 placeholder="Enter access password"
-                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-600 rounded-lg text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={loading || isLocked}
                 autoFocus
               />
@@ -135,13 +135,13 @@ function LoginPageContent() {
             }`}>
               <div className="pb-1"> {/* Reserve small spacing at bottom */}
                 {error && !isLocked && (
-                  <div className="rounded-lg p-3 text-sm bg-orange-500/10 border border-orange-500/50 text-orange-400">
+                  <div className="rounded-lg p-3 text-sm bg-amber-500/8 border border-amber-400/30 text-amber-300">
                     <p className="font-medium">{error}</p>
                   </div>
                 )}
 
                 {isLocked && (
-                  <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-red-400 flex items-start gap-3">
+                  <div className="bg-rose-500/8 border border-rose-400/30 rounded-lg p-4 text-rose-300 flex items-start gap-3">
                     <Shield className="h-5 w-5 mt-0.5 shrink-0 animate-pulse" />
                     <div className="flex-1">
                       <p className="font-semibold mb-1">Account locked</p>
@@ -158,7 +158,7 @@ function LoginPageContent() {
             <button
               type="submit"
               disabled={loading || !password || isLocked}
-              className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
+              className="w-full py-3 px-4 bg-indigo-500 text-white font-medium rounded-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-zinc-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {isLocked ? "Account locked" : loading ? "Logging in..." : "Login"}
             </button>
@@ -166,7 +166,7 @@ function LoginPageContent() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-slate-500 text-sm mt-6">
+        <p className="text-center text-zinc-500 text-sm mt-6">
           © 2025 CLIProxyAPI Monitor
         </p>
       </div>
@@ -176,7 +176,7 @@ function LoginPageContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-900" />}>
+    <Suspense fallback={<div className="min-h-screen bg-zinc-900" />}>
       <LoginPageContent />
     </Suspense>
   );

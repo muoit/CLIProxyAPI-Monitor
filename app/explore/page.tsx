@@ -27,30 +27,30 @@ type ExploreResponse = {
 // Evenly distributed by hue, saturation 70-90%, brightness 55-75%, adapted for dark theme
 // Optimized ordering: 1,3,5,7,9,2,4,6,8,10 pattern maximizes adjacent color contrast
 const MODEL_COLORS = [
-  "#ff7a7aff", // 14 Rose (345°)
-  "#ffe863ff", // 3 Orange-yellow (40°)
-  "#8df48dff", // 6 Green (120°)
-  "#72afffff", // 9 Blue (220°)
-  "#a582ff", // 11 Purple (270°)
-  "#99e6ff", // 19 Light blue (200°+)
-  "#ff76d1ff", // 13 Magenta (320°)
-  "#ffb3b3", // 15 Light red (0°+)
-  "#fff899", // 17 Light yellow (60°+)
-  "#ff8c42", // 2 Orange-red (20°)
-  "#ffe66d", // 4 Yellow (60°)
-  "#42c9f5", // 8 Cyan (195°)
-  "#7d7aff", // 10 Indigo (245°)
-  "#d97aff", // 12 Magenta-purple (290°)
-  "#ffd699", // 16 Light orange (40°+)
-  "#b3f5b3", // 18 Light green (120°+)
-  "#d9b3ff", // 20 Light purple (280°+)
+  "#e0a5a5", // 14 Rose (345°)
+  "#e0d493", // 3 Orange-yellow (40°)
+  "#a0d4a0", // 6 Green (120°)
+  "#93b8e0", // 9 Blue (220°)
+  "#b0a0d4", // 11 Purple (270°)
+  "#a5d4e0", // 19 Light blue (200°+)
+  "#d4a0c0", // 13 Magenta (320°)
+  "#e0c0c0", // 15 Light red (0°+)
+  "#e0dab0", // 17 Light yellow (60°+)
+  "#d4a880", // 2 Orange-red (20°)
+  "#e0d49a", // 4 Yellow (60°)
+  "#80b8d4", // 8 Cyan (195°)
+  "#a0a0d4", // 10 Indigo (245°)
+  "#c0a0d4", // 12 Magenta-purple (290°)
+  "#e0c8a5", // 16 Light orange (40°+)
+  "#b0d4b0", // 18 Light green (120°+)
+  "#c8b0e0", // 20 Light purple (280°+)
 ];
 
 const TOKEN_COLORS = {
-  input: "#60a5fa",
-  output: "#4ade80",
-  reasoning: "#fbbf24",
-  cached: "#c084fc"
+  input: "#93b8f2",
+  output: "#7ed4a0",
+  reasoning: "#e8d48a",
+  cached: "#b8a3e0"
 } as const;
 
 const CHART_MARGIN = { top: 8, right: 12, left: 8, bottom: 12 };
@@ -298,7 +298,7 @@ function useLerpYDomain(
 }
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded-lg bg-slate-700/50 ${className ?? ""}`} />;
+  return <div className={`animate-pulse rounded-lg bg-zinc-700/50 ${className ?? ""}`} />;
 }
 
 // Standalone legend component, using React.memo to avoid unnecessary re-renders
@@ -324,26 +324,26 @@ const ModelLegend = memo(function ModelLegend({
   if (models.length === 0) return null;
   
   return (
-    <div className="mt-3 rounded-xl bg-slate-900/30 p-3 ring-1 ring-slate-800">
-      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300">
-        <span className="text-slate-400">Model legend (hover to highlight, click to hide)</span>
+    <div className="mt-3 rounded-xl bg-zinc-900/30 p-3 ring-1 ring-zinc-800">
+      <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-300">
+        <span className="text-zinc-400">Model legend (hover to highlight, click to hide)</span>
       </div>
       <div className="mt-2 max-h-20 overflow-auto pr-1">
-        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-300">
+        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-zinc-300">
           {models.map((m) => {
             const isHidden = hiddenModels.has(m);
             return (
               <button
                 key={m}
                 type="button"
-                className={`flex items-center gap-2 rounded-md px-1.5 py-0.5 transition-all hover:bg-slate-600/40 ${isHidden ? 'opacity-40' : ''}`}
+                className={`flex items-center gap-2 rounded-md px-1.5 py-0.5 transition-all hover:bg-zinc-600/40 ${isHidden ? 'opacity-40' : ''}`}
                 onMouseEnter={() => onMouseEnter(m)}
                 onMouseLeave={onMouseLeave}
                 onClick={() => onClick(m)}
               >
-                <span 
-                  className={`h-2.5 w-2.5 rounded-full ${isHidden ? 'ring-1 ring-slate-500' : ''}`} 
-                  style={{ backgroundColor: isHidden ? 'transparent' : getModelColor(m), opacity: isHidden ? 1 : 0.8 }} 
+                <span
+                  className={`h-2.5 w-2.5 rounded-full ${isHidden ? 'ring-1 ring-zinc-500' : ''}`}
+                  style={{ backgroundColor: isHidden ? 'transparent' : getModelColor(m), opacity: isHidden ? 1 : 0.8 }}
                 />
                 <span className={`max-w-[18rem] truncate ${isHidden ? 'line-through' : ''}`}>{m}</span>
               </button>
@@ -514,40 +514,40 @@ export default function ExplorePage() {
         : { left: defaultLeft }; // Use left positioning, show on right side of cursor
 
       return (
-        <div 
+        <div
           ref={tooltipRef}
-          className="pointer-events-none fixed z-50 rounded-xl bg-slate-900/60 px-3 py-2 text-sm shadow-lg ring-1 ring-slate-600/60 backdrop-blur-sm"
-          style={{ 
+          className="pointer-events-none fixed z-50 rounded-xl bg-zinc-900/60 px-3 py-2 text-sm shadow-lg ring-1 ring-zinc-600/60 backdrop-blur-sm"
+          style={{
             ...positionStyle,
             top: state.y - 10,
             transform: 'translateY(-100%)'
           }}
         >
-          <div className="font-semibold text-slate-100">{formatTs(state.point.ts)}</div>
-          <div className="mt-1 flex items-center gap-2 text-slate-200">
-            <span className="text-slate-400">Model:</span>
+          <div className="font-semibold text-zinc-100">{formatTs(state.point.ts)}</div>
+          <div className="mt-1 flex items-center gap-2 text-zinc-200">
+            <span className="text-zinc-400">Model:</span>
             <span className="inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: getModelColor(state.point.model || ""), opacity: 0.7 }} />
             <span className="max-w-[22rem] truncate">{state.point.model || "-"}</span>
           </div>
-          <div className="mt-1 text-slate-200">
-            <span className="text-slate-400">Total Tokens:</span>
+          <div className="mt-1 text-zinc-200">
+            <span className="text-zinc-400">Total Tokens:</span>
             <span>{formatNumberWithCommas(state.point.tokens)}</span>
           </div>
-          <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-slate-200">
+          <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-zinc-200">
             <div>
-              <span className="text-slate-400">Input:</span>
+              <span className="text-zinc-400">Input:</span>
               <span style={{ color: TOKEN_COLORS.input }}>{formatNumberWithCommas(state.point.inputTokens)}</span>
             </div>
             <div>
-              <span className="text-slate-400">Output:</span>
+              <span className="text-zinc-400">Output:</span>
               <span style={{ color: TOKEN_COLORS.output }}>{formatNumberWithCommas(state.point.outputTokens)}</span>
             </div>
             <div>
-              <span className="text-slate-400">Reasoning:</span>
+              <span className="text-zinc-400">Reasoning:</span>
               <span style={{ color: TOKEN_COLORS.reasoning }}>{formatNumberWithCommas(state.point.reasoningTokens)}</span>
             </div>
             <div>
-              <span className="text-slate-400">Cached:</span>
+              <span className="text-zinc-400">Cached:</span>
               <span style={{ color: TOKEN_COLORS.cached }}>{formatNumberWithCommas(state.point.cachedTokens)}</span>
             </div>
           </div>
@@ -1360,7 +1360,7 @@ export default function ExplorePage() {
   const cartesianGridProps = useMemo(() => ({
     yAxisId: "left",
     strokeDasharray: "3 3",
-    stroke: "#64748b",
+    stroke: "#7a7f8a",
     strokeOpacity: 0.6,
     horizontal: true,
     vertical: true
@@ -1482,13 +1482,13 @@ export default function ExplorePage() {
   }, [globalSelection]);
 
     return (
-      <main className="min-h-screen bg-slate-900 px-6 pb-4 pt-8 text-slate-100">
+      <main className="min-h-screen bg-zinc-900 px-6 pb-4 pt-8 text-zinc-100">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Data Exploration</h1>
-          <p className="text-sm text-slate-400">Each point represents a request (X=time, Y=token count, color=model)</p>
+          <p className="text-sm text-zinc-400">Each point represents a request (X=time, Y=token count, color=model)</p>
         </div>
-        <div className="flex flex-col items-start gap-2 text-sm text-slate-300 md:items-end">
+        <div className="flex flex-col items-start gap-2 text-sm text-zinc-300 md:items-end">
           <div className="flex flex-wrap items-center gap-2 md:justify-end">
             {[7, 14, 30].map((days) => (
               <button
@@ -1497,7 +1497,7 @@ export default function ExplorePage() {
                 className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                   rangeMode === "preset" && selectionSource === "local" && rangeDays === days
                     ? "border-indigo-500 bg-indigo-500/20 text-indigo-100"
-                    : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500"
+                    : "border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-zinc-500"
                 }`}
               >
                 Last {days} days
@@ -1513,30 +1513,30 @@ export default function ExplorePage() {
                 className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                   rangeMode === "custom" && selectionSource === "local"
                     ? "border-indigo-500 bg-indigo-500/20 text-indigo-100"
-                    : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500"
+                    : "border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-zinc-500"
                 }`}
               >
                 Custom
               </button>
               {customPickerOpen ? (
-                <div className="absolute right-0 z-30 mt-2 w-72 rounded-xl border border-slate-700 bg-slate-900 p-4 shadow-2xl">
+                <div className="absolute right-0 z-30 mt-2 w-72 rounded-xl border border-zinc-700 bg-zinc-900 p-4 shadow-2xl">
                   <div className="space-y-3 text-sm">
                     <div className="grid grid-cols-1 gap-2">
-                      <label className="text-slate-300">
+                      <label className="text-zinc-300">
                         Start date
                         <input
                           type="date"
-                          className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
+                          className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           value={customDraftStart}
                           max={customDraftEnd || undefined}
                           onChange={(e) => setCustomDraftStart(e.target.value)}
                         />
                       </label>
-                      <label className="text-slate-300">
+                      <label className="text-zinc-300">
                         End date
                         <input
                           type="date"
-                          className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
+                          className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
                           value={customDraftEnd}
                           min={customDraftStart || undefined}
                           onChange={(e) => setCustomDraftEnd(e.target.value)}
@@ -1553,7 +1553,7 @@ export default function ExplorePage() {
                           setCustomDraftStart(customStart);
                           setCustomDraftEnd(customEnd);
                         }}
-                        className="rounded-lg px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-800"
+                        className="rounded-lg px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-800"
                       >
                         Cancel
                       </button>
@@ -1574,28 +1574,28 @@ export default function ExplorePage() {
               className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                 selectionSource === "global"
                   ? "border-emerald-500 bg-emerald-500/20 text-emerald-100"
-                  : "border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500"
+                  : "border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-zinc-500"
               }`}
             >
               Follow dashboard
             </button>
           </div>
-          <div className="text-xs text-slate-400">
-            <span className="text-slate-500">Time range: </span>
+          <div className="text-xs text-zinc-400">
+            <span className="text-zinc-500">Time range: </span>
             <span>{rangeSubtitle}</span>
-            {data?.step && data.step > 1 ? <span className="ml-3 text-slate-500">{`Sampled: 1 in every ${data.step} points`}</span> : null}
+            {data?.step && data.step > 1 ? <span className="ml-3 text-zinc-500">{`Sampled: 1 in every ${data.step} points`}</span> : null}
           </div>
         </div>
       </header>
 
-      <section className="mt-6 rounded-2xl bg-slate-950/40 p-5 ring-1 ring-slate-800">
-        <div className="flex min-h-[28px] flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-300">
+      <section className="mt-6 rounded-2xl bg-zinc-950/40 p-5 ring-1 ring-zinc-800">
+        <div className="flex min-h-[28px] flex-wrap items-center gap-x-4 gap-y-1 text-sm text-zinc-300">
           <div>
-            <span className="text-slate-400">Total points: </span>
+            <span className="text-zinc-400">Total points: </span>
             <span>{formatNumberWithCommas(data?.total ?? 0)}</span>
           </div>
           <div>
-            <span className="text-slate-400">Rendered points: </span>
+            <span className="text-zinc-400">Rendered points: </span>
             <span>{formatNumberWithCommas(visiblePoints.length)}</span>
           </div>
           {zoomDomain && dataBounds && (() => {
@@ -1607,20 +1607,20 @@ export default function ExplorePage() {
             <button
               type="button"
               onClick={resetZoom}
-              className="rounded-lg bg-slate-600/90 px-3 py-1 text-xs text-slate-100 transition-colors hover:bg-slate-500"
+              className="rounded-lg bg-zinc-600/90 px-3 py-1 text-xs text-zinc-100 transition-colors hover:bg-zinc-500"
             >
               Reset zoom
             </button>
           )}
           <div className="ml-auto flex items-center gap-4">
-            <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-400 hover:text-slate-300">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-zinc-400 hover:text-zinc-300">
               <button
                 type="button"
                 role="switch"
                 aria-checked={showStackedArea}
                 onClick={() => setShowStackedArea(!showStackedArea)}
-                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 ${
-                  showStackedArea ? 'bg-blue-500' : 'bg-slate-600'
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 ${
+                  showStackedArea ? 'bg-indigo-500/80' : 'bg-zinc-600'
                 }`}
               >
                 <span
@@ -1631,7 +1631,7 @@ export default function ExplorePage() {
               </button>
               <span>Model stacked distribution</span>
             </label>
-            <span className="text-xs text-slate-500">Tip: Drag to select and zoom area</span>
+            <span className="text-xs text-zinc-500">Tip: Drag to select and zoom area</span>
           </div>
         </div>
 
@@ -1648,14 +1648,14 @@ export default function ExplorePage() {
           {loading ? (
             <Skeleton className="h-full" />
           ) : error ? (
-            <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-900/30 text-center">
-                  <p className="text-base text-slate-200">Failed to load</p>
-                  <p className="mt-1 text-sm text-slate-400">{error}</p>
+            <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-zinc-900/30 text-center">
+                  <p className="text-base text-zinc-200">Failed to load</p>
+                  <p className="mt-1 text-sm text-zinc-400">{error}</p>
             </div>
           ) : points.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-900/30 text-center">
-                  <p className="text-base text-slate-200">No request detail data</p>
-                  <p className="mt-1 text-sm text-slate-400">If upstream /usage does not provide details, this chart will be empty.</p>
+            <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-zinc-900/30 text-center">
+                  <p className="text-base text-zinc-200">No request detail data</p>
+                  <p className="mt-1 text-sm text-zinc-400">If upstream /usage does not provide details, this chart will be empty.</p>
             </div>
           ) : (
             <>
@@ -1670,27 +1670,27 @@ export default function ExplorePage() {
                 }}
               >
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart 
-                    data={yDistribution} 
+                  <AreaChart
+                    data={yDistribution}
                     layout="vertical"
                     margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
                   >
                     <defs>
                       <linearGradient id="yDistGradient" x1="1" y1="0" x2="0" y2="0">
-                        <stop offset="0%" stopColor="#60a5fa" stopOpacity={0.08} />
-                        <stop offset="40%" stopColor="#60a5fa" stopOpacity={0.4} />
-                        <stop offset="100%" stopColor="#60a5fa" stopOpacity={0.7} />
+                        <stop offset="0%" stopColor="#93b8f2" stopOpacity={0.08} />
+                        <stop offset="40%" stopColor="#93b8f2" stopOpacity={0.4} />
+                        <stop offset="100%" stopColor="#93b8f2" stopOpacity={0.7} />
                       </linearGradient>
                     </defs>
                     <XAxis type="number" hide domain={[0, 'dataMax']} reversed />
                     <YAxis type="category" dataKey="y" hide />
-                    <Area 
-                      type="basis" 
-                        dataKey="count" 
-                        stroke="#7cc5ff" 
+                    <Area
+                      type="basis"
+                        dataKey="count"
+                        stroke="#9ac0e0"
                         strokeWidth={1.5}
                         strokeOpacity={0.75}
-                      fill="url(#yDistGradient)" 
+                      fill="url(#yDistGradient)"
                       isAnimationActive={false}
                     />
                   </AreaChart>
@@ -1715,7 +1715,7 @@ export default function ExplorePage() {
                 {/* Brush selection area visualization - direct DOM update to avoid frequent re-renders */}
                 <div
                   ref={brushOverlayRef}
-                  className="pointer-events-none absolute border border-blue-400/80 bg-blue-400/15"
+                  className="pointer-events-none absolute border border-indigo-400/80 bg-indigo-400/15"
                   style={{ display: 'none' }}
                 />
               <ResponsiveContainer width="100%" height="100%">
@@ -1730,7 +1730,7 @@ export default function ExplorePage() {
                       domain={activeDomain?.x}
                       scale="time"
                       tickFormatter={(v) => formatTs(Number(v))}
-                      stroke="#cbd5e1"
+                      stroke="#b8bcc5"
                       fontSize={13}
                       allowDataOverflow
                       axisLine={false}
@@ -1742,7 +1742,7 @@ export default function ExplorePage() {
                       type="number"
                       dataKey="tokens"
                       domain={smoothYDomain || activeDomain?.y}
-                      stroke="#cbd5e1"
+                      stroke="#b8bcc5"
                       fontSize={13}
                       ticks={computedYTicks}
                       interval="preserveStartEnd"
@@ -1781,11 +1781,11 @@ export default function ExplorePage() {
                     cursor={false}
                     content={() => null}
                   />
-                  <ReferenceLine 
+                  <ReferenceLine
                     yAxisId="left"
-                    y={0} 
-                    stroke="#cbd5e1aa" 
-                    strokeWidth={1} 
+                    y={0}
+                    stroke="#b8bcc5aa"
+                    strokeWidth={1}
                     ifOverflow="extendDomain"
                   />
                   <Scatter 
@@ -1811,34 +1811,34 @@ export default function ExplorePage() {
               className="relative mt-1 h-16 select-none"
               style={{ marginLeft: 132 , marginRight: 12 }}
             >
-              <div 
+              <div
                 ref={xRangeContainerRef}
-                className="relative h-10 w-full cursor-ew-resize overflow-visible rounded-lg bg-slate-950/40 ring-1 ring-slate-800/80 transition-colors"
+                className="relative h-10 w-full cursor-ew-resize overflow-visible rounded-lg bg-zinc-950/40 ring-1 ring-zinc-800/80 transition-colors"
                 onMouseDown={handleXRangeMouseDown}
                 onMouseLeave={() => !isXRangeDragging && setXRangeHover(null)}
                 onDoubleClick={zoomDomain ? resetZoom : undefined}
               >
                 {/* Background area chart */}
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart 
-                    data={xDistribution} 
+                  <AreaChart
+                    data={xDistribution}
                     margin={{ top: 2, right: 0, left: 0, bottom: 0 }}
                   >
                     <defs>
                       <linearGradient id="xDistGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#60a5fa" stopOpacity={0.4} />
-                        <stop offset="100%" stopColor="#60a5fa" stopOpacity={0.05} />
+                        <stop offset="0%" stopColor="#93b8f2" stopOpacity={0.4} />
+                        <stop offset="100%" stopColor="#93b8f2" stopOpacity={0.05} />
                       </linearGradient>
                     </defs>
                     <XAxis type="number" dataKey="ts" domain={dataBounds?.x} hide />
                     <YAxis type="number" dataKey="tokens" hide domain={[0, 'dataMax']} />
-                    <Area 
-                      type="monotone" 
-                      dataKey="tokens" 
-                      stroke="#7cc5ff" 
+                    <Area
+                      type="monotone"
+                      dataKey="tokens"
+                      stroke="#9ac0e0"
                       strokeWidth={1.5}
                       strokeOpacity={0.8}
-                      fill="url(#xDistGradient)" 
+                      fill="url(#xDistGradient)"
                       isAnimationActive={false}
                     />
                   </AreaChart>
@@ -1857,8 +1857,8 @@ export default function ExplorePage() {
                     <>
                       {/* Left gray area */}
                       {startRatio > 0.001 && (
-                        <div 
-                          className="pointer-events-none absolute top-0 h-full rounded-l-lg bg-slate-950/55"
+                        <div
+                          className="pointer-events-none absolute top-0 h-full rounded-l-lg bg-zinc-950/55"
                           style={{
                             left: 0,
                             width: `${startRatio * 100}%`,
@@ -1867,8 +1867,8 @@ export default function ExplorePage() {
                       )}
                       {/* Right gray area */}
                       {endRatio < 0.999 && (
-                        <div 
-                          className="pointer-events-none absolute top-0 h-full rounded-r-lg bg-slate-950/55"
+                        <div
+                          className="pointer-events-none absolute top-0 h-full rounded-r-lg bg-zinc-950/55"
                           style={{
                             left: `${endRatio * 100}%`,
                             right: 0,
@@ -1877,8 +1877,8 @@ export default function ExplorePage() {
                       )}
 
                       {/* Selection box (draggable for moving) */}
-                      <div 
-                        className={`absolute top-0 h-full cursor-move border-y transition-[background-color,border-color] duration-150 hover:bg-blue-500/10 active:bg-blue-500/15 ${hasZoom ? 'border-blue-500/50 border-l border-r rounded-lg' : 'border-blue-500/25'}`}
+                      <div
+                        className={`absolute top-0 h-full cursor-move border-y transition-[background-color,border-color] duration-150 hover:bg-indigo-500/10 active:bg-indigo-500/15 ${hasZoom ? 'border-indigo-500/50 border-l border-r rounded-lg' : 'border-indigo-500/25'}`}
                         style={{
                           left: `${startRatio * 100}%`,
                           width: `${(endRatio - startRatio) * 100}%`,
@@ -1887,27 +1887,27 @@ export default function ExplorePage() {
                       />
 
                       {/* Left drag handle */}
-                      <div 
+                      <div
                         className="group absolute top-0 z-10 flex h-full w-5 -translate-x-1/2 cursor-ew-resize items-center justify-center"
                         style={{ left: `${startRatio * 100}%` }}
                         onMouseEnter={() => setXRangeHover('left')}
                       >
-                        <div className="h-6 w-1.5 rounded-full bg-slate-200/90 ring-1 ring-slate-950/80 shadow-none transition-[background-color,width] duration-150 group-hover:w-2 group-hover:bg-slate-50" />
+                        <div className="h-6 w-1.5 rounded-full bg-zinc-200/90 ring-1 ring-zinc-950/80 shadow-none transition-[background-color,width] duration-150 group-hover:w-2 group-hover:bg-zinc-50" />
                         {/* Time label - only show on hover or drag */}
-                        <div className={`absolute bottom-full mb-1 whitespace-nowrap rounded-md bg-slate-900/70 px-1.5 py-0.5 text-[10px] font-medium text-slate-200 ring-1 ring-slate-700/60 transition-opacity duration-150 ${showLeftLabel ? 'opacity-100' : 'opacity-0'}`}>
+                        <div className={`absolute bottom-full mb-1 whitespace-nowrap rounded-md bg-zinc-900/70 px-1.5 py-0.5 text-[10px] font-medium text-zinc-200 ring-1 ring-zinc-700/60 transition-opacity duration-150 ${showLeftLabel ? 'opacity-100' : 'opacity-0'}`}>
                           {formatTs(currentSelection[0])}
                         </div>
                       </div>
 
                       {/* Right drag handle */}
-                      <div 
+                      <div
                         className="group absolute top-0 z-10 flex h-full w-5 -translate-x-1/2 cursor-ew-resize items-center justify-center"
                         style={{ left: `${endRatio * 100}%` }}
                         onMouseEnter={() => setXRangeHover('right')}
                       >
-                        <div className="h-6 w-1.5 rounded-full bg-slate-200/90 ring-1 ring-slate-950/80 shadow-none transition-[background-color,width] duration-150 group-hover:w-2 group-hover:bg-slate-50" />
+                        <div className="h-6 w-1.5 rounded-full bg-zinc-200/90 ring-1 ring-zinc-950/80 shadow-none transition-[background-color,width] duration-150 group-hover:w-2 group-hover:bg-zinc-50" />
                         {/* Time label - only show on hover or drag */}
-                        <div className={`absolute bottom-full mb-1 whitespace-nowrap rounded-md bg-slate-900/70 px-1.5 py-0.5 text-[10px] font-medium text-slate-200 ring-1 ring-slate-700/60 transition-opacity duration-150 ${showRightLabel ? 'opacity-100' : 'opacity-0'}`}>
+                        <div className={`absolute bottom-full mb-1 whitespace-nowrap rounded-md bg-zinc-900/70 px-1.5 py-0.5 text-[10px] font-medium text-zinc-200 ring-1 ring-zinc-700/60 transition-opacity duration-150 ${showRightLabel ? 'opacity-100' : 'opacity-0'}`}>
                           {formatTs(currentSelection[1])}
                         </div>
                       </div>

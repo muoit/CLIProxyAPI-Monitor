@@ -10,7 +10,7 @@ import { Modal } from "@/app/components/Modal";
 import { TokenByRouteChart } from "@/app/components/token-by-route-chart";
 
 // Pie chart colors - soft palette
-const PIE_COLORS = ["#60a5fa", "#4ade80", "#fbbf24", "#c084fc", "#f472b6", "#38bdf8", "#a3e635", "#fb923c"];
+const PIE_COLORS = ["#93b8f2", "#7ed4a0", "#e8d48a", "#b8a3e0", "#e0a3c0", "#7cc4e0", "#b8d48a", "#e0b88a"];
 
 type OverviewMeta = { page: number; pageSize: number; totalModels: number; totalPages: number };
 type TokensByRouteData = { byDay: RouteTokenSeriesPoint[]; byHour: RouteTokenSeriesPoint[]; routes: string[] };
@@ -199,9 +199,9 @@ export default function DashboardPage() {
 
   const trendConfig = useMemo(() => {
     const defs = {
-      requests: { color: darkMode ? "#60a5fa" : "#3b82f6", formatter: (v: any) => formatCompactNumber(v), name: "Requests" },
-      tokens: { color: darkMode ? "#4ade80" : "#16a34a", formatter: (v: any) => formatCompactNumber(v), name: "Tokens" },
-      cost: { color: "#fbbf24", formatter: (v: any) => formatCurrency(v), name: "Cost" },
+      requests: { color: darkMode ? "#93b8f2" : "#7096d6", formatter: (v: any) => formatCompactNumber(v), name: "Requests" },
+      tokens: { color: darkMode ? "#7ed4a0" : "#5aad7a", formatter: (v: any) => formatCompactNumber(v), name: "Tokens" },
+      cost: { color: "#e8d48a", formatter: (v: any) => formatCurrency(v), name: "Cost" },
     };
 
     const visibleKeys = (Object.keys(trendVisible) as Array<keyof typeof trendVisible>).filter((k) => trendVisible[k]);
@@ -665,7 +665,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className={`min-h-screen px-6 py-8 transition-colors ${darkMode ? "bg-slate-900 text-slate-100" : "bg-slate-50 text-slate-900"}`}>
+    <main className={`min-h-screen px-6 py-8 transition-colors ${darkMode ? "bg-zinc-900 text-zinc-100" : "bg-zinc-50 text-zinc-900"}`}>
       {overviewError ? (
         <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-500/50 bg-red-500/10 px-4 py-3 text-sm text-red-400">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
@@ -678,16 +678,16 @@ export default function DashboardPage() {
 
       <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-slate-900"}`}>Usage Dashboard</h1>
-          <p className={`text-base ${darkMode ? "text-slate-400" : "text-slate-600"}`}>Persistent CLIProxyAPI Usage Statistics & Cost Analysis</p>
+          <h1 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-zinc-900"}`}>Usage Dashboard</h1>
+          <p className={`text-base ${darkMode ? "text-zinc-400" : "text-zinc-600"}`}>Persistent CLIProxyAPI Usage Statistics & Cost Analysis</p>
         </div>
         <div className="flex items-center gap-4">
           <button
             onClick={() => applyTheme(!darkMode)}
             className={`rounded-lg border p-2 transition ${
               darkMode
-                ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500"
-                : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
+                ? "border-zinc-700 bg-zinc-800 text-zinc-300 hover:border-zinc-500"
+                : "border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400"
             }`}
             title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
           >
@@ -699,8 +699,8 @@ export default function DashboardPage() {
             className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
               syncing
                 ? darkMode
-                  ? "cursor-not-allowed border-slate-700 bg-slate-800 text-slate-500"
-                  : "cursor-not-allowed border-slate-300 bg-slate-200 text-slate-500"
+                  ? "cursor-not-allowed border-zinc-700 bg-zinc-800 text-zinc-500"
+                  : "cursor-not-allowed border-zinc-300 bg-zinc-200 text-zinc-500"
                 : "border-indigo-500/50 bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30"
             }`}
           >
@@ -708,12 +708,12 @@ export default function DashboardPage() {
             {syncing ? "Syncing..." : "Refresh Data"}
           </button>
           <div className="flex flex-col items-end gap-0.5">
-            <div className={`flex items-center gap-2 text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
+            <div className={`flex items-center gap-2 text-sm ${darkMode ? "text-zinc-400" : "text-zinc-600"}`}>
               <Activity className="h-4 w-4" />
               {loadingOverview ? "Loading..." : overview ? "Live Data" : "No Data"}
             </div>
             {mounted && lastSyncTime && (
-              <span className={`text-xs ${darkMode ? "text-slate-500" : "text-slate-500"}`}>
+              <span className={`text-xs ${darkMode ? "text-zinc-500" : "text-zinc-500"}`}>
                 Last sync: {lastSyncTime.toLocaleTimeString()}
               </span>
             )}
@@ -722,7 +722,7 @@ export default function DashboardPage() {
       </header>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        <span className="text-sm uppercase tracking-wide text-slate-500">Time Range</span>
+        <span className="text-sm uppercase tracking-wide text-zinc-500">Time Range</span>
         {[1, 7, 14, 30].map((days) => (
           <button
             key={days}
@@ -735,7 +735,7 @@ export default function DashboardPage() {
             className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
               mounted && rangeMode === "preset" && rangeDays === days
                 ? "border-indigo-500 bg-indigo-600 text-white"
-                : darkMode ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
+                : darkMode ? "border-zinc-700 bg-zinc-800 text-zinc-300 hover:border-zinc-500" : "border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400"
             }`}
           >
             {days === 1 ? "Today" : `Last ${days} days`}
@@ -751,32 +751,32 @@ export default function DashboardPage() {
             className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
               rangeMode === "custom"
                 ? "border-indigo-500 bg-indigo-600 text-white"
-                : darkMode ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
+                : darkMode ? "border-zinc-700 bg-zinc-800 text-zinc-300 hover:border-zinc-500" : "border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400"
             }`}
           >
             Custom
           </button>
           {customPickerOpen ? (
             <div
-              className={`absolute z-30 mt-2 w-72 rounded-xl border p-4 shadow-2xl ${darkMode ? "border-slate-700 bg-slate-900" : "border-slate-200 bg-white"}`}
+              className={`absolute z-30 mt-2 w-72 rounded-xl border p-4 shadow-2xl ${darkMode ? "border-zinc-700 bg-zinc-900" : "border-zinc-200 bg-white"}`}
             >
               <div className="space-y-3 text-sm">
                 <div className="grid grid-cols-1 gap-2">
-                  <label className={darkMode ? "text-slate-300" : "text-slate-700"}>
+                  <label className={darkMode ? "text-zinc-300" : "text-zinc-700"}>
                     Start Date
                     <input
                       type="date"
-                      className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${darkMode ? "border-slate-700 bg-slate-800 text-white" : "border-slate-300 bg-white text-slate-900"}`}
+                      className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${darkMode ? "border-zinc-700 bg-zinc-800 text-white" : "border-zinc-300 bg-white text-zinc-900"}`}
                       value={customDraftStart}
                       max={customDraftEnd || undefined}
                       onChange={(e) => setCustomDraftStart(e.target.value)}
                     />
                   </label>
-                  <label className={darkMode ? "text-slate-300" : "text-slate-700"}>
+                  <label className={darkMode ? "text-zinc-300" : "text-zinc-700"}>
                     End Date
                     <input
                       type="date"
-                      className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${darkMode ? "border-slate-700 bg-slate-800 text-white" : "border-slate-300 bg-white text-slate-900"}`}
+                      className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${darkMode ? "border-zinc-700 bg-zinc-800 text-white" : "border-zinc-300 bg-white text-zinc-900"}`}
                       value={customDraftEnd}
                       min={customDraftStart || undefined}
                       onChange={(e) => setCustomDraftEnd(e.target.value)}
@@ -795,7 +795,7 @@ export default function DashboardPage() {
                       setCustomDraftStart(customStart);
                       setCustomDraftEnd(customEnd);
                     }}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-medium ${darkMode ? "text-slate-300 hover:bg-slate-800" : "text-slate-700 hover:bg-slate-100"}`}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-medium ${darkMode ? "text-zinc-300 hover:bg-zinc-800" : "text-zinc-700 hover:bg-zinc-100"}`}
                   >
                     Cancel
                   </button>
@@ -837,8 +837,8 @@ export default function DashboardPage() {
           <div
             className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${
               darkMode
-                ? "border-slate-700 bg-slate-800 text-slate-200 shadow-[0_4px_20px_rgba(15,23,42,0.35)]"
-                : "border-slate-200 bg-white text-slate-700 shadow-[0_8px_30px_rgba(15,23,42,0.08)]"
+                ? "border-zinc-700 bg-zinc-800 text-zinc-200 shadow-[0_4px_20px_rgba(15,23,42,0.35)]"
+                : "border-zinc-200 bg-white text-zinc-700 shadow-[0_8px_30px_rgba(15,23,42,0.08)]"
             }`}
           >
             <CalendarRange className="h-3.5 w-3.5 shrink-0 text-indigo-400" />
@@ -874,7 +874,7 @@ export default function DashboardPage() {
           />
           <button
             onClick={applyFilters}
-            className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${darkMode ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"}`}
+            className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${darkMode ? "border-zinc-700 bg-zinc-800 text-zinc-300 hover:border-zinc-500" : "border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400"}`}
           >
             Apply Filters
           </button>
@@ -887,14 +887,14 @@ export default function DashboardPage() {
                 setFilterRoute(undefined);
                 setPage(1);
               }}
-              className={`rounded-lg border px-3 py-1.5 text-sm transition ${darkMode ? "border-slate-700 bg-slate-800 text-slate-400 hover:border-slate-500" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
+              className={`rounded-lg border px-3 py-1.5 text-sm transition ${darkMode ? "border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-500" : "border-zinc-300 bg-white text-zinc-600 hover:border-zinc-400"}`}
             >
               Clear
             </button>
           ) : null}
         </div>
-        {loadingOverview ? <span className="text-sm text-slate-400">Loading...</span> : null}
-        {/* {showEmpty ? <span className="text-sm text-slate-400">No data, please sync first</span> : null} */}
+        {loadingOverview ? <span className="text-sm text-zinc-400">Loading...</span> : null}
+        {/* {showEmpty ? <span className="text-sm text-zinc-400">No data, please sync first</span> : null} */}
       </div>
 
       {/* Stats cards - single row */}
@@ -917,50 +917,50 @@ export default function DashboardPage() {
         ) : (
           <>
             {/* Requests */}
-            <div className={`animate-card-float rounded-2xl p-5 shadow-sm ring-1 transition-all duration-200 ${darkMode ? "bg-slate-800/50 ring-slate-700 hover:shadow-lg hover:shadow-slate-700/30 hover:ring-slate-600" : "bg-white ring-slate-200 hover:shadow-lg hover:ring-slate-300"}`} style={{ animationDelay: '0.05s' }}>
-              <div className={`text-sm uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Requests</div>
-              <div className={`mt-3 text-2xl font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>
+            <div className={`animate-card-float rounded-2xl p-5 shadow-sm ring-1 transition-all duration-200 ${darkMode ? "bg-zinc-800/50 ring-zinc-700 hover:shadow-lg hover:shadow-zinc-700/30 hover:ring-zinc-600" : "bg-white ring-zinc-200 hover:shadow-lg hover:ring-zinc-300"}`} style={{ animationDelay: '0.05s' }}>
+              <div className={`text-sm uppercase tracking-wide ${darkMode ? "text-zinc-400" : "text-zinc-500"}`}>Requests</div>
+              <div className={`mt-3 text-2xl font-semibold ${darkMode ? "text-white" : "text-zinc-900"}`}>
                 {formatNumberWithCommas(overviewData.totalRequests)}
                 {lastInsertedDelta > 0 ? (
-                  <span className={`ml-2 text-sm font-normal ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                  <span className={`ml-2 text-sm font-normal ${darkMode ? "text-zinc-400" : "text-zinc-500"}`}>
                     (+{formatCompactNumber(lastInsertedDelta)})
                   </span>
                 ) : null}
               </div>
               <p className="mt-2 text-sm">
                 <span className="text-emerald-400">✓ {formatCompactNumber(overviewData.successCount)}</span>
-                <span className={`mx-2 ${darkMode ? "text-slate-500" : "text-slate-400"}`}>|</span>
+                <span className={`mx-2 ${darkMode ? "text-zinc-500" : "text-zinc-400"}`}>|</span>
                 <span className="text-red-400">✗ {formatCompactNumber(overviewData.failureCount)}</span>
               </p>
             </div>
             
             {/* Tokens - spans 2 columns */}
-            <div className={`animate-card-float col-span-2 rounded-2xl p-5 shadow-sm ring-1 transition-all duration-200 ${darkMode ? "bg-slate-800/50 ring-slate-700 hover:shadow-lg hover:shadow-slate-700/30 hover:ring-slate-600" : "bg-white ring-slate-200 hover:shadow-lg hover:ring-slate-300"}`} style={{ animationDelay: '0.1s' }}>
+            <div className={`animate-card-float col-span-2 rounded-2xl p-5 shadow-sm ring-1 transition-all duration-200 ${darkMode ? "bg-zinc-800/50 ring-zinc-700 hover:shadow-lg hover:shadow-zinc-700/30 hover:ring-zinc-600" : "bg-white ring-zinc-200 hover:shadow-lg hover:ring-zinc-300"}`} style={{ animationDelay: '0.1s' }}>
               <div className="flex items-center justify-between">
-                <div className={`text-sm uppercase tracking-wide ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Tokens</div>
-                <div className={`text-2xl font-bold ${darkMode ? "text-white" : "text-slate-900"}`}>
+                <div className={`text-sm uppercase tracking-wide ${darkMode ? "text-zinc-400" : "text-zinc-500"}`}>Tokens</div>
+                <div className={`text-2xl font-bold ${darkMode ? "text-white" : "text-zinc-900"}`}>
                   {formatNumberWithCommas(overviewData.totalTokens)}
-                  <span className={`ml-2 text-lg font-normal ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                  <span className={`ml-2 text-lg font-normal ${darkMode ? "text-zinc-400" : "text-zinc-500"}`}>
                     ({formatCompactNumber(overviewData.totalTokens)})
                   </span>
                 </div>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className={darkMode ? "text-slate-400" : "text-slate-500"}>Input</span>
-                  <span className="font-medium" style={{ color: darkMode ? "#fb7185" : "#e11d48" }}>{formatNumberWithCommas(overviewData.totalInputTokens)}</span>
+                  <span className={darkMode ? "text-zinc-400" : "text-zinc-500"}>Input</span>
+                  <span className="font-medium" style={{ color: darkMode ? "#e0a3ad" : "#c45a6e" }}>{formatNumberWithCommas(overviewData.totalInputTokens)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className={darkMode ? "text-slate-400" : "text-slate-500"}>Output</span>
-                  <span className="font-medium" style={{ color: darkMode ? "#4ade80" : "#16a34a" }}>{formatNumberWithCommas(overviewData.totalOutputTokens)}</span>
+                  <span className={darkMode ? "text-zinc-400" : "text-zinc-500"}>Output</span>
+                  <span className="font-medium" style={{ color: darkMode ? "#7ed4a0" : "#5aad7a" }}>{formatNumberWithCommas(overviewData.totalOutputTokens)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className={darkMode ? "text-slate-400" : "text-slate-500"}>Reasoning</span>
-                  <span className="font-medium" style={{ color: darkMode ? "#fbbf24" : "#d97706" }}>{formatNumberWithCommas(overviewData.totalReasoningTokens)}</span>
+                  <span className={darkMode ? "text-zinc-400" : "text-zinc-500"}>Reasoning</span>
+                  <span className="font-medium" style={{ color: darkMode ? "#e8d48a" : "#c4a35a" }}>{formatNumberWithCommas(overviewData.totalReasoningTokens)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className={darkMode ? "text-slate-400" : "text-slate-500"}>Cached</span>
-                  <span className="font-medium" style={{ color: darkMode ? "#c084fc" : "#9333ea" }}>{formatNumberWithCommas(overviewData.totalCachedTokens)}</span>
+                  <span className={darkMode ? "text-zinc-400" : "text-zinc-500"}>Cached</span>
+                  <span className="font-medium" style={{ color: darkMode ? "#b8a3e0" : "#8a6ec0" }}>{formatNumberWithCommas(overviewData.totalCachedTokens)}</span>
                 </div>
               </div>
             </div>
@@ -968,32 +968,32 @@ export default function DashboardPage() {
             {/* Estimated Cost */}
             <div className={`animate-card-float rounded-2xl p-5 shadow-sm ring-1 transition-all duration-200 ${darkMode ? "bg-gradient-to-br from-amber-500/20 to-amber-700/10 ring-amber-400/40 hover:shadow-lg hover:shadow-amber-500/20 hover:ring-amber-400/60" : "bg-amber-50 ring-amber-200 hover:shadow-lg hover:ring-amber-300"}`} style={{ animationDelay: '0.15s' }}>
               <div className="text-sm uppercase tracking-wide text-amber-400">Estimated Cost</div>
-              <div className={`mt-3 text-2xl font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>{formatCurrency(overviewData.totalCost)}</div>
+              <div className={`mt-3 text-2xl font-semibold ${darkMode ? "text-white" : "text-zinc-900"}`}>{formatCurrency(overviewData.totalCost)}</div>
               <p className={`mt-2 text-xs ${darkMode ? "text-amber-300/70" : "text-amber-700/70"}`}>Based on model prices</p>
             </div>
 
             {/* TPM */}
             <div className={`animate-card-float rounded-2xl p-5 shadow-sm ring-1 transition-all duration-200 ${darkMode ? "bg-gradient-to-br from-emerald-600/20 to-emerald-800/10 ring-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/20 hover:ring-emerald-500/50" : "bg-emerald-50 ring-emerald-200 hover:shadow-lg hover:ring-emerald-300"}`} style={{ animationDelay: '0.2s' }}>
               <div className="text-sm uppercase tracking-wide text-emerald-400">Avg TPM</div>
-              <div className={`mt-3 text-2xl font-bold ${darkMode ? "text-white" : "text-slate-900"}`}>
+              <div className={`mt-3 text-2xl font-bold ${darkMode ? "text-white" : "text-zinc-900"}`}>
                 {formatNumber(overviewData.totalTokens / actualTimeSpan.minutes)}
               </div>
               <p className={`mt-2 text-xs ${darkMode ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Tokens per minute</p>
             </div>
 
             {/* RPM */}
-            <div className={`animate-card-float rounded-2xl p-5 shadow-sm ring-1 transition-all duration-200 ${darkMode ? "bg-gradient-to-br from-blue-600/20 to-blue-800/10 ring-blue-500/30 hover:shadow-lg hover:shadow-blue-500/20 hover:ring-blue-500/50" : "bg-blue-50 ring-blue-200 hover:shadow-lg hover:ring-blue-300"}`} style={{ animationDelay: '0.25s' }}>
-              <div className="text-sm uppercase tracking-wide text-blue-400">Avg RPM</div>
-              <div className={`mt-3 text-2xl font-bold ${darkMode ? "text-white" : "text-slate-900"}`}>
+            <div className={`animate-card-float rounded-2xl p-5 shadow-sm ring-1 transition-all duration-200 ${darkMode ? "bg-gradient-to-br from-indigo-600/20 to-indigo-800/10 ring-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/20 hover:ring-indigo-500/50" : "bg-indigo-50 ring-indigo-200 hover:shadow-lg hover:ring-indigo-300"}`} style={{ animationDelay: '0.25s' }}>
+              <div className="text-sm uppercase tracking-wide text-indigo-400">Avg RPM</div>
+              <div className={`mt-3 text-2xl font-bold ${darkMode ? "text-white" : "text-zinc-900"}`}>
                 {formatNumber(overviewData.totalRequests / actualTimeSpan.minutes)}
               </div>
-              <p className={`mt-2 text-xs ${darkMode ? "text-blue-300/70" : "text-blue-600/70"}`}>Requests per minute</p>
+              <p className={`mt-2 text-xs ${darkMode ? "text-indigo-300/70" : "text-indigo-600/70"}`}>Requests per minute</p>
             </div>
 
             {/* Avg daily Requests */}
             <div className={`animate-card-float rounded-2xl p-5 shadow-sm ring-1 transition-all duration-200 ${darkMode ? "bg-gradient-to-br from-purple-600/20 to-purple-800/10 ring-purple-500/30 hover:shadow-lg hover:shadow-purple-500/20 hover:ring-purple-500/50" : "bg-purple-50 ring-purple-200 hover:shadow-lg hover:ring-purple-300"}`} style={{ animationDelay: '0.3s' }}>
               <div className="text-sm uppercase tracking-wide text-purple-400">Avg Daily Requests (RPD)</div>
-              <div className={`mt-3 text-2xl font-bold ${darkMode ? "text-white" : "text-slate-900"}`}>
+              <div className={`mt-3 text-2xl font-bold ${darkMode ? "text-white" : "text-zinc-900"}`}>
                 {formatCompactNumber(Math.round(overviewData.totalRequests / actualTimeSpan.days))}
               </div>
               <p className={`mt-2 text-xs ${darkMode ? "text-purple-300/70" : "text-purple-600/70"}`}>Requests per day</p>
@@ -1008,15 +1008,15 @@ export default function DashboardPage() {
             <Skeleton className="h-[400px] rounded-2xl" />
           </div>
         ) : (
-          <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-3 flex flex-col ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`} style={{ animationDelay: '0.15s' }}>
+          <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-3 flex flex-col ${darkMode ? "bg-zinc-800/50 ring-zinc-700" : "bg-white ring-zinc-200"}`} style={{ animationDelay: '0.15s' }}>
             <div className="flex items-center justify-between">
-              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Usage Trend</h2>
+              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-zinc-900"}`}>Usage Trend</h2>
               <div className="flex items-center gap-2">
-                <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{rangeSubtitle}</span>
+                <span className={`text-xs ${darkMode ? "text-zinc-400" : "text-zinc-500"}`}>{rangeSubtitle}</span>
                 <button
                   type="button"
                   onClick={() => setFullscreenChart("trend")}
-                  className={`rounded-lg p-1.5 transition ${darkMode ? "text-slate-400 hover:bg-slate-700 hover:text-white" : "text-slate-500 hover:bg-slate-200 hover:text-slate-900"}`}
+                  className={`rounded-lg p-1.5 transition ${darkMode ? "text-zinc-400 hover:bg-zinc-700 hover:text-white" : "text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900"}`}
                   title="View fullscreen"
                 >
                   <Maximize2 className="h-4 w-4" />
@@ -1025,15 +1025,15 @@ export default function DashboardPage() {
             </div>
             <div className="mt-4 flex-1 min-h-64">
               {showEmpty ? (
-                <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 text-center">
-                  <p className="text-base text-slate-400">No chart data</p>
-                  <p className="mt-1 text-sm text-slate-500">Please trigger /api/sync to sync data first</p>
+                <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-zinc-800/30 text-center">
+                  <p className="text-base text-zinc-400">No chart data</p>
+                  <p className="mt-1 text-sm text-zinc-500">Please trigger /api/sync to sync data first</p>
                 </div>
               ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={trendData} margin={{ top: 0, right: 12, left: 0, bottom: 0 }}>
-                  <CartesianGrid stroke="#334155" strokeDasharray="5 5" />
-                  <XAxis dataKey="label" stroke="#94a3b8" fontSize={12} tickFormatter={isHourlyView ? formatLabel : undefined} />
+                  <CartesianGrid stroke="#363940" strokeDasharray="5 5" />
+                  <XAxis dataKey="label" stroke="#8a8f9a" fontSize={12} tickFormatter={isHourlyView ? formatLabel : undefined} />
                   <YAxis 
                     yAxisId="left" 
                     stroke={trendConfig.leftAxis.color} 
@@ -1051,7 +1051,7 @@ export default function DashboardPage() {
                   <YAxis
                     yAxisId="cost"
                     orientation="right"
-                    stroke="#fbbf24"
+                    stroke="#e8d48a"
                     tickFormatter={(v) => formatCurrency(v)}
                     fontSize={12}
                     hide={!trendVisible.cost || (trendVisible.requests && trendVisible.tokens)}
@@ -1070,16 +1070,16 @@ export default function DashboardPage() {
                           style={{ 
                             backgroundColor: darkMode ? "rgba(15, 23, 42, 0.7)" : "rgba(255, 255, 255, 0.8)", 
                             border: `1px solid ${darkMode ? "rgba(148, 163, 184, 0.4)" : "rgba(203, 213, 225, 0.6)"}`,
-                            color: darkMode ? "#f8fafc" : "#0f172a"
+                            color: darkMode ? "#f8fafc" : "#1a1d23"
                           }}
                         >
-                          <p className={`mb-2 font-medium text-sm ${darkMode ? "text-slate-50" : "text-slate-900"}`}>{label}</p>
+                          <p className={`mb-2 font-medium text-sm ${darkMode ? "text-zinc-50" : "text-zinc-900"}`}>{label}</p>
                           <div className="space-y-1">
                             {sortedPayload.map((entry: any, index: number) => {
                               let color = entry.color;
-                              if (entry.name === "Requests") color = darkMode ? "#60a5fa" : "#3b82f6";
-                              if (entry.name === "Tokens") color = darkMode ? "#4ade80" : "#16a34a";
-                              if (entry.name === "Cost") color = "#fbbf24";
+                              if (entry.name === "Requests") color = darkMode ? "#93b8f2" : "#7096d6";
+                              if (entry.name === "Tokens") color = darkMode ? "#7ed4a0" : "#5aad7a";
+                              if (entry.name === "Cost") color = "#e8d48a";
                               
                               const value = entry.name === "Cost" ? formatCurrency(entry.value) : formatNumberWithCommas(entry.value);
                               
@@ -1089,7 +1089,7 @@ export default function DashboardPage() {
                                   <span style={{ color: color }} className="font-medium">
                                     {entry.name}:
                                   </span>
-                                  <span className={darkMode ? "text-slate-50" : "text-slate-700"}>
+                                  <span className={darkMode ? "text-zinc-50" : "text-zinc-700"}>
                                     {value}
                                   </span>
                                 </div>
@@ -1110,16 +1110,16 @@ export default function DashboardPage() {
                       const key = keyMap[value];
                       const isVisible = trendVisible[key];
                       if (!isVisible) {
-                        return <span style={{ color: darkMode ? "#94a3b8" : "#cbd5e1", textDecoration: "line-through" }}>{value}</span>;
+                        return <span style={{ color: darkMode ? "#8a8f9a" : "#b8bcc5", textDecoration: "line-through" }}>{value}</span>;
                       }
-                      const colors: Record<string, string> = { "Requests": darkMode ? "#60a5fa" : "#3b82f6", "Tokens": darkMode ? "#4ade80" : "#16a34a", "Cost": "#fbbf24" };
+                      const colors: Record<string, string> = { "Requests": darkMode ? "#93b8f2" : "#7096d6", "Tokens": darkMode ? "#7ed4a0" : "#5aad7a", "Cost": "#e8d48a" };
                       return <span style={{ color: colors[value] || "inherit", fontWeight: 500 }}>{value}</span>;
                     }}
                     itemSorter={(item: any) => ({ requests: 0, tokens: 1, cost: 2 } as Record<string, number>)[item?.dataKey] ?? 999}
                   />
-                  <Line hide={!trendVisible.requests} yAxisId={trendConfig.lineAxisMap.requests} type="monotone" dataKey="requests" stroke={darkMode ? "#60a5fa" : "#3b82f6"} strokeWidth={2} name="Requests" dot={{ r: 3, fill: darkMode ? "#60a5fa" : "#3b82f6", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
-                  <Line hide={!trendVisible.tokens} yAxisId={trendConfig.lineAxisMap.tokens} type="monotone" dataKey="tokens" stroke={darkMode ? "#4ade80" : "#16a34a"} strokeWidth={2} name="Tokens" dot={{ r: 3, fill: darkMode ? "#4ade80" : "#16a34a", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
-                  <Line hide={!trendVisible.cost} yAxisId={trendConfig.lineAxisMap.cost} type="monotone" dataKey="cost" stroke="#fbbf24" strokeWidth={2} name="Cost" dot={{ r: 3, fill: "#fbbf24", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
+                  <Line hide={!trendVisible.requests} yAxisId={trendConfig.lineAxisMap.requests} type="monotone" dataKey="requests" stroke={darkMode ? "#93b8f2" : "#7096d6"} strokeWidth={2} name="Requests" dot={{ r: 3, fill: darkMode ? "#93b8f2" : "#7096d6", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
+                  <Line hide={!trendVisible.tokens} yAxisId={trendConfig.lineAxisMap.tokens} type="monotone" dataKey="tokens" stroke={darkMode ? "#7ed4a0" : "#5aad7a"} strokeWidth={2} name="Tokens" dot={{ r: 3, fill: darkMode ? "#7ed4a0" : "#5aad7a", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
+                  <Line hide={!trendVisible.cost} yAxisId={trendConfig.lineAxisMap.cost} type="monotone" dataKey="cost" stroke="#e8d48a" strokeWidth={2} name="Cost" dot={{ r: 3, fill: "#e8d48a", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
                 </LineChart>
               </ResponsiveContainer>
               )}
@@ -1133,20 +1133,20 @@ export default function DashboardPage() {
             <Skeleton className="h-[400px] rounded-2xl" />
           </div>
         ) : (
-          <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-2 flex flex-col ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`} style={{ animationDelay: '0.2s' }}>
+          <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-2 flex flex-col ${darkMode ? "bg-zinc-800/50 ring-zinc-700" : "bg-white ring-zinc-200"}`} style={{ animationDelay: '0.2s' }}>
             <div className="flex items-center justify-between">
-              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Model Usage Distribution</h2>
+              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-zinc-900"}`}>Model Usage Distribution</h2>
               <div className="flex items-center gap-2">
-                <div className={`flex items-center gap-1 rounded-lg border p-0.5 ${darkMode ? "border-slate-700 bg-slate-800" : "border-slate-300 bg-slate-100"}`}>
+                <div className={`flex items-center gap-1 rounded-lg border p-0.5 ${darkMode ? "border-zinc-700 bg-zinc-800" : "border-zinc-300 bg-zinc-100"}`}>
                   <button
                     onClick={() => setPieMode("tokens")}
-                    className={`rounded-md px-2 py-1 text-xs font-medium transition ${pieMode === "tokens" ? "bg-indigo-600 text-white" : darkMode ? "text-slate-400 hover:text-slate-200" : "text-slate-600 hover:text-slate-900"}`}
+                    className={`rounded-md px-2 py-1 text-xs font-medium transition ${pieMode === "tokens" ? "bg-indigo-600 text-white" : darkMode ? "text-zinc-400 hover:text-zinc-200" : "text-zinc-600 hover:text-zinc-900"}`}
                   >
                     Token
                   </button>
                   <button
                     onClick={() => setPieMode("requests")}
-                    className={`rounded-md px-2 py-1 text-xs font-medium transition ${pieMode === "requests" ? "bg-indigo-600 text-white" : darkMode ? "text-slate-400 hover:text-slate-200" : "text-slate-600 hover:text-slate-900"}`}
+                    className={`rounded-md px-2 py-1 text-xs font-medium transition ${pieMode === "requests" ? "bg-indigo-600 text-white" : darkMode ? "text-zinc-400 hover:text-zinc-200" : "text-zinc-600 hover:text-zinc-900"}`}
                   >
                     Requests
                   </button>
@@ -1154,7 +1154,7 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setFullscreenChart("pie")}
-                  className={`rounded-lg p-1.5 transition ${darkMode ? "text-slate-400 hover:bg-slate-700 hover:text-white" : "text-slate-500 hover:bg-slate-200 hover:text-slate-900"}`}
+                  className={`rounded-lg p-1.5 transition ${darkMode ? "text-zinc-400 hover:bg-zinc-700 hover:text-white" : "text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900"}`}
                   title="View fullscreen"
                 >
                   <Maximize2 className="h-4 w-4" />
@@ -1163,8 +1163,8 @@ export default function DashboardPage() {
             </div>
             <div className="mt-4 flex gap-4 h-[300px]">
               {showEmpty || overviewData.models.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 text-center">
-                  <p className="text-base text-slate-400">No model data</p>
+                <div className="flex-1 flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-zinc-800/30 text-center">
+                  <p className="text-base text-zinc-400">No model data</p>
                 </div>
               ) : (
               <>
@@ -1220,18 +1220,18 @@ export default function DashboardPage() {
                               style={{ 
                                 backgroundColor: darkMode ? "rgba(15, 23, 42, 0.7)" : "rgba(255, 255, 255, 0.8)", 
                                 border: `1px solid ${darkMode ? "rgba(148, 163, 184, 0.4)" : "rgba(203, 213, 225, 0.6)"}`,
-                                color: darkMode ? "#f8fafc" : "#0f172a"
+                                color: darkMode ? "#f8fafc" : "#1a1d23"
                               }}
                             >
-                              <p className={`mb-2 font-medium text-sm ${darkMode ? "text-slate-50" : "text-slate-900"}`}>{data.model}</p>
+                              <p className={`mb-2 font-medium text-sm ${darkMode ? "text-zinc-50" : "text-zinc-900"}`}>{data.model}</p>
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2 text-sm">
-                                  <span className="text-blue-400 font-medium">Requests:</span>
-                                  <span className={darkMode ? "text-slate-50" : "text-slate-700"}>{formatNumberWithCommas(data.requests)}</span>
+                                  <span className="text-indigo-400 font-medium">Requests:</span>
+                                  <span className={darkMode ? "text-zinc-50" : "text-zinc-700"}>{formatNumberWithCommas(data.requests)}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
                                   <span className="text-emerald-400 font-medium">Tokens:</span>
-                                  <span className={darkMode ? "text-slate-50" : "text-slate-700"}>{formatNumberWithCommas(data.tokens)}</span>
+                                  <span className={darkMode ? "text-zinc-50" : "text-zinc-700"}>{formatNumberWithCommas(data.tokens)}</span>
                                 </div>
                               </div>
                             </div>
@@ -1255,9 +1255,9 @@ export default function DashboardPage() {
                           key={item.model} 
                           className={`rounded-lg p-2 transition cursor-pointer ${
                             isHighlighted 
-                              ? darkMode ? "bg-slate-700/30" : "bg-slate-100" 
+                              ? darkMode ? "bg-zinc-700/30" : "bg-zinc-100" 
                               : "opacity-40"
-                          } ${darkMode ? "hover:bg-slate-700/50" : "hover:bg-slate-200"}`}
+                          } ${darkMode ? "hover:bg-zinc-700/50" : "hover:bg-zinc-200"}`}
                           onMouseEnter={() => {
                             cancelPieLegendClear();
                             setHoveredPieIndex(originalIndex);
@@ -1278,11 +1278,11 @@ export default function DashboardPage() {
                                 transform: isHighlighted && hoveredPieIndex === originalIndex ? 'scale(1.2)' : 'scale(1)'
                               } as React.CSSProperties} 
                             />
-                            <p className={`text-sm font-medium truncate flex-1 ${darkMode ? "text-slate-200" : "text-slate-800"}`} title={item.model}>
+                            <p className={`text-sm font-medium truncate flex-1 ${darkMode ? "text-zinc-200" : "text-zinc-800"}`} title={item.model}>
                               {item.model}
                             </p>
                         </div>
-                        <div className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-600"} ml-5`}>
+                        <div className={`text-xs ${darkMode ? "text-zinc-400" : "text-zinc-600"} ml-5`}>
                           <span className="font-semibold">{percent.toFixed(1)}%</span>
                           <span className="mx-1.5">·</span>
                           <span>{pieMode === "tokens" ? formatCompactNumber(item.tokens) : formatNumberWithCommas(item.requests)} {pieMode === "tokens" ? "tokens" : "times"}</span>
@@ -1306,23 +1306,23 @@ export default function DashboardPage() {
             <Skeleton className="h-[400px] rounded-2xl" />
           </div>
         ) : (
-          <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-3 flex flex-col ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`} style={{ animationDelay: '0.25s' }}>
+          <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-3 flex flex-col ${darkMode ? "bg-zinc-800/50 ring-zinc-700" : "bg-white ring-zinc-200"}`} style={{ animationDelay: '0.25s' }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Load Distribution</h2>
-                <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-zinc-900"}`}>Load Distribution</h2>
+                <span className={`text-xs ${darkMode ? "text-zinc-400" : "text-zinc-500"}`}>
                   {isHourlyView ? "Hourly" : "Daily"}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className={`flex items-center gap-1 text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>
+                <span className={`flex items-center gap-1 text-xs ${darkMode ? "text-zinc-400" : "text-zinc-500"}`}>
                   <Info className="h-3 w-3" />
                   Token Type Distribution
                 </span>
                 <button
                   type="button"
                   onClick={() => setFullscreenChart("stacked")}
-                  className={`rounded-lg p-1.5 transition ${darkMode ? "text-slate-400 hover:bg-slate-700 hover:text-white" : "text-slate-500 hover:bg-slate-200 hover:text-slate-900"}`}
+                  className={`rounded-lg p-1.5 transition ${darkMode ? "text-zinc-400 hover:bg-zinc-700 hover:text-white" : "text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900"}`}
                   title="View fullscreen"
                 >
                   <Maximize2 className="h-4 w-4" />
@@ -1331,35 +1331,35 @@ export default function DashboardPage() {
             </div>
             <div className="mt-4 flex-1 min-h-64">
               {showEmpty ? (
-                <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 text-center">
-                  <p className="text-base text-slate-400">No hourly data</p>
-                  <p className="mt-1 text-sm text-slate-500">Please trigger /api/sync to sync data first</p>
+                <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-zinc-800/30 text-center">
+                  <p className="text-base text-zinc-400">No hourly data</p>
+                  <p className="mt-1 text-sm text-zinc-500">Please trigger /api/sync to sync data first</p>
                 </div>
               ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={loadDistributionData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gradInput" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#fca5a5" />
-                      <stop offset="100%" stopColor="#f87171" />
+                      <stop offset="0%" stopColor="#e0b8b8" />
+                      <stop offset="100%" stopColor="#d49a9a" />
                     </linearGradient>
                     <linearGradient id="gradOutput" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#86efac" />
-                      <stop offset="100%" stopColor="#4ade80" />
+                      <stop offset="0%" stopColor="#a8dabe" />
+                      <stop offset="100%" stopColor="#7ed4a0" />
                     </linearGradient>
                     <linearGradient id="gradReasoning" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#fcd34d" />
-                      <stop offset="100%" stopColor="#fbbf24" />
+                      <stop offset="0%" stopColor="#e8d8a0" />
+                      <stop offset="100%" stopColor="#e8d48a" />
                     </linearGradient>
                     <linearGradient id="gradCached" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#d8b4fe" />
-                      <stop offset="100%" stopColor="#c084fc" />
+                      <stop offset="0%" stopColor="#c8b0de" />
+                      <stop offset="100%" stopColor="#b8a3e0" />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#334155" : "#e2e8f0"} />
-                  <XAxis dataKey="label" stroke={darkMode ? "#94a3b8" : "#64748b"} fontSize={12} tickFormatter={isHourlyView ? formatLabel : undefined} />
-                  <YAxis yAxisId="left" stroke={darkMode ? "#60a5fa" : "#3b82f6"} tickFormatter={(v) => formatCompactNumber(v)} fontSize={12} />
-                  <YAxis yAxisId="right" orientation="right" stroke={darkMode ? "#94a3b8" : "#64748b"} tickFormatter={(v) => formatCompactNumber(v)} fontSize={12} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#363940" : "#e0e2e6"} />
+                  <XAxis dataKey="label" stroke={darkMode ? "#8a8f9a" : "#7a7f8a"} fontSize={12} tickFormatter={isHourlyView ? formatLabel : undefined} />
+                  <YAxis yAxisId="left" stroke={darkMode ? "#93b8f2" : "#7096d6"} tickFormatter={(v) => formatCompactNumber(v)} fontSize={12} />
+                  <YAxis yAxisId="right" orientation="right" stroke={darkMode ? "#8a8f9a" : "#7a7f8a"} tickFormatter={(v) => formatCompactNumber(v)} fontSize={12} />
                   <Tooltip 
                     content={({ active, payload, label }) => {
                       if (!active || !payload || !payload.length) return null;
@@ -1373,18 +1373,18 @@ export default function DashboardPage() {
                           style={{ 
                             backgroundColor: darkMode ? "rgba(15, 23, 42, 0.7)" : "rgba(255, 255, 255, 0.8)", 
                             border: `1px solid ${darkMode ? "rgba(148, 163, 184, 0.4)" : "rgba(203, 213, 225, 0.6)"}`,
-                            color: darkMode ? "#f8fafc" : "#0f172a"
+                            color: darkMode ? "#f8fafc" : "#1a1d23"
                           }}
                         >
-                          <p className={`mb-2 font-medium text-sm ${darkMode ? "text-slate-50" : "text-slate-900"}`}>{label ? (isHourlyView ? formatLabel(String(label)) : String(label)) : ''}</p>
+                          <p className={`mb-2 font-medium text-sm ${darkMode ? "text-zinc-50" : "text-zinc-900"}`}>{label ? (isHourlyView ? formatLabel(String(label)) : String(label)) : ''}</p>
                           <div className="space-y-1">
                             {sortedPayload.map((entry: any, index: number) => {
                               let color = entry.color;
-                              if (entry.name === "Input") color = darkMode ? "#fb7185" : "#e11d48";
-                              if (entry.name === "Output") color = darkMode ? "#4ade80" : "#16a34a";
-                              if (entry.name === "Reasoning") color = darkMode ? "#fbbf24" : "#d97706";
-                              if (entry.name === "Cached") color = darkMode ? "#c084fc" : "#9333ea";
-                              if (entry.name === "Requests") color = darkMode ? "#60a5fa" : "#3b82f6";
+                              if (entry.name === "Input") color = darkMode ? "#e0a3ad" : "#c45a6e";
+                              if (entry.name === "Output") color = darkMode ? "#7ed4a0" : "#5aad7a";
+                              if (entry.name === "Reasoning") color = darkMode ? "#e8d48a" : "#c4a35a";
+                              if (entry.name === "Cached") color = darkMode ? "#b8a3e0" : "#8a6ec0";
+                              if (entry.name === "Requests") color = darkMode ? "#93b8f2" : "#7096d6";
                               
                               return (
                                 <div key={index} className="flex items-center gap-2 text-sm">
@@ -1392,7 +1392,7 @@ export default function DashboardPage() {
                                   <span style={{ color: color }} className="font-medium">
                                     {entry.name}:
                                   </span>
-                                  <span className={darkMode ? "text-slate-50" : "text-slate-700"}>
+                                  <span className={darkMode ? "text-zinc-50" : "text-zinc-700"}>
                                     {formatNumberWithCommas(entry.value)}
                                   </span>
                                 </div>
@@ -1418,25 +1418,25 @@ export default function DashboardPage() {
                       const isVisible = hourlyVisible[key];
                       
                       if (!isVisible) {
-                        return <span style={{ color: darkMode ? "#94a3b8" : "#cbd5e1", textDecoration: "line-through" }}>{value}</span>;
+                        return <span style={{ color: darkMode ? "#8a8f9a" : "#b8bcc5", textDecoration: "line-through" }}>{value}</span>;
                       }
 
                       const colors: Record<string, string> = {
-                        "Requests": darkMode ? "#60a5fa" : "#3b82f6",
-                        "Input": darkMode ? "#fb7185" : "#e11d48",
-                        "Output": darkMode ? "#4ade80" : "#16a34a",
-                        "Reasoning": darkMode ? "#fbbf24" : "#d97706",
-                        "Cached": darkMode ? "#c084fc" : "#9333ea"
+                        "Requests": darkMode ? "#93b8f2" : "#7096d6",
+                        "Input": darkMode ? "#e0a3ad" : "#c45a6e",
+                        "Output": darkMode ? "#7ed4a0" : "#5aad7a",
+                        "Reasoning": darkMode ? "#e8d48a" : "#c4a35a",
+                        "Cached": darkMode ? "#b8a3e0" : "#8a6ec0"
                       };
                       return <span style={{ color: colors[value] || "inherit", fontWeight: 500 }} title="Hold Ctrl and click to show only this item">{value}</span>;
                     }}
                     itemSorter={(item: any) => ({ requests: 0, inputTokens: 1, outputTokens: 2, reasoningTokens: 3, cachedTokens: 4 } as Record<string, number>)[item?.dataKey] ?? 999}
                     payload={[
-                      { value: "Requests", type: "line", id: "requests", color: "#3b82f6", dataKey: "requests" },
-                      { value: "Input", type: "square", id: "inputTokens", color: "#e11d48", dataKey: "inputTokens" },
-                      { value: "Output", type: "square", id: "outputTokens", color: "#16a34a", dataKey: "outputTokens" },
-                      { value: "Reasoning", type: "square", id: "reasoningTokens", color: "#d97706", dataKey: "reasoningTokens" },
-                      { value: "Cached", type: "square", id: "cachedTokens", color: "#9333ea", dataKey: "cachedTokens" },
+                      { value: "Requests", type: "line", id: "requests", color: "#7096d6", dataKey: "requests" },
+                      { value: "Input", type: "square", id: "inputTokens", color: "#c45a6e", dataKey: "inputTokens" },
+                      { value: "Output", type: "square", id: "outputTokens", color: "#5aad7a", dataKey: "outputTokens" },
+                      { value: "Reasoning", type: "square", id: "reasoningTokens", color: "#c4a35a", dataKey: "reasoningTokens" },
+                      { value: "Cached", type: "square", id: "cachedTokens", color: "#8a6ec0", dataKey: "cachedTokens" },
                     ]}
                   />
                   {/* Stacked bar chart - soft colors, top rounded corners, enhanced animation */}
@@ -1451,9 +1451,9 @@ export default function DashboardPage() {
                     type="monotone" 
                     dataKey="requests" 
                     name="Requests" 
-                    stroke={darkMode ? "#60a5fa" : "#3b82f6"} 
+                    stroke={darkMode ? "#93b8f2" : "#7096d6"} 
                     strokeWidth={3}
-                    dot={{ r: 3, fill: darkMode ? "#60a5fa" : "#3b82f6", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} 
+                    dot={{ r: 3, fill: darkMode ? "#93b8f2" : "#7096d6", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} 
                     activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} 
                   />
                 </ComposedChart>
@@ -1469,29 +1469,29 @@ export default function DashboardPage() {
             <Skeleton className="h-[400px] rounded-2xl" />
           </div>
         ) : (
-          <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-2 ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`} style={{ animationDelay: '0.3s' }}>
+          <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-2 ${darkMode ? "bg-zinc-800/50 ring-zinc-700" : "bg-white ring-zinc-200"}`} style={{ animationDelay: '0.3s' }}>
             <div className="flex items-center justify-between">
-              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Estimated Model Costs</h2>
-              <span className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Based on configured prices</span>
+              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-zinc-900"}`}>Estimated Model Costs</h2>
+              <span className={`text-xs ${darkMode ? "text-zinc-400" : "text-zinc-500"}`}>Based on configured prices</span>
             </div>
             <div className="scrollbar-slim mt-3 max-h-80 min-h-[14rem] space-y-2 overflow-y-auto">
               {showEmpty ? (
-                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 py-6 text-center">
-                  <p className="text-base text-slate-400">No model data</p>
+                <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-zinc-800/30 py-6 text-center">
+                  <p className="text-base text-zinc-400">No model data</p>
                 </div>
               ) : sortedModelsByCost.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/30 py-6 text-center">
-                <p className="text-base text-slate-400">No matching models</p>
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-zinc-800/30 py-6 text-center">
+                <p className="text-base text-zinc-400">No matching models</p>
               </div>
             ) : (
               sortedModelsByCost.map((model) => (
                 <div
                   key={model.model}
-                  className={`flex items-center justify-between rounded-xl border px-4 py-2.5 ${darkMode ? "border-slate-700 bg-slate-800/80" : "border-slate-200 bg-white"}`}
+                  className={`flex items-center justify-between rounded-xl border px-4 py-2.5 ${darkMode ? "border-zinc-700 bg-zinc-800/80" : "border-zinc-200 bg-white"}`}
                 >
                   <div>
-                    <p className={`text-sm font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>{model.model}</p>
-                    <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
+                    <p className={`text-sm font-semibold ${darkMode ? "text-white" : "text-zinc-900"}`}>{model.model}</p>
+                    <p className={`text-xs ${darkMode ? "text-zinc-400" : "text-zinc-600"}`}>
                       {formatNumberWithCommas(model.requests)} Requests • {formatCompactNumber(model.tokens)} tokens
                     </p>
                   </div>
@@ -1509,11 +1509,11 @@ export default function DashboardPage() {
         {/* Token Usage by API Route — stacked bar chart over time */}
         {loadingOverview || !overviewData ? (
           <div className="lg:col-span-3">
-            <div className={`h-[400px] animate-pulse rounded-2xl ${darkMode ? "bg-slate-800/50" : "bg-slate-200"}`} />
+            <div className={`h-[400px] animate-pulse rounded-2xl ${darkMode ? "bg-zinc-800/50" : "bg-zinc-200"}`} />
           </div>
         ) : (
-          <div className={`animate-card-float flex flex-col rounded-2xl p-6 shadow-sm ring-1 lg:col-span-3 ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`} style={{ animationDelay: '0.32s' }}>
-            <h2 className={`mb-3 text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Token Usage by API Route</h2>
+          <div className={`animate-card-float flex flex-col rounded-2xl p-6 shadow-sm ring-1 lg:col-span-3 ${darkMode ? "bg-zinc-800/50 ring-zinc-700" : "bg-white ring-zinc-200"}`} style={{ animationDelay: '0.32s' }}>
+            <h2 className={`mb-3 text-lg font-semibold ${darkMode ? "text-white" : "text-zinc-900"}`}>Token Usage by API Route</h2>
             <div className="min-h-[14rem] flex-1" style={{ height: 320 }}>
               <TokenByRouteChart
                 data={tokenByRouteData}
@@ -1529,22 +1529,22 @@ export default function DashboardPage() {
         {/* Top 10 API Keys */}
         {loadingOverview || !overviewData ? (
           <div className="lg:col-span-2">
-            <div className={`h-[400px] animate-pulse rounded-2xl ${darkMode ? "bg-slate-800/50" : "bg-slate-200"}`} />
+            <div className={`h-[400px] animate-pulse rounded-2xl ${darkMode ? "bg-zinc-800/50" : "bg-zinc-200"}`} />
           </div>
         ) : (
-          <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-2 ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`} style={{ animationDelay: '0.35s' }}>
+          <div className={`animate-card-float rounded-2xl p-6 shadow-sm ring-1 lg:col-span-2 ${darkMode ? "bg-zinc-800/50 ring-zinc-700" : "bg-white ring-zinc-200"}`} style={{ animationDelay: '0.35s' }}>
             <div className="flex items-center justify-between">
-              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Top 10 API Keys</h2>
-              <div className={`flex items-center gap-1 rounded-lg border p-0.5 ${darkMode ? "border-slate-700 bg-slate-800" : "border-slate-300 bg-slate-100"}`}>
+              <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-zinc-900"}`}>Top 10 API Keys</h2>
+              <div className={`flex items-center gap-1 rounded-lg border p-0.5 ${darkMode ? "border-zinc-700 bg-zinc-800" : "border-zinc-300 bg-zinc-100"}`}>
                 <button
                   onClick={() => setRoutesSortMode("tokens")}
-                  className={`rounded-md px-2 py-1 text-xs font-medium transition ${routesSortMode === "tokens" ? "bg-indigo-600 text-white" : darkMode ? "text-slate-400 hover:text-slate-200" : "text-slate-600 hover:text-slate-900"}`}
+                  className={`rounded-md px-2 py-1 text-xs font-medium transition ${routesSortMode === "tokens" ? "bg-indigo-600 text-white" : darkMode ? "text-zinc-400 hover:text-zinc-200" : "text-zinc-600 hover:text-zinc-900"}`}
                 >
                   Token
                 </button>
                 <button
                   onClick={() => setRoutesSortMode("cost")}
-                  className={`rounded-md px-2 py-1 text-xs font-medium transition ${routesSortMode === "cost" ? "bg-indigo-600 text-white" : darkMode ? "text-slate-400 hover:text-slate-200" : "text-slate-600 hover:text-slate-900"}`}
+                  className={`rounded-md px-2 py-1 text-xs font-medium transition ${routesSortMode === "cost" ? "bg-indigo-600 text-white" : darkMode ? "text-zinc-400 hover:text-zinc-200" : "text-zinc-600 hover:text-zinc-900"}`}
                 >
                   Cost
                 </button>
@@ -1552,24 +1552,24 @@ export default function DashboardPage() {
             </div>
             <div className="scrollbar-slim mt-3 max-h-80 min-h-[14rem] space-y-2 overflow-y-auto">
               {showEmpty || !sortedTopRoutes.length ? (
-                <div className={`flex items-center justify-center rounded-xl border border-dashed py-6 ${darkMode ? "border-slate-700 bg-slate-800/30" : "border-slate-300 bg-slate-50"}`}>
-                  <p className={`text-base ${darkMode ? "text-slate-400" : "text-slate-500"}`}>No route data</p>
+                <div className={`flex items-center justify-center rounded-xl border border-dashed py-6 ${darkMode ? "border-zinc-700 bg-zinc-800/30" : "border-zinc-300 bg-zinc-50"}`}>
+                  <p className={`text-base ${darkMode ? "text-zinc-400" : "text-zinc-500"}`}>No route data</p>
                 </div>
               ) : (
                 sortedTopRoutes.map((route, index) => (
                   <div
                     key={route.route}
-                    className={`flex items-center justify-between rounded-xl border px-4 py-2.5 ${darkMode ? "border-slate-700 bg-slate-800/80" : "border-slate-200 bg-white"}`}
+                    className={`flex items-center justify-between rounded-xl border px-4 py-2.5 ${darkMode ? "border-zinc-700 bg-zinc-800/80" : "border-zinc-200 bg-white"}`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${darkMode ? "bg-slate-700 text-slate-300" : "bg-slate-100 text-slate-600"}`}>
+                      <span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${darkMode ? "bg-zinc-700 text-zinc-300" : "bg-zinc-100 text-zinc-600"}`}>
                         {index + 1}
                       </span>
                       <div>
-                        <p className={`max-w-[180px] truncate text-sm font-semibold ${darkMode ? "text-white" : "text-slate-900"}`} title={route.route}>
+                        <p className={`max-w-[180px] truncate text-sm font-semibold ${darkMode ? "text-white" : "text-zinc-900"}`} title={route.route}>
                           {route.route}
                         </p>
-                        <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
+                        <p className={`text-xs ${darkMode ? "text-zinc-400" : "text-zinc-600"}`}>
                           {formatNumberWithCommas(route.requests)} Requests • {formatCompactNumber(route.tokens)} tokens
                         </p>
                       </div>
@@ -1602,8 +1602,8 @@ export default function DashboardPage() {
           {fullscreenChart === "trend" && overviewData && (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trendData} margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
-                <CartesianGrid stroke="#334155" strokeDasharray="5 5" />
-                <XAxis dataKey="label" stroke="#94a3b8" fontSize={12} tickFormatter={isHourlyView ? formatLabel : undefined} />
+                <CartesianGrid stroke="#363940" strokeDasharray="5 5" />
+                <XAxis dataKey="label" stroke="#8a8f9a" fontSize={12} tickFormatter={isHourlyView ? formatLabel : undefined} />
                 <YAxis 
                   yAxisId="left" 
                   stroke={trendConfig.leftAxis.color} 
@@ -1621,7 +1621,7 @@ export default function DashboardPage() {
                 <YAxis
                   yAxisId="cost"
                   orientation="right"
-                  stroke="#fbbf24"
+                  stroke="#e8d48a"
                   tickFormatter={(v) => formatCurrency(v)}
                   fontSize={12}
                   hide={!trendVisible.cost || (trendVisible.requests && trendVisible.tokens)}
@@ -1640,16 +1640,16 @@ export default function DashboardPage() {
                         style={{ 
                           backgroundColor: darkMode ? "rgba(15, 23, 42, 0.7)" : "rgba(255, 255, 255, 0.8)", 
                           border: `1px solid ${darkMode ? "rgba(148, 163, 184, 0.4)" : "rgba(203, 213, 225, 0.6)"}`,
-                          color: darkMode ? "#f8fafc" : "#0f172a"
+                          color: darkMode ? "#f8fafc" : "#1a1d23"
                         }}
                       >
-                        <p className={`mb-2 font-medium text-sm ${darkMode ? "text-slate-50" : "text-slate-900"}`}>{label}</p>
+                        <p className={`mb-2 font-medium text-sm ${darkMode ? "text-zinc-50" : "text-zinc-900"}`}>{label}</p>
                         <div className="space-y-1">
                           {sortedPayload.map((entry: any, index: number) => {
                             let color = entry.color;
-                            if (entry.name === "Requests") color = darkMode ? "#60a5fa" : "#3b82f6";
-                            if (entry.name === "Tokens") color = darkMode ? "#4ade80" : "#16a34a";
-                            if (entry.name === "Cost") color = "#fbbf24";
+                            if (entry.name === "Requests") color = darkMode ? "#93b8f2" : "#7096d6";
+                            if (entry.name === "Tokens") color = darkMode ? "#7ed4a0" : "#5aad7a";
+                            if (entry.name === "Cost") color = "#e8d48a";
                             
                             const value = entry.name === "Cost" ? formatCurrency(entry.value) : formatNumberWithCommas(entry.value);
                             
@@ -1659,7 +1659,7 @@ export default function DashboardPage() {
                                 <span style={{ color: color }} className="font-medium">
                                   {entry.name}:
                                 </span>
-                                <span className={darkMode ? "text-slate-50" : "text-slate-700"}>
+                                <span className={darkMode ? "text-zinc-50" : "text-zinc-700"}>
                                   {value}
                                 </span>
                               </div>
@@ -1680,16 +1680,16 @@ export default function DashboardPage() {
                     const key = keyMap[value];
                     const isVisible = trendVisible[key];
                     if (!isVisible) {
-                      return <span style={{ color: darkMode ? "#94a3b8" : "#cbd5e1", textDecoration: "line-through" }}>{value}</span>;
+                      return <span style={{ color: darkMode ? "#8a8f9a" : "#b8bcc5", textDecoration: "line-through" }}>{value}</span>;
                     }
-                    const colors: Record<string, string> = { "Requests": darkMode ? "#60a5fa" : "#3b82f6", "Tokens": darkMode ? "#4ade80" : "#16a34a", "Cost": "#fbbf24" };
+                    const colors: Record<string, string> = { "Requests": darkMode ? "#93b8f2" : "#7096d6", "Tokens": darkMode ? "#7ed4a0" : "#5aad7a", "Cost": "#e8d48a" };
                     return <span style={{ color: colors[value] || "inherit", fontWeight: 500 }}>{value}</span>;
                   }}
                   itemSorter={(item: any) => ({ requests: 0, tokens: 1, cost: 2 } as Record<string, number>)[item?.dataKey] ?? 999}
                 />
-                <Line hide={!trendVisible.requests} yAxisId={trendConfig.lineAxisMap.requests} type="monotone" dataKey="requests" stroke={darkMode ? "#60a5fa" : "#3b82f6"} strokeWidth={2} name="Requests" dot={{ r: 3, fill: darkMode ? "#60a5fa" : "#3b82f6", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
-                <Line hide={!trendVisible.tokens} yAxisId={trendConfig.lineAxisMap.tokens} type="monotone" dataKey="tokens" stroke={darkMode ? "#4ade80" : "#16a34a"} strokeWidth={2} name="Tokens" dot={{ r: 3, fill: darkMode ? "#4ade80" : "#16a34a", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
-                <Line hide={!trendVisible.cost} yAxisId={trendConfig.lineAxisMap.cost} type="monotone" dataKey="cost" stroke="#fbbf24" strokeWidth={2} name="Cost" dot={{ r: 3, fill: "#fbbf24", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
+                <Line hide={!trendVisible.requests} yAxisId={trendConfig.lineAxisMap.requests} type="monotone" dataKey="requests" stroke={darkMode ? "#93b8f2" : "#7096d6"} strokeWidth={2} name="Requests" dot={{ r: 3, fill: darkMode ? "#93b8f2" : "#7096d6", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
+                <Line hide={!trendVisible.tokens} yAxisId={trendConfig.lineAxisMap.tokens} type="monotone" dataKey="tokens" stroke={darkMode ? "#7ed4a0" : "#5aad7a"} strokeWidth={2} name="Tokens" dot={{ r: 3, fill: darkMode ? "#7ed4a0" : "#5aad7a", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
+                <Line hide={!trendVisible.cost} yAxisId={trendConfig.lineAxisMap.cost} type="monotone" dataKey="cost" stroke="#e8d48a" strokeWidth={2} name="Cost" dot={{ r: 3, fill: "#e8d48a", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} />
               </LineChart>
             </ResponsiveContainer>
           )}
@@ -1704,7 +1704,7 @@ export default function DashboardPage() {
                     className={`rounded-md border px-2 py-1 text-xs transition ${
                       pieMode === "tokens"
                         ? "border-indigo-500 bg-indigo-600 text-white"
-                        : darkMode ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
+                        : darkMode ? "border-zinc-700 bg-zinc-800 text-zinc-300 hover:border-zinc-500" : "border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400"
                     }`}
                   >
                     Token
@@ -1715,7 +1715,7 @@ export default function DashboardPage() {
                     className={`rounded-md border px-2 py-1 text-xs transition ${
                       pieMode === "requests"
                         ? "border-indigo-500 bg-indigo-600 text-white"
-                        : darkMode ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
+                        : darkMode ? "border-zinc-700 bg-zinc-800 text-zinc-300 hover:border-zinc-500" : "border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400"
                     }`}
                   >
                     Requests
@@ -1775,18 +1775,18 @@ export default function DashboardPage() {
                               style={{ 
                                 backgroundColor: darkMode ? "rgba(15, 23, 42, 0.7)" : "rgba(255, 255, 255, 0.8)", 
                                 border: `1px solid ${darkMode ? "rgba(148, 163, 184, 0.4)" : "rgba(203, 213, 225, 0.6)"}`,
-                                color: darkMode ? "#f8fafc" : "#0f172a"
+                                color: darkMode ? "#f8fafc" : "#1a1d23"
                               }}
                             >
-                              <p className={`mb-2 font-medium text-sm ${darkMode ? "text-slate-50" : "text-slate-900"}`}>{data.model}</p>
+                              <p className={`mb-2 font-medium text-sm ${darkMode ? "text-zinc-50" : "text-zinc-900"}`}>{data.model}</p>
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2 text-sm">
-                                  <span className="text-blue-400 font-medium">Requests:</span>
-                                  <span className={darkMode ? "text-slate-50" : "text-slate-700"}>{formatNumberWithCommas(data.requests)}</span>
+                                  <span className="text-indigo-400 font-medium">Requests:</span>
+                                  <span className={darkMode ? "text-zinc-50" : "text-zinc-700"}>{formatNumberWithCommas(data.requests)}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
                                   <span className="text-emerald-400 font-medium">Tokens:</span>
-                                  <span className={darkMode ? "text-slate-50" : "text-slate-700"}>{formatNumberWithCommas(data.tokens)}</span>
+                                  <span className={darkMode ? "text-zinc-50" : "text-zinc-700"}>{formatNumberWithCommas(data.tokens)}</span>
                                 </div>
                               </div>
                             </div>
@@ -1810,9 +1810,9 @@ export default function DashboardPage() {
                           key={item.model} 
                           className={`rounded-lg p-3 transition cursor-pointer ${
                             isHighlighted 
-                              ? darkMode ? "bg-slate-700/30" : "bg-slate-100" 
+                              ? darkMode ? "bg-zinc-700/30" : "bg-zinc-100" 
                               : "opacity-40"
-                          } ${darkMode ? "hover:bg-slate-700/50" : "hover:bg-slate-200"}`}
+                          } ${darkMode ? "hover:bg-zinc-700/50" : "hover:bg-zinc-200"}`}
                           onMouseEnter={() => {
                             cancelPieLegendClear();
                             setHoveredPieIndex(originalIndex);
@@ -1833,11 +1833,11 @@ export default function DashboardPage() {
                                 transform: isHighlighted && hoveredPieIndex === originalIndex ? 'scale(1.2)' : 'scale(1)'
                               } as React.CSSProperties}
                             />
-                            <p className={`text-base font-medium truncate flex-1 ${darkMode ? "text-slate-200" : "text-slate-800"}`} title={item.model}>
+                            <p className={`text-base font-medium truncate flex-1 ${darkMode ? "text-zinc-200" : "text-zinc-800"}`} title={item.model}>
                               {item.model}
                             </p>
                           </div>
-                          <div className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-600"} ml-6`}>
+                          <div className={`text-sm ${darkMode ? "text-zinc-400" : "text-zinc-600"} ml-6`}>
                             <span className="font-semibold">{percent.toFixed(1)}%</span>
                             <span className="mx-1.5">·</span>
                             <span>{pieMode === "tokens" ? formatCompactNumber(item.tokens) : formatNumberWithCommas(item.requests)} {pieMode === "tokens" ? "tokens" : "times"}</span>
@@ -1854,7 +1854,7 @@ export default function DashboardPage() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="text-lg font-semibold text-white">Load Distribution</h3>
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-zinc-400">
                     {isHourlyView ? "Hourly" : "Daily"}
                   </span>
                 </div>
@@ -1865,7 +1865,7 @@ export default function DashboardPage() {
                     className={`rounded-md border px-2 py-1 text-xs transition ${
                       fullscreenHourlyMode === "area"
                         ? "border-indigo-500 bg-indigo-600 text-white"
-                        : darkMode ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
+                        : darkMode ? "border-zinc-700 bg-zinc-800 text-zinc-300 hover:border-zinc-500" : "border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400"
                     }`}
                   >
                     Stacked Area Chart
@@ -1876,7 +1876,7 @@ export default function DashboardPage() {
                     className={`rounded-md border px-2 py-1 text-xs transition ${
                       fullscreenHourlyMode === "bar"
                         ? "border-indigo-500 bg-indigo-600 text-white"
-                        : darkMode ? "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500" : "border-slate-300 bg-white text-slate-700 hover:border-slate-400"
+                        : darkMode ? "border-zinc-700 bg-zinc-800 text-zinc-300 hover:border-zinc-500" : "border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400"
                     }`}
                   >
                     Stacked Bar Chart
@@ -1887,26 +1887,26 @@ export default function DashboardPage() {
                 <ComposedChart data={loadDistributionData} margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gradInputFS" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#fca5a5" />
-                      <stop offset="100%" stopColor="#f87171" />
+                      <stop offset="0%" stopColor="#e0b8b8" />
+                      <stop offset="100%" stopColor="#d49a9a" />
                     </linearGradient>
                     <linearGradient id="gradOutputFS" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#86efac" />
-                      <stop offset="100%" stopColor="#4ade80" />
+                      <stop offset="0%" stopColor="#a8dabe" />
+                      <stop offset="100%" stopColor="#7ed4a0" />
                     </linearGradient>
                     <linearGradient id="gradReasoningFS" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#fcd34d" />
-                      <stop offset="100%" stopColor="#fbbf24" />
+                      <stop offset="0%" stopColor="#e8d8a0" />
+                      <stop offset="100%" stopColor="#e8d48a" />
                     </linearGradient>
                     <linearGradient id="gradCachedFS" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#d8b4fe" />
-                      <stop offset="100%" stopColor="#c084fc" />
+                      <stop offset="0%" stopColor="#c8b0de" />
+                      <stop offset="100%" stopColor="#b8a3e0" />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#334155" : "#e2e8f0"} />
-                  <XAxis dataKey="label" stroke={darkMode ? "#94a3b8" : "#64748b"} fontSize={12} tickFormatter={isHourlyView ? formatLabel : undefined} />
-                  <YAxis yAxisId="left" stroke={darkMode ? "#60a5fa" : "#3b82f6"} tickFormatter={(v) => formatCompactNumber(v)} fontSize={12} />
-                  <YAxis yAxisId="right" orientation="right" stroke={darkMode ? "#94a3b8" : "#64748b"} tickFormatter={(v) => formatCompactNumber(v)} fontSize={12} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#363940" : "#e0e2e6"} />
+                  <XAxis dataKey="label" stroke={darkMode ? "#8a8f9a" : "#7a7f8a"} fontSize={12} tickFormatter={isHourlyView ? formatLabel : undefined} />
+                  <YAxis yAxisId="left" stroke={darkMode ? "#93b8f2" : "#7096d6"} tickFormatter={(v) => formatCompactNumber(v)} fontSize={12} />
+                  <YAxis yAxisId="right" orientation="right" stroke={darkMode ? "#8a8f9a" : "#7a7f8a"} tickFormatter={(v) => formatCompactNumber(v)} fontSize={12} />
                   <Tooltip 
                     content={({ active, payload, label }) => {
                       if (!active || !payload || !payload.length) return null;
@@ -1920,18 +1920,18 @@ export default function DashboardPage() {
                           style={{ 
                             backgroundColor: darkMode ? "rgba(15, 23, 42, 0.7)" : "rgba(255, 255, 255, 0.8)", 
                             border: `1px solid ${darkMode ? "rgba(148, 163, 184, 0.4)" : "rgba(203, 213, 225, 0.6)"}`,
-                            color: darkMode ? "#f8fafc" : "#0f172a"
+                            color: darkMode ? "#f8fafc" : "#1a1d23"
                           }}
                         >
-                          <p className={`mb-2 font-medium text-sm ${darkMode ? "text-slate-50" : "text-slate-900"}`}>{label ? (isHourlyView ? formatLabel(String(label)) : String(label)) : ''}</p>
+                          <p className={`mb-2 font-medium text-sm ${darkMode ? "text-zinc-50" : "text-zinc-900"}`}>{label ? (isHourlyView ? formatLabel(String(label)) : String(label)) : ''}</p>
                           <div className="space-y-1">
                             {sortedPayload.map((entry: any, index: number) => {
                               let color = entry.color;
-                              if (entry.name === "Input") color = darkMode ? "#fb7185" : "#e11d48";
-                              if (entry.name === "Output") color = darkMode ? "#4ade80" : "#16a34a";
-                              if (entry.name === "Reasoning") color = darkMode ? "#fbbf24" : "#d97706";
-                              if (entry.name === "Cached") color = darkMode ? "#c084fc" : "#9333ea";
-                              if (entry.name === "Requests") color = darkMode ? "#60a5fa" : "#3b82f6";
+                              if (entry.name === "Input") color = darkMode ? "#e0a3ad" : "#c45a6e";
+                              if (entry.name === "Output") color = darkMode ? "#7ed4a0" : "#5aad7a";
+                              if (entry.name === "Reasoning") color = darkMode ? "#e8d48a" : "#c4a35a";
+                              if (entry.name === "Cached") color = darkMode ? "#b8a3e0" : "#8a6ec0";
+                              if (entry.name === "Requests") color = darkMode ? "#93b8f2" : "#7096d6";
                               
                               return (
                                 <div key={index} className="flex items-center gap-2 text-sm">
@@ -1939,7 +1939,7 @@ export default function DashboardPage() {
                                   <span style={{ color: color }} className="font-medium">
                                     {entry.name}:
                                   </span>
-                                  <span className={darkMode ? "text-slate-50" : "text-slate-700"}>
+                                  <span className={darkMode ? "text-zinc-50" : "text-zinc-700"}>
                                     {formatNumberWithCommas(entry.value)}
                                   </span>
                                 </div>
@@ -1965,34 +1965,34 @@ export default function DashboardPage() {
                       const isVisible = hourlyVisible[key];
                       
                       if (!isVisible) {
-                        return <span style={{ color: darkMode ? "#94a3b8" : "#cbd5e1", textDecoration: "line-through" }}>{value}</span>;
+                        return <span style={{ color: darkMode ? "#8a8f9a" : "#b8bcc5", textDecoration: "line-through" }}>{value}</span>;
                       }
 
                       const colors: Record<string, string> = {
-                        "Requests": darkMode ? "#60a5fa" : "#3b82f6",
-                        "Input": darkMode ? "#fb7185" : "#e11d48",
-                        "Output": darkMode ? "#4ade80" : "#16a34a",
-                        "Reasoning": darkMode ? "#fbbf24" : "#d97706",
-                        "Cached": darkMode ? "#c084fc" : "#9333ea"
+                        "Requests": darkMode ? "#93b8f2" : "#7096d6",
+                        "Input": darkMode ? "#e0a3ad" : "#c45a6e",
+                        "Output": darkMode ? "#7ed4a0" : "#5aad7a",
+                        "Reasoning": darkMode ? "#e8d48a" : "#c4a35a",
+                        "Cached": darkMode ? "#b8a3e0" : "#8a6ec0"
                       };
                       return <span style={{ color: colors[value] || "inherit", fontWeight: 500 }} title="Hold Ctrl and click to show only this item">{value}</span>;
                     }}
                     itemSorter={(item: any) => ({ requests: 0, inputTokens: 1, outputTokens: 2, reasoningTokens: 3, cachedTokens: 4 } as Record<string, number>)[item?.dataKey] ?? 999}
                     payload={[
-                      { value: "Requests", type: "line", id: "requests", color: "#3b82f6", dataKey: "requests" },
-                      { value: "Input", type: "square", id: "inputTokens", color: "#e11d48", dataKey: "inputTokens" },
-                      { value: "Output", type: "square", id: "outputTokens", color: "#16a34a", dataKey: "outputTokens" },
-                      { value: "Reasoning", type: "square", id: "reasoningTokens", color: "#d97706", dataKey: "reasoningTokens" },
-                      { value: "Cached", type: "square", id: "cachedTokens", color: "#9333ea", dataKey: "cachedTokens" },
+                      { value: "Requests", type: "line", id: "requests", color: "#7096d6", dataKey: "requests" },
+                      { value: "Input", type: "square", id: "inputTokens", color: "#c45a6e", dataKey: "inputTokens" },
+                      { value: "Output", type: "square", id: "outputTokens", color: "#5aad7a", dataKey: "outputTokens" },
+                      { value: "Reasoning", type: "square", id: "reasoningTokens", color: "#c4a35a", dataKey: "reasoningTokens" },
+                      { value: "Cached", type: "square", id: "cachedTokens", color: "#8a6ec0", dataKey: "cachedTokens" },
                     ]}
                   />
                   {/* Stacked layers: supports bar and area switching */}
                   {fullscreenHourlyMode === "area" ? (
                     <>
-                      <Area hide={!hourlyVisible.inputTokens} yAxisId="right" dataKey="inputTokens" name="Input" stackId="tokens" type="monotone" stroke="#fca5a5" fill="url(#gradInputFS)" fillOpacity={0.35} animationDuration={600} />
-                      <Area hide={!hourlyVisible.outputTokens} yAxisId="right" dataKey="outputTokens" name="Output" stackId="tokens" type="monotone" stroke="#4ade80" fill="url(#gradOutputFS)" fillOpacity={0.35} animationDuration={600} />
-                      <Area hide={!hourlyVisible.reasoningTokens} yAxisId="right" dataKey="reasoningTokens" name="Reasoning" stackId="tokens" type="monotone" stroke="#fbbf24" fill="url(#gradReasoningFS)" fillOpacity={0.35} animationDuration={600} />
-                      <Area hide={!hourlyVisible.cachedTokens} yAxisId="right" dataKey="cachedTokens" name="Cached" stackId="tokens" type="monotone" stroke="#c084fc" fill="url(#gradCachedFS)" fillOpacity={0.35} animationDuration={600} />
+                      <Area hide={!hourlyVisible.inputTokens} yAxisId="right" dataKey="inputTokens" name="Input" stackId="tokens" type="monotone" stroke="#e0b8b8" fill="url(#gradInputFS)" fillOpacity={0.35} animationDuration={600} />
+                      <Area hide={!hourlyVisible.outputTokens} yAxisId="right" dataKey="outputTokens" name="Output" stackId="tokens" type="monotone" stroke="#7ed4a0" fill="url(#gradOutputFS)" fillOpacity={0.35} animationDuration={600} />
+                      <Area hide={!hourlyVisible.reasoningTokens} yAxisId="right" dataKey="reasoningTokens" name="Reasoning" stackId="tokens" type="monotone" stroke="#e8d48a" fill="url(#gradReasoningFS)" fillOpacity={0.35} animationDuration={600} />
+                      <Area hide={!hourlyVisible.cachedTokens} yAxisId="right" dataKey="cachedTokens" name="Cached" stackId="tokens" type="monotone" stroke="#b8a3e0" fill="url(#gradCachedFS)" fillOpacity={0.35} animationDuration={600} />
                     </>
                   ) : (
                     <>
@@ -2009,10 +2009,10 @@ export default function DashboardPage() {
                     type="monotone" 
                     dataKey="requests" 
                     name="Requests" 
-                    stroke={darkMode ? "#60a5fa" : "#3b82f6"} 
+                    stroke={darkMode ? "#93b8f2" : "#7096d6"} 
                     strokeWidth={fullscreenHourlyMode === "area" ? 2.3 : 3}
                     strokeOpacity={1}
-                    dot={{ r: 3, fill: darkMode ? "#60a5fa" : "#3b82f6", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} 
+                    dot={{ r: 3, fill: darkMode ? "#93b8f2" : "#7096d6", stroke: "#fff", strokeWidth: 1, fillOpacity: 0.2 }} 
                     activeDot={{ r: 6, stroke: "#fff", strokeWidth: 2 }} 
                   />
                 </ComposedChart>
@@ -2070,14 +2070,14 @@ export default function DashboardPage() {
 
 function StatCard({ label, value, hint, subValue, icon: Icon }: { label: string; value: string; hint?: string; subValue?: string; icon?: LucideIcon }) {
   return (
-    <div className="rounded-2xl bg-slate-800/50 p-5 shadow-sm ring-1 ring-slate-700 transition-all duration-200 hover:shadow-lg hover:shadow-slate-700/30 hover:ring-slate-600">
-      <div className="flex items-center gap-2 text-sm uppercase tracking-wide text-slate-400">
+    <div className="rounded-2xl bg-zinc-800/50 p-5 shadow-sm ring-1 ring-zinc-700 transition-all duration-200 hover:shadow-lg hover:shadow-zinc-700/30 hover:ring-zinc-600">
+      <div className="flex items-center gap-2 text-sm uppercase tracking-wide text-zinc-400">
         {Icon ? <Icon className="h-4 w-4" /> : null}
         {label}
       </div>
       <div className="mt-3 text-2xl font-semibold text-white">{value}</div>
-      {subValue ? <p className="mt-2 text-sm text-slate-300">{subValue}</p> : null}
-      {hint ? <p className="mt-1 text-xs text-slate-500">{hint}</p> : null}
+      {subValue ? <p className="mt-2 text-sm text-zinc-300">{subValue}</p> : null}
+      {hint ? <p className="mt-1 text-xs text-zinc-500">{hint}</p> : null}
     </div>
   );
 }
@@ -2114,7 +2114,7 @@ function ComboBox({
   }, [hasTyped, options, value]);
 
   const baseInput = `${className ?? ""} rounded-lg border px-3 py-1.5 text-sm focus:border-indigo-500 focus:outline-none ${
-    darkMode ? "border-slate-700 bg-slate-800 text-white placeholder-slate-500" : "border-slate-300 bg-white text-slate-900 placeholder-slate-400"
+    darkMode ? "border-zinc-700 bg-zinc-800 text-white placeholder-zinc-500" : "border-zinc-300 bg-white text-zinc-900 placeholder-zinc-400"
   }`;
 
   const closeDropdown = () => {
@@ -2179,7 +2179,7 @@ function ComboBox({
             onClear?.();
           }}
           className={`absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 transition ${
-            darkMode ? "text-slate-400 hover:bg-slate-700 hover:text-slate-200" : "text-slate-500 hover:bg-slate-200 hover:text-slate-700"
+            darkMode ? "text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200" : "text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700"
           }`}
           title="Clear"
         >
@@ -2189,7 +2189,7 @@ function ComboBox({
       {isVisible && filtered.length > 0 ? (
         <div
           className={`absolute z-20 mt-1 max-h-52 w-full overflow-auto rounded-xl border shadow-lg scrollbar-slim ${
-            darkMode ? "border-slate-700 bg-slate-900" : "border-slate-200 bg-white"
+            darkMode ? "border-zinc-700 bg-zinc-900" : "border-zinc-200 bg-white"
           } ${isClosing ? "animate-dropdown-out" : "animate-dropdown-in"}`}
         >
           {filtered.map((opt) => (
@@ -2205,7 +2205,7 @@ function ComboBox({
                 onSelectOption?.(opt);
               }}
               className={`block w-full px-3 py-2 text-left text-sm transition ${
-                darkMode ? "text-slate-200 hover:bg-slate-800" : "text-slate-700 hover:bg-slate-100"
+                darkMode ? "text-zinc-200 hover:bg-zinc-800" : "text-zinc-700 hover:bg-zinc-100"
               }`}
             >
               {opt}
@@ -2218,12 +2218,12 @@ function ComboBox({
 }
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse bg-slate-700/50 ${className ?? ""}`} />;
+  return <div className={`animate-pulse bg-zinc-700/50 ${className ?? ""}`} />;
 }
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-800/50 text-base text-slate-400">
+    <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-zinc-800/50 text-base text-zinc-400">
       {message}
     </div>
   );

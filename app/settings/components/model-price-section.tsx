@@ -139,15 +139,15 @@ export function ModelPriceSection({ prices, onPricesChange, darkMode, modelOptio
   };
 
   const inputClass = `mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${
-    darkMode ? "border-slate-700 bg-slate-900 text-white placeholder-slate-500" : "border-slate-300 bg-white text-slate-900 placeholder-slate-400"
+    darkMode ? "border-zinc-700 bg-zinc-900 text-white placeholder-zinc-500" : "border-zinc-300 bg-white text-zinc-900 placeholder-zinc-400"
   }`;
 
   return (
     <>
-      <section className={`rounded-2xl p-6 shadow-sm ring-1 ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`}>
+      <section className={`rounded-2xl p-6 shadow-sm ring-1 ${darkMode ? "bg-zinc-800/50 ring-zinc-700" : "bg-white ring-zinc-200"}`}>
         <div className="mb-6">
-          <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Model Price Configuration</h2>
-          <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Set price per million tokens, cost calculation will update immediately</p>
+          <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-zinc-900"}`}>Model Price Configuration</h2>
+          <p className={`text-xs ${darkMode ? "text-zinc-400" : "text-zinc-500"}`}>Set price per million tokens, cost calculation will update immediately</p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-5">
@@ -161,36 +161,36 @@ export function ModelPriceSection({ prices, onPricesChange, darkMode, modelOptio
       {/* Edit Modal */}
       <Modal isOpen={!!editingPrice} onClose={() => setEditingPrice(null)} title="Edit Price" darkMode={darkMode}>
         <div className="mt-4 grid gap-3">
-          <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+          <label className={`text-sm font-medium ${darkMode ? "text-zinc-300" : "text-zinc-700"}`}>
             Model Name
             <input type="text" className={inputClass} value={editForm.model} onChange={(e) => setEditForm((f) => ({ ...f, model: e.target.value }))} />
           </label>
-          <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+          <label className={`text-sm font-medium ${darkMode ? "text-zinc-300" : "text-zinc-700"}`}>
             Input ($ / M tokens)
             <input type="number" step="0.01" className={inputClass} value={editForm.inputPricePer1M} onChange={(e) => setEditForm((f) => ({ ...f, inputPricePer1M: e.target.value }))} />
           </label>
-          <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+          <label className={`text-sm font-medium ${darkMode ? "text-zinc-300" : "text-zinc-700"}`}>
             CachedInput ($ / M tokens)
             <input type="number" step="0.01" className={inputClass} value={editForm.cachedInputPricePer1M} onChange={(e) => setEditForm((f) => ({ ...f, cachedInputPricePer1M: e.target.value }))} />
           </label>
-          <label className={`text-sm font-medium ${darkMode ? "text-slate-300" : "text-slate-700"}`}>
+          <label className={`text-sm font-medium ${darkMode ? "text-zinc-300" : "text-zinc-700"}`}>
             Output ($ / M tokens)
             <input type="number" step="0.01" className={inputClass} value={editForm.outputPricePer1M} onChange={(e) => setEditForm((f) => ({ ...f, outputPricePer1M: e.target.value }))} />
           </label>
-          {editStatus && <p className="text-xs text-red-400">{editStatus}</p>}
+          {editStatus && <p className="text-xs text-rose-400/80">{editStatus}</p>}
           <div className="mt-2 flex gap-2">
-            <button type="button" onClick={() => setEditingPrice(null)} className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${darkMode ? "border-slate-600 text-slate-300 hover:bg-slate-700" : "border-slate-300 text-slate-700 hover:bg-slate-100"}`}>Cancel</button>
-            <button type="button" onClick={handleEditSave} className="flex-1 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500">Save</button>
+            <button type="button" onClick={() => setEditingPrice(null)} className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${darkMode ? "border-zinc-600 text-zinc-300 hover:bg-zinc-700" : "border-zinc-300 text-zinc-700 hover:bg-zinc-100"}`}>Cancel</button>
+            <button type="button" onClick={handleEditSave} className="flex-1 rounded-lg bg-indigo-500/80 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-400">Save</button>
           </div>
         </div>
       </Modal>
 
       {/* Delete Modal */}
       <Modal isOpen={!!pendingDelete} onClose={() => setPendingDelete(null)} title="Confirm Delete" darkMode={darkMode}>
-        <p className={`mt-2 text-sm ${darkMode ? "text-slate-300" : "text-slate-600"}`}>Delete model {pendingDelete}&apos;s price configuration?</p>
+        <p className={`mt-2 text-sm ${darkMode ? "text-zinc-300" : "text-zinc-600"}`}>Delete model {pendingDelete}&apos;s price configuration?</p>
         <div className="mt-4 flex gap-2">
-          <button type="button" onClick={() => setPendingDelete(null)} className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${darkMode ? "border-slate-600 text-slate-300 hover:bg-slate-700" : "border-slate-300 text-slate-700 hover:bg-slate-100"}`}>Cancel</button>
-          <button type="button" onClick={() => { handleDelete(pendingDelete!); setPendingDelete(null); }} className="flex-1 rounded-lg border border-red-400 px-3 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-500/10">Delete</button>
+          <button type="button" onClick={() => setPendingDelete(null)} className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${darkMode ? "border-zinc-600 text-zinc-300 hover:bg-zinc-700" : "border-zinc-300 text-zinc-700 hover:bg-zinc-100"}`}>Cancel</button>
+          <button type="button" onClick={() => { handleDelete(pendingDelete!); setPendingDelete(null); }} className="flex-1 rounded-lg border border-rose-400/80 px-3 py-2 text-sm font-semibold text-rose-400/80 transition hover:bg-rose-500/10">Delete</button>
         </div>
       </Modal>
     </>

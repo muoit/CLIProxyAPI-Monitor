@@ -38,8 +38,8 @@ export function ComboBox({
     return options.filter((opt) => opt.toLowerCase().includes(value.toLowerCase()));
   }, [hasTyped, options, value]);
 
-  const baseInput = `${className ?? ""} rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${
-    darkMode ? "border-slate-700 bg-slate-900 text-white placeholder-slate-500" : "border-slate-300 bg-white text-slate-900 placeholder-slate-400"
+  const baseInput = `${className ?? ""} rounded-lg border px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none ${
+    darkMode ? "border-zinc-700 bg-zinc-900 text-white placeholder-zinc-500" : "border-zinc-300 bg-white text-zinc-900 placeholder-zinc-400"
   }`;
 
   const closeDropdown = useCallback(() => {
@@ -156,7 +156,7 @@ export function ComboBox({
             onClear?.();
           }}
           className={`absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 transition ${
-            darkMode ? "text-slate-400 hover:bg-slate-700 hover:text-slate-200" : "text-slate-500 hover:bg-slate-200 hover:text-slate-700"
+            darkMode ? "text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200" : "text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700"
           }`}
           title="Clear"
           aria-label="Clear input"
@@ -170,7 +170,7 @@ export function ComboBox({
           id="combobox-listbox"
           role="listbox"
           className={`absolute z-20 mt-1 max-h-52 w-full overflow-auto rounded-xl border shadow-lg scrollbar-slim ${
-            darkMode ? "border-slate-700 bg-slate-900" : "border-slate-200 bg-white"
+            darkMode ? "border-zinc-700 bg-zinc-900" : "border-zinc-200 bg-white"
           } ${isClosing ? "animate-dropdown-out" : "animate-dropdown-in"}`}
         >
           {filtered.map((opt, idx) => (
@@ -187,8 +187,8 @@ export function ComboBox({
               onMouseEnter={() => setHighlightedIndex(idx)}
               className={`block w-full px-3 py-2 text-left text-sm transition ${
                 highlightedIndex === idx
-                  ? darkMode ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-900"
-                  : darkMode ? "text-slate-200 hover:bg-slate-800" : "text-slate-700 hover:bg-slate-100"
+                  ? darkMode ? "bg-zinc-800 text-white" : "bg-zinc-100 text-zinc-900"
+                  : darkMode ? "text-zinc-200 hover:bg-zinc-800" : "text-zinc-700 hover:bg-zinc-100"
               }`}
             >
               {opt}

@@ -51,10 +51,10 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-56 flex-col border-r border-slate-800 bg-slate-950 py-6">
+    <aside className="fixed left-0 top-0 z-40 flex h-screen w-56 flex-col border-r border-zinc-800 bg-zinc-950 py-6">
       <div className="px-5">
         <h1 className="text-xl font-bold text-white">CLIProxyAPI</h1>
-        <p className="text-sm text-slate-500">Usage Dashboard</p>
+        <p className="text-sm text-zinc-500">Usage Dashboard</p>
       </div>
       <nav className="mt-8 flex-1 space-y-1 px-3">
         {links.map(({ href, label, icon: Icon }) => {
@@ -65,8 +65,8 @@ export default function Sidebar() {
               href={href}
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors ${
                 active
-                  ? "bg-indigo-600 text-white"
-                  : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                  ? "bg-indigo-500/20 text-indigo-300"
+                  : "text-zinc-400 hover:bg-zinc-800/70 hover:text-white"
               }`}
             >
               <Icon className="h-5 w-5" />
@@ -79,7 +79,7 @@ export default function Sidebar() {
             href={cpamcLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors text-slate-400 hover:bg-slate-800 hover:text-white"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-base font-medium transition-colors text-zinc-400 hover:bg-zinc-800 hover:text-white"
           >
             <ExternalLink className="h-5 w-5" />
             Go to CPAMC
@@ -87,20 +87,20 @@ export default function Sidebar() {
         ) : null}
       </nav>
 
-      <div className="mt-auto border-t border-slate-800 px-4 pt-4 pb-2 space-y-3">
+      <div className="mt-auto border-t border-zinc-800 px-4 pt-4 pb-2 space-y-3">
         <div className="flex items-center gap-2">
           <a
             href="https://github.com/sxjeru/CLIProxyAPI-Monitor"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center rounded-lg border border-slate-700 p-2 text-slate-500 transition hover:bg-slate-800 hover:text-slate-300"
+            className="flex items-center justify-center rounded-lg border border-zinc-700 p-2 text-zinc-500 transition hover:bg-zinc-800 hover:text-zinc-300"
           >
             <Github className="h-4 w-4" />
           </a>
           <button
             onClick={handleLogout}
             disabled={loggingOut}
-            className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white disabled:opacity-50"
+            className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-zinc-700 px-3 py-2 text-sm font-medium text-zinc-300 transition hover:bg-zinc-800 hover:text-white disabled:opacity-50"
           >
             <LogOut className="h-4 w-4" />
             {loggingOut ? "Signing out..." : "Sign out"}

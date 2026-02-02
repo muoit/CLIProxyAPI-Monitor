@@ -84,22 +84,22 @@ export function SystemSettingsSection({ darkMode }: Props) {
 
   return (
     <>
-      <section className={`mt-8 rounded-2xl p-6 shadow-sm ring-1 ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`}>
+      <section className={`mt-8 rounded-2xl p-6 shadow-sm ring-1 ${darkMode ? "bg-zinc-800/50 ring-zinc-700" : "bg-white ring-zinc-200"}`}>
         <div className="flex items-center justify-between">
           <div>
-            <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>System Settings</h2>
-            <p className={`mt-1 text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>Configure upstream service settings</p>
+            <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-zinc-900"}`}>System Settings</h2>
+            <p className={`mt-1 text-xs ${darkMode ? "text-zinc-400" : "text-zinc-500"}`}>Configure upstream service settings</p>
           </div>
-          {error && <p className="text-xs text-red-400">{error}</p>}
+          {error && <p className="text-xs text-rose-400/80">{error}</p>}
         </div>
 
         <div className="mt-6">
-          <div className={`flex items-center justify-between rounded-xl border px-4 py-3 ${darkMode ? "border-slate-700 bg-slate-800/50" : "border-slate-200 bg-slate-50"}`}>
+          <div className={`flex items-center justify-between rounded-xl border px-4 py-3 ${darkMode ? "border-zinc-700 bg-zinc-800/50" : "border-zinc-200 bg-zinc-50"}`}>
             <div className="flex items-center gap-3">
-              <Activity className={`h-5 w-5 ${darkMode ? "text-slate-400" : "text-slate-500"}`} aria-hidden="true" />
+              <Activity className={`h-5 w-5 ${darkMode ? "text-zinc-400" : "text-zinc-500"}`} aria-hidden="true" />
               <div>
-                <p className={`text-base font-medium ${darkMode ? "text-white" : "text-slate-900"}`}>Upstream Usage Statistics</p>
-                <p className={`text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
+                <p className={`text-base font-medium ${darkMode ? "text-white" : "text-zinc-900"}`}>Upstream Usage Statistics</p>
+                <p className={`text-sm ${darkMode ? "text-zinc-400" : "text-zinc-600"}`}>
                   Enable or disable CLIProxyAPI from recording usage data
                 </p>
               </div>
@@ -111,7 +111,7 @@ export function SystemSettingsSection({ darkMode }: Props) {
               className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
                 usageStatsEnabled
                   ? "bg-emerald-600 text-white hover:bg-emerald-500"
-                  : "border border-slate-600 text-slate-400 hover:border-slate-500 hover:text-slate-300"
+                  : "border border-zinc-600 text-zinc-400 hover:border-zinc-500 hover:text-zinc-300"
               } ${usageStatsLoading ? "opacity-70" : ""}`}
             >
               {usageStatsLoading ? "..." : usageStatsEnabled ? "ON" : "OFF"}
@@ -127,14 +127,14 @@ export function SystemSettingsSection({ darkMode }: Props) {
         title="Disable Upstream Usage Statistics?"
         darkMode={darkMode}
       >
-        <p className={`mt-2 text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
+        <p className={`mt-2 text-sm ${darkMode ? "text-zinc-400" : "text-zinc-600"}`}>
           This will stop CLIProxyAPI from recording usage data. You can re-enable it when needed.
         </p>
         <div className="mt-4 flex gap-2">
           <button
             type="button"
             onClick={() => setShowUsageConfirm(false)}
-            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${darkMode ? "border-slate-600 text-slate-200 hover:bg-slate-800" : "border-slate-300 text-slate-700 hover:bg-slate-100"}`}
+            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${darkMode ? "border-zinc-600 text-zinc-200 hover:bg-zinc-800" : "border-zinc-300 text-zinc-700 hover:bg-zinc-100"}`}
           >
             Cancel
           </button>
@@ -144,7 +144,7 @@ export function SystemSettingsSection({ darkMode }: Props) {
               setShowUsageConfirm(false);
               applyUsageToggle(false);
             }}
-            className="flex-1 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-500"
+            className="flex-1 rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-500"
             disabled={usageStatsLoading}
           >
             Confirm Disable

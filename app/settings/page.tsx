@@ -60,18 +60,18 @@ export default function SettingsPage() {
   }, []);
 
   return (
-    <main className={`min-h-screen px-6 py-8 transition-colors ${darkMode ? "bg-slate-900 text-slate-100" : "bg-slate-50 text-slate-900"}`}>
+    <main className={`min-h-screen px-6 py-8 transition-colors ${darkMode ? "bg-zinc-900 text-zinc-100" : "bg-zinc-50 text-zinc-900"}`}>
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-slate-900"}`}>Settings</h1>
-        <p className={`mt-1 text-sm ${darkMode ? "text-slate-400" : "text-slate-600"}`}>
+        <h1 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-zinc-900"}`}>Settings</h1>
+        <p className={`mt-1 text-sm ${darkMode ? "text-zinc-400" : "text-zinc-600"}`}>
           Configure model pricing and system settings
         </p>
       </div>
 
       <SettingsErrorBoundary darkMode={darkMode}>
         {loading ? (
-          <div className={`rounded-2xl p-6 shadow-sm ring-1 ${darkMode ? "bg-slate-800/50 ring-slate-700" : "bg-white ring-slate-200"}`}>
+          <div className={`rounded-2xl p-6 shadow-sm ring-1 ${darkMode ? "bg-zinc-800/50 ring-zinc-700" : "bg-white ring-zinc-200"}`}>
             <div className="flex items-center justify-center py-12">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
             </div>
