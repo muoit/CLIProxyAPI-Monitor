@@ -2,6 +2,7 @@ import { sql, and, gte, lte, eq } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { usageRecords } from "@/lib/db/schema";
+import { withDayStartTz, withDayEndTz, parseDateInput } from "@/lib/timezone-utils";
 
 export type ExplorePoint = {
   ts: number; // epoch ms
@@ -21,24 +22,6 @@ function normalizeDays(days?: number | null) {
   return Math.min(Math.max(Math.floor(days), 1), 90);
 }
 
-function parseDateInput(value?: string | Date | null) {
-  if (!value) return null;
-  const d = value instanceof Date ? value : new Date(value);
-  return Number.isFinite(d.getTime()) ? d : null;
-}
-
-function withDayStart(date: Date) {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function withDayEnd(date: Date) {
-  const d = new Date(date);
-  d.setHours(23, 59, 59, 999);
-  return d;
-}
-
 function normalizeMaxPoints(value?: number | null) {
   const fallback = 20_000;
   if (value == null || Number.isNaN(value)) return fallback;
@@ -51,11 +34,11 @@ export async function getExplorePoints(daysInput?: number, opts?: { maxPoints?: 
   const hasCustomRange = startDate && endDate && endDate >= startDate;
 
   const days = hasCustomRange
-    ? Math.max(1, Math.round((withDayEnd(endDate).getTime() - withDayStart(startDate).getTime()) / DAY_MS) + 1)
+    ? Math.max(1, Math.round((withDayEndTz(endDate).getTime() - withDayStartTz(startDate).getTime()) / DAY_MS) + 1)
     : normalizeDays(daysInput);
   const maxPoints = normalizeMaxPoints(opts?.maxPoints ?? null);
-  const since = hasCustomRange ? withDayStart(startDate!) : new Date(Date.now() - days * DAY_MS);
-  const until = hasCustomRange ? withDayEnd(endDate!) : undefined;
+  const since = hasCustomRange ? withDayStartTz(startDate!) : new Date(Date.now() - days * DAY_MS);
+  const until = hasCustomRange ? withDayEndTz(endDate!) : undefined;
 
   const whereParts: SQL[] = [gte(usageRecords.occurredAt, since), eq(usageRecords.totalRequests, 1)];
   if (until) whereParts.push(lte(usageRecords.occurredAt, until));

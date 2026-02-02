@@ -5,6 +5,7 @@ import { modelPrices, usageRecords } from "@/lib/db/schema";
 import type { UsageOverview, ModelUsage, UsageSeriesPoint, RouteUsage, RouteTokenSeriesPoint } from "@/lib/types";
 import { estimateCost, priceMap } from "@/lib/usage";
 import { config } from "@/lib/config";
+import { withDayStartTz, withDayEndTz, parseDateInput } from "@/lib/timezone-utils";
 
 const TIMEZONE = config.timezone;
 
@@ -79,24 +80,6 @@ function normalizeDays(days?: number | null) {
   return Math.min(Math.max(Math.floor(days), 1), 90);
 }
 
-function parseDateInput(value?: string | Date | null) {
-  if (!value) return null;
-  const date = value instanceof Date ? value : new Date(value);
-  return Number.isFinite(date.getTime()) ? date : null;
-}
-
-function withDayStart(date: Date) {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function withDayEnd(date: Date) {
-  const d = new Date(date);
-  d.setHours(23, 59, 59, 999);
-  return d;
-}
-
 function normalizePage(value?: number | null) {
   const fallback = 1;
   if (value == null || Number.isNaN(value)) return fallback;
@@ -162,12 +145,12 @@ export async function getOverview(
   const endDate = parseDateInput(opts?.end);
   const hasCustomRange = startDate && endDate && endDate >= startDate;
 
-  const days = hasCustomRange ? Math.max(1, Math.round((withDayEnd(endDate).getTime() - withDayStart(startDate).getTime()) / DAY_MS) + 1) : normalizeDays(daysInput);
+  const days = hasCustomRange ? Math.max(1, Math.round((withDayEndTz(endDate).getTime() - withDayStartTz(startDate).getTime()) / DAY_MS) + 1) : normalizeDays(daysInput);
   const page = normalizePage(opts?.page ?? undefined);
   const pageSize = normalizePageSize(opts?.pageSize ?? undefined);
   const offset = (page - 1) * pageSize;
-  const since = hasCustomRange ? withDayStart(startDate!) : new Date(Date.now() - days * DAY_MS);
-  const until = hasCustomRange ? withDayEnd(endDate!) : undefined;
+  const since = hasCustomRange ? withDayStartTz(startDate!) : new Date(Date.now() - days * DAY_MS);
+  const until = hasCustomRange ? withDayEndTz(endDate!) : undefined;
 
   const baseWhereParts: SQL[] = [gte(usageRecords.occurredAt, since)];
   if (until) baseWhereParts.push(lte(usageRecords.occurredAt, until));
