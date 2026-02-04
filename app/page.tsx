@@ -429,7 +429,7 @@ export default function DashboardPage() {
             window.localStorage.setItem("lastSyncStatus", successMsg);
           }
         }
-        if (triggerRefresh && inserted > 0) setRefreshTrigger((prev) => prev + 1);
+        if (triggerRefresh) setRefreshTrigger((prev) => prev + 1);
       }
     } catch (err) {
       // Check if it's a timeout error

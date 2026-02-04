@@ -4,53 +4,6 @@ import { getOverview } from "@/lib/queries/overview";
 
 export const runtime = "nodejs";
 
-type CachedOverview = {
-  expiresAt: number;
-  value: {
-    overview: Awaited<ReturnType<typeof getOverview>>["overview"] | null;
-    empty: boolean;
-    days: number;
-    meta?: Awaited<ReturnType<typeof getOverview>>["meta"];
-    filters?: Awaited<ReturnType<typeof getOverview>>["filters"];
-    topRoutes?: Awaited<ReturnType<typeof getOverview>>["topRoutes"];
-    tokensByRoute?: Awaited<ReturnType<typeof getOverview>>["tokensByRoute"];
-  };
-};
-
-const OVERVIEW_CACHE_TTL_MS = 30_000;
-const OVERVIEW_CACHE_MAX_ENTRIES = 100;
-const overviewCache = new Map<string, CachedOverview>();
-
-function makeCacheKey(input: { days?: number; model?: string | null; route?: string | null; page?: number; pageSize?: number; start?: string | null; end?: string | null }) {
-  return JSON.stringify({
-    days: input.days ?? null,
-    model: input.model ?? null,
-    route: input.route ?? null,
-    page: input.page ?? null,
-    pageSize: input.pageSize ?? null,
-    start: input.start ?? null,
-    end: input.end ?? null
-  });
-}
-
-function getCached(key: string) {
-  const entry = overviewCache.get(key);
-  if (!entry) return null;
-  if (Date.now() >= entry.expiresAt) {
-    overviewCache.delete(key);
-    return null;
-  }
-  return entry.value;
-}
-
-function setCached(key: string, value: CachedOverview["value"]) {
-  if (overviewCache.size >= OVERVIEW_CACHE_MAX_ENTRIES) {
-    const oldestKey = overviewCache.keys().next().value as string | undefined;
-    if (oldestKey) overviewCache.delete(oldestKey);
-  }
-  overviewCache.set(key, { expiresAt: Date.now() + OVERVIEW_CACHE_TTL_MS, value });
-}
-
 export async function GET(request: Request) {
   try {
     assertEnv();
@@ -71,11 +24,6 @@ export async function GET(request: Request) {
 
     const page = pageParam ? Number.parseInt(pageParam, 10) : undefined;
     const pageSize = pageSizeParam ? Number.parseInt(pageSizeParam, 10) : undefined;
-    const cacheKey = makeCacheKey({ days, model, route, page, pageSize, start, end });
-    const cached = getCached(cacheKey);
-    if (cached) {
-      return NextResponse.json(cached, { status: 200 });
-    }
 
     const { overview, empty, days: appliedDays, meta, filters, topRoutes, tokensByRoute } = await getOverview(days, {
       model: model || undefined,
@@ -87,7 +35,6 @@ export async function GET(request: Request) {
     });
 
     const payload = { overview, empty, days: appliedDays, meta, filters, topRoutes, tokensByRoute, timezone: config.timezone };
-    setCached(cacheKey, payload);
     return NextResponse.json(payload, { status: 200 });
   } catch (error) {
     console.error("/api/overview failed:", error);
