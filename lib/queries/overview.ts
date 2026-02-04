@@ -92,49 +92,44 @@ function normalizePageSize(value?: number | null) {
   return Math.min(Math.max(Math.floor(value), 5), 500);
 }
 
-const TOP_ROUTES_FOR_CHART = 5;
+const MAX_ROUTES_FOR_CHART = 10;
 
 // Aggregate time-series rows into top N routes + "Other"
 function buildRouteTokenSeries(
   dayRows: RouteTimeAggRow[],
   hourRows: RouteTimeAggRow[]
 ): { byDay: RouteTokenSeriesPoint[]; byHour: RouteTokenSeriesPoint[]; routes: string[] } {
-  function aggregate(rows: RouteTimeAggRow[]) {
-    // Sum tokens per route across all time points to find top routes
-    const routeTotals = new Map<string, number>();
-    for (const row of rows) {
-      routeTotals.set(row.route, (routeTotals.get(row.route) ?? 0) + toNumber(row.tokens));
-    }
-    // Sort by total tokens desc, take top N
-    const sorted = [...routeTotals.entries()].sort((a, b) => b[1] - a[1]);
-    const topRouteNames = sorted.slice(0, TOP_ROUTES_FOR_CHART).map(([name]) => name);
-    const topSet = new Set(topRouteNames);
+  // Compute unified top routes from both datasets to ensure consistency
+  const routeTotals = new Map<string, number>();
+  for (const row of [...dayRows, ...hourRows]) {
+    routeTotals.set(row.route, (routeTotals.get(row.route) ?? 0) + toNumber(row.tokens));
+  }
+  const sorted = [...routeTotals.entries()].sort((a, b) => b[1] - a[1]);
+  const needsOther = sorted.length > MAX_ROUTES_FOR_CHART;
+  const topRouteNames = sorted.slice(0, MAX_ROUTES_FOR_CHART).map(([name]) => name);
+  const topSet = new Set(topRouteNames);
 
-    // Group by label (time point), with top routes as keys and "Other" for rest
+  function aggregate(rows: RouteTimeAggRow[]) {
     const labelMap = new Map<string, RouteTokenSeriesPoint>();
     for (const row of rows) {
       if (!labelMap.has(row.label)) {
         const point: RouteTokenSeriesPoint = { label: row.label };
         for (const r of topRouteNames) point[r] = 0;
-        point["Other"] = 0;
+        if (needsOther) point["Other"] = 0;
         labelMap.set(row.label, point);
       }
       const point = labelMap.get(row.label)!;
       const tokens = toNumber(row.tokens);
       if (topSet.has(row.route)) {
         point[row.route] = (point[row.route] as number) + tokens;
-      } else {
+      } else if (needsOther) {
         point["Other"] = (point["Other"] as number) + tokens;
       }
     }
-    return { points: [...labelMap.values()], routes: topRouteNames };
+    return [...labelMap.values()];
   }
 
-  const dayResult = aggregate(dayRows);
-  const hourResult = aggregate(hourRows);
-  // Use whichever has more data to determine top route names
-  const routes = dayResult.routes.length >= hourResult.routes.length ? dayResult.routes : hourResult.routes;
-  return { byDay: dayResult.points, byHour: hourResult.points, routes };
+  return { byDay: aggregate(dayRows), byHour: aggregate(hourRows), routes: topRouteNames };
 }
 
 export async function getOverview(

@@ -8,7 +8,6 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  Legend,
 } from "recharts";
 import type { RouteTokenSeriesPoint } from "@/lib/types";
 import { formatCompactNumber, formatNumberWithCommas } from "@/lib/utils";
@@ -21,13 +20,18 @@ interface TokenByRouteChartProps {
   formatLabel?: (label: string) => string;
 }
 
-// Distinct colors for up to 5 routes + "Other" (gray)
+// Distinct colors for up to 10 routes + "Other" (gray)
 const ROUTE_COLORS = [
   "#DA7756", // terracotta
   "#D4B878", // warm gold
   "#7CC4A0", // sage green
   "#8AABBF", // dusty blue
   "#B8A088", // warm tan
+  "#C47DB5", // muted rose
+  "#6BC4B4", // teal
+  "#D49A6A", // copper
+  "#9B8EC4", // lavender
+  "#A3B86C", // olive green
 ];
 const OTHER_COLOR = "#6B6358"; // warm gray
 
@@ -100,7 +104,6 @@ export function TokenByRouteChart({ data, routes, darkMode, isHourly, formatLabe
             );
           }}
         />
-        <Legend iconType="square" iconSize={10} wrapperStyle={{ paddingTop: 8, fontSize: 12 }} />
         {barKeys.map((key, i) => {
           const isLast = i === barKeys.length - 1;
           const color = key === "Other" ? OTHER_COLOR : getRouteColor(i);
