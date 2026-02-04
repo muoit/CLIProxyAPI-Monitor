@@ -84,22 +84,22 @@ export function SystemSettingsSection({ darkMode }: Props) {
 
   return (
     <>
-      <section className={`mt-8 rounded-2xl p-6 shadow-sm ring-1 ${darkMode ? "bg-zinc-800/50 ring-zinc-700" : "bg-white ring-zinc-200"}`}>
+      <section className={`mt-8 rounded-2xl p-6 shadow-sm ring-1 ${darkMode ? "bg-[#2a2a2a]/50 ring-[#3d3d3d]" : "bg-[#F0EBE4] ring-[#D4CCC2]"}`}>
         <div className="flex items-center justify-between">
           <div>
-            <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-zinc-900"}`}>System Settings</h2>
-            <p className={`mt-1 text-xs ${darkMode ? "text-zinc-400" : "text-zinc-500"}`}>Configure upstream service settings</p>
+            <h2 className={`text-lg font-semibold ${darkMode ? "text-[#E8E0D6]" : "text-[#2A2520]"}`}>System Settings</h2>
+            <p className={`mt-1 text-xs ${darkMode ? "text-[#A39888]" : "text-[#8A7F72]"}`}>Configure upstream service settings</p>
           </div>
           {error && <p className="text-xs text-rose-400/80">{error}</p>}
         </div>
 
         <div className="mt-6">
-          <div className={`flex items-center justify-between rounded-xl border px-4 py-3 ${darkMode ? "border-zinc-700 bg-zinc-800/50" : "border-zinc-200 bg-zinc-50"}`}>
+          <div className={`flex items-center justify-between rounded-xl border px-4 py-3 ${darkMode ? "border-[#3d3d3d] bg-[#2a2a2a]/50" : "border-[#D4CCC2] bg-[#FAF9F6]"}`}>
             <div className="flex items-center gap-3">
-              <Activity className={`h-5 w-5 ${darkMode ? "text-zinc-400" : "text-zinc-500"}`} aria-hidden="true" />
+              <Activity className={`h-5 w-5 ${darkMode ? "text-[#A39888]" : "text-[#8A7F72]"}`} aria-hidden="true" />
               <div>
-                <p className={`text-base font-medium ${darkMode ? "text-white" : "text-zinc-900"}`}>Upstream Usage Statistics</p>
-                <p className={`text-sm ${darkMode ? "text-zinc-400" : "text-zinc-600"}`}>
+                <p className={`text-base font-medium ${darkMode ? "text-[#E8E0D6]" : "text-[#2A2520]"}`}>Upstream Usage Statistics</p>
+                <p className={`text-sm ${darkMode ? "text-[#A39888]" : "text-[#7A7068]"}`}>
                   Enable or disable CLIProxyAPI from recording usage data
                 </p>
               </div>
@@ -110,8 +110,8 @@ export function SystemSettingsSection({ darkMode }: Props) {
               aria-label={`${usageStatsEnabled ? "Disable" : "Enable"} upstream usage statistics`}
               className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
                 usageStatsEnabled
-                  ? "bg-emerald-600 text-white hover:bg-emerald-500"
-                  : "border border-zinc-600 text-zinc-400 hover:border-zinc-500 hover:text-zinc-300"
+                  ? "bg-emerald-600 text-[#E8E0D6] hover:bg-emerald-500"
+                  : "border border-[#4a4540] text-[#A39888] hover:border-[#5a5550] hover:text-[#C4BAB0]"
               } ${usageStatsLoading ? "opacity-70" : ""}`}
             >
               {usageStatsLoading ? "..." : usageStatsEnabled ? "ON" : "OFF"}
@@ -127,14 +127,14 @@ export function SystemSettingsSection({ darkMode }: Props) {
         title="Disable Upstream Usage Statistics?"
         darkMode={darkMode}
       >
-        <p className={`mt-2 text-sm ${darkMode ? "text-zinc-400" : "text-zinc-600"}`}>
+        <p className={`mt-2 text-sm ${darkMode ? "text-[#A39888]" : "text-[#7A7068]"}`}>
           This will stop CLIProxyAPI from recording usage data. You can re-enable it when needed.
         </p>
         <div className="mt-4 flex gap-2">
           <button
             type="button"
             onClick={() => setShowUsageConfirm(false)}
-            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${darkMode ? "border-zinc-600 text-zinc-200 hover:bg-zinc-800" : "border-zinc-300 text-zinc-700 hover:bg-zinc-100"}`}
+            className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${darkMode ? "border-[#4a4540] text-[#D4CCC2] hover:bg-[#2a2a2a]" : "border-[#D4CCC2] text-[#3d3d3d] hover:bg-[#E8E0D6]"}`}
           >
             Cancel
           </button>
@@ -144,7 +144,7 @@ export function SystemSettingsSection({ darkMode }: Props) {
               setShowUsageConfirm(false);
               applyUsageToggle(false);
             }}
-            className="flex-1 rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-500"
+            className="flex-1 rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-[#E8E0D6] transition hover:bg-rose-500"
             disabled={usageStatsLoading}
           >
             Confirm Disable

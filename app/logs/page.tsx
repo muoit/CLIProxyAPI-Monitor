@@ -42,7 +42,7 @@ function formatSize(bytes: number | undefined): string {
 }
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded-lg bg-zinc-700/50 ${className ?? ""}`} />;
+  return <div className={`animate-pulse rounded-lg bg-[#3d3d3d]/50 ${className ?? ""}`} />;
 }
 
 export default function LogsPage() {
@@ -224,23 +224,23 @@ export default function LogsPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-zinc-900 px-6 py-8 text-zinc-100">
+    <main className="min-h-screen bg-[#1e1e1e] px-6 py-8 text-[#E8E0D6]">
       <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Logs</h1>
-          <p className="text-base text-zinc-400">Showing latest /logs output, not persisted</p>
+          <h1 className="text-2xl font-bold text-[#E8E0D6]">Logs</h1>
+          <p className="text-base text-[#A39888]">Showing latest /logs output, not persisted</p>
         </div>
-        <div className="flex items-center gap-3 text-sm text-zinc-300">
+        <div className="flex items-center gap-3 text-sm text-[#C4BAB0]">
           <button
             onClick={() => fetchLogs("full")}
-            className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 font-semibold hover:border-zinc-500"
+            className="rounded-lg border border-[#3d3d3d] bg-[#2a2a2a] px-3 py-2 font-semibold hover:border-[#8A7F72]"
             title="Reload all logs (filterable by start time)"
           >
             Reload
           </button>
           <button
             onClick={() => fetchLogs("incremental")}
-            className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 font-semibold hover:border-zinc-500"
+            className="rounded-lg border border-[#3d3d3d] bg-[#2a2a2a] px-3 py-2 font-semibold hover:border-[#8A7F72]"
             title="Get only new logs after last record"
           >
             Get latest logs
@@ -248,28 +248,28 @@ export default function LogsPage() {
         </div>
       </header>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-zinc-300">
+      <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-[#C4BAB0]">
         <label className="flex items-center gap-2">
           <span>Start time</span>
           <input
             type="datetime-local"
             value={getDateTimeInputValue()}
             onChange={(e) => handleDateTimeChange(e.target.value)}
-            className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white focus:border-indigo-400 focus:outline-none"
+            className="rounded-lg border border-[#3d3d3d] bg-[#2a2a2a] px-3 py-1.5 text-sm text-[#E8E0D6] focus:border-[#DA7756] focus:outline-none"
           />
           {afterInput && (
             <button
               onClick={() => setAfterInput("")}
-              className="rounded-lg border border-zinc-700 bg-zinc-800 px-2 py-1.5 text-xs hover:border-zinc-500"
+              className="rounded-lg border border-[#3d3d3d] bg-[#2a2a2a] px-2 py-1.5 text-xs hover:border-[#8A7F72]"
               title="Clear"
             >
               Clear
             </button>
           )}
         </label>
-        <span className="text-zinc-400">|</span>
+        <span className="text-[#A39888]">|</span>
         <span>Latest record: {latestText}</span>
-        <span className="text-zinc-400">|</span>
+        <span className="text-[#A39888]">|</span>
         <div className="flex items-center gap-2">
           {[1, 6, 24].map((hours) => {
             // Calculate timestamp for current button
@@ -306,8 +306,8 @@ export default function LogsPage() {
                 }}
                 className={`rounded-lg border px-3 py-1.5 font-semibold transition ${
                   isActive
-                    ? 'border-indigo-400 bg-indigo-500/80 text-white'
-                    : 'border-zinc-700 bg-zinc-800 hover:border-zinc-500'
+                    ? 'border-[#DA7756] bg-[#DA7756]/80 text-[#E8E0D6]'
+                    : 'border-[#3d3d3d] bg-[#2a2a2a] hover:border-[#8A7F72]'
                 }`}
               >
                 Last {hours}h
@@ -315,15 +315,15 @@ export default function LogsPage() {
             );
           })}
         </div>
-        <span className="text-zinc-400">|</span>
+        <span className="text-[#A39888]">|</span>
         <label className="flex cursor-pointer items-center gap-2">
           <button
             type="button"
             role="switch"
             aria-checked={hideManagement}
             onClick={() => setHideManagement(!hideManagement)}
-            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 ${
-              hideManagement ? 'bg-indigo-500/80' : 'bg-zinc-600'
+            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA7756] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1e1e1e] ${
+              hideManagement ? 'bg-[#DA7756]/80' : 'bg-[#4a4540]'
             }`}
           >
             <span
@@ -336,14 +336,14 @@ export default function LogsPage() {
         </label>
       </div>
 
-      <section className="mt-4 rounded-2xl bg-zinc-800/50 p-4 shadow-sm ring-1 ring-zinc-700">
+      <section className="mt-4 rounded-2xl bg-[#2a2a2a]/50 p-4 shadow-sm ring-1 ring-[#3d3d3d]">
         {error ? <p className="text-base text-rose-400/80">{error}</p> : null}
         {loading ? (
           <Skeleton className="h-40" />
         ) : lines.length === 0 ? (
-          <p className="text-base text-zinc-400">No logs found. Check if file logging is enabled</p>
+          <p className="text-base text-[#A39888]">No logs found. Check if file logging is enabled</p>
         ) : (
-          <pre className="mt-2 max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-zinc-900/80 p-4 text-sm text-zinc-100">
+          <pre className="mt-2 max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-[#1e1e1e]/80 p-4 text-sm text-[#E8E0D6]">
             {lines
               .filter(line => !hideManagement || !line.includes('/v0/management'))
               .join("\n")}
@@ -352,12 +352,12 @@ export default function LogsPage() {
       </section>
 
       <section className="mt-6 grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl bg-zinc-800/50 p-4 shadow-sm ring-1 ring-zinc-700">
+        <div className="rounded-2xl bg-[#2a2a2a]/50 p-4 shadow-sm ring-1 ring-[#3d3d3d]">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">request-error-logs</h2>
+            <h2 className="text-lg font-semibold text-[#E8E0D6]">request-error-logs</h2>
             <button
               onClick={fetchErrorLogs}
-              className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm font-semibold hover:border-zinc-500"
+              className="rounded-lg border border-[#3d3d3d] bg-[#2a2a2a] px-3 py-1.5 text-sm font-semibold hover:border-[#8A7F72]"
             >
               Refresh list
             </button>
@@ -366,18 +366,18 @@ export default function LogsPage() {
           {errorLogLoading ? (
             <Skeleton className="mt-3 h-24" />
           ) : errorLogs.length === 0 ? (
-            <p className="mt-3 text-base text-zinc-400">No error log files</p>
+            <p className="mt-3 text-base text-[#A39888]">No error log files</p>
           ) : (
-            <div className="mt-3 max-h-96 overflow-y-auto divide-y divide-zinc-700">
+            <div className="mt-3 max-h-96 overflow-y-auto divide-y divide-[#3d3d3d]">
               {sortedErrorLogs.map((file) => (
                 <div key={file.name} className="flex items-start gap-3 py-2">
                   <div className="flex-1 min-w-0">
-                    <p className="text-base font-semibold text-white break-words">{file.name}</p>
-                    <p className="text-sm text-zinc-400">{formatSize(file.size)} • {formatTimestamp(file.modified)}</p>
+                    <p className="text-base font-semibold text-[#E8E0D6] break-words">{file.name}</p>
+                    <p className="text-sm text-[#A39888]">{formatSize(file.size)} • {formatTimestamp(file.modified)}</p>
                   </div>
                   <button
                     onClick={() => fetchErrorLogFile(file.name)}
-                    className="shrink-0 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm font-semibold hover:border-zinc-500"
+                    className="shrink-0 rounded-lg border border-[#3d3d3d] bg-[#2a2a2a] px-3 py-1.5 text-sm font-semibold hover:border-[#8A7F72]"
                   >
                     View
                   </button>
@@ -387,19 +387,19 @@ export default function LogsPage() {
           )}
         </div>
 
-        <div className="rounded-2xl bg-zinc-800/50 p-4 shadow-sm ring-1 ring-zinc-700">
+        <div className="rounded-2xl bg-[#2a2a2a]/50 p-4 shadow-sm ring-1 ring-[#3d3d3d]">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="shrink-0 text-lg font-semibold text-white">Error log content</h2>
-            {errorLogName ? <span className="min-w-0 truncate text-sm text-zinc-400" title={errorLogName}>{errorLogName}</span> : null}
+            <h2 className="shrink-0 text-lg font-semibold text-[#E8E0D6]">Error log content</h2>
+            {errorLogName ? <span className="min-w-0 truncate text-sm text-[#A39888]" title={errorLogName}>{errorLogName}</span> : null}
           </div>
           {errorLogContentLoading ? (
             <Skeleton className="mt-3 h-32" />
           ) : errorLogContent ? (
-            <pre className="mt-3 max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-zinc-900/80 p-4 text-sm text-zinc-100">
+            <pre className="mt-3 max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-lg bg-[#1e1e1e]/80 p-4 text-sm text-[#E8E0D6]">
               {errorLogContent}
             </pre>
           ) : (
-            <p className="mt-3 text-base text-zinc-400">Select a file to view</p>
+            <p className="mt-3 text-base text-[#A39888]">Select a file to view</p>
           )}
         </div>
       </section>

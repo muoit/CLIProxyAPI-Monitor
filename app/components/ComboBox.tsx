@@ -38,8 +38,8 @@ export function ComboBox({
     return options.filter((opt) => opt.toLowerCase().includes(value.toLowerCase()));
   }, [hasTyped, options, value]);
 
-  const baseInput = `${className ?? ""} rounded-lg border px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none ${
-    darkMode ? "border-zinc-700 bg-zinc-900 text-white placeholder-zinc-500" : "border-zinc-300 bg-white text-zinc-900 placeholder-zinc-400"
+  const baseInput = `${className ?? ""} rounded-lg border px-3 py-2 text-sm focus:border-[#DA7756] focus:outline-none ${
+    darkMode ? "border-[#3d3d3d] bg-[#1e1e1e] text-[#E8E0D6] placeholder-[#8A7F72]" : "border-[#D4CCC2] bg-[#F0EBE4] text-[#2A2520] placeholder-[#A39888]"
   }`;
 
   const closeDropdown = useCallback(() => {
@@ -156,7 +156,7 @@ export function ComboBox({
             onClear?.();
           }}
           className={`absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 transition ${
-            darkMode ? "text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200" : "text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700"
+            darkMode ? "text-[#A39888] hover:bg-[#333333] hover:text-[#D4CCC2]" : "text-[#8A7F72] hover:bg-[#D4CCC2] hover:text-[#3d3d3d]"
           }`}
           title="Clear"
           aria-label="Clear input"
@@ -170,7 +170,7 @@ export function ComboBox({
           id="combobox-listbox"
           role="listbox"
           className={`absolute z-20 mt-1 max-h-52 w-full overflow-auto rounded-xl border shadow-lg scrollbar-slim ${
-            darkMode ? "border-zinc-700 bg-zinc-900" : "border-zinc-200 bg-white"
+            darkMode ? "border-[#3d3d3d] bg-[#1e1e1e]" : "border-[#D4CCC2] bg-[#F0EBE4]"
           } ${isClosing ? "animate-dropdown-out" : "animate-dropdown-in"}`}
         >
           {filtered.map((opt, idx) => (
@@ -187,8 +187,8 @@ export function ComboBox({
               onMouseEnter={() => setHighlightedIndex(idx)}
               className={`block w-full px-3 py-2 text-left text-sm transition ${
                 highlightedIndex === idx
-                  ? darkMode ? "bg-zinc-800 text-white" : "bg-zinc-100 text-zinc-900"
-                  : darkMode ? "text-zinc-200 hover:bg-zinc-800" : "text-zinc-700 hover:bg-zinc-100"
+                  ? darkMode ? "bg-[#2a2a2a] text-[#E8E0D6]" : "bg-[#E8E0D6] text-[#2A2520]"
+                  : darkMode ? "text-[#D4CCC2] hover:bg-[#2a2a2a]" : "text-[#3d3d3d] hover:bg-[#E8E0D6]"
               }`}
             >
               {opt}

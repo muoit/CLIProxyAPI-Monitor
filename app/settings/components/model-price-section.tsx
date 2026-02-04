@@ -138,16 +138,16 @@ export function ModelPriceSection({ prices, onPricesChange, darkMode, modelOptio
     }
   };
 
-  const inputClass = `mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none ${
-    darkMode ? "border-zinc-700 bg-zinc-900 text-white placeholder-zinc-500" : "border-zinc-300 bg-white text-zinc-900 placeholder-zinc-400"
+  const inputClass = `mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:border-[#DA7756] focus:outline-none ${
+    darkMode ? "border-[#3d3d3d] bg-[#1e1e1e] text-[#E8E0D6] placeholder-[#8A7F72]" : "border-[#D4CCC2] bg-[#F0EBE4] text-[#2A2520] placeholder-[#A39888]"
   }`;
 
   return (
     <>
-      <section className={`rounded-2xl p-6 shadow-sm ring-1 ${darkMode ? "bg-zinc-800/50 ring-zinc-700" : "bg-white ring-zinc-200"}`}>
+      <section className={`rounded-2xl p-6 shadow-sm ring-1 ${darkMode ? "bg-[#2a2a2a]/50 ring-[#3d3d3d]" : "bg-[#F0EBE4] ring-[#D4CCC2]"}`}>
         <div className="mb-6">
-          <h2 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-zinc-900"}`}>Model Price Configuration</h2>
-          <p className={`text-xs ${darkMode ? "text-zinc-400" : "text-zinc-500"}`}>Set price per million tokens, cost calculation will update immediately</p>
+          <h2 className={`text-lg font-semibold ${darkMode ? "text-[#E8E0D6]" : "text-[#2A2520]"}`}>Model Price Configuration</h2>
+          <p className={`text-xs ${darkMode ? "text-[#A39888]" : "text-[#8A7F72]"}`}>Set price per million tokens, cost calculation will update immediately</p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-5">
@@ -161,35 +161,35 @@ export function ModelPriceSection({ prices, onPricesChange, darkMode, modelOptio
       {/* Edit Modal */}
       <Modal isOpen={!!editingPrice} onClose={() => setEditingPrice(null)} title="Edit Price" darkMode={darkMode}>
         <div className="mt-4 grid gap-3">
-          <label className={`text-sm font-medium ${darkMode ? "text-zinc-300" : "text-zinc-700"}`}>
+          <label className={`text-sm font-medium ${darkMode ? "text-[#C4BAB0]" : "text-[#3d3d3d]"}`}>
             Model Name
             <input type="text" className={inputClass} value={editForm.model} onChange={(e) => setEditForm((f) => ({ ...f, model: e.target.value }))} />
           </label>
-          <label className={`text-sm font-medium ${darkMode ? "text-zinc-300" : "text-zinc-700"}`}>
+          <label className={`text-sm font-medium ${darkMode ? "text-[#C4BAB0]" : "text-[#3d3d3d]"}`}>
             Input ($ / M tokens)
             <input type="number" step="0.01" className={inputClass} value={editForm.inputPricePer1M} onChange={(e) => setEditForm((f) => ({ ...f, inputPricePer1M: e.target.value }))} />
           </label>
-          <label className={`text-sm font-medium ${darkMode ? "text-zinc-300" : "text-zinc-700"}`}>
+          <label className={`text-sm font-medium ${darkMode ? "text-[#C4BAB0]" : "text-[#3d3d3d]"}`}>
             CachedInput ($ / M tokens)
             <input type="number" step="0.01" className={inputClass} value={editForm.cachedInputPricePer1M} onChange={(e) => setEditForm((f) => ({ ...f, cachedInputPricePer1M: e.target.value }))} />
           </label>
-          <label className={`text-sm font-medium ${darkMode ? "text-zinc-300" : "text-zinc-700"}`}>
+          <label className={`text-sm font-medium ${darkMode ? "text-[#C4BAB0]" : "text-[#3d3d3d]"}`}>
             Output ($ / M tokens)
             <input type="number" step="0.01" className={inputClass} value={editForm.outputPricePer1M} onChange={(e) => setEditForm((f) => ({ ...f, outputPricePer1M: e.target.value }))} />
           </label>
           {editStatus && <p className="text-xs text-rose-400/80">{editStatus}</p>}
           <div className="mt-2 flex gap-2">
-            <button type="button" onClick={() => setEditingPrice(null)} className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${darkMode ? "border-zinc-600 text-zinc-300 hover:bg-zinc-700" : "border-zinc-300 text-zinc-700 hover:bg-zinc-100"}`}>Cancel</button>
-            <button type="button" onClick={handleEditSave} className="flex-1 rounded-lg bg-indigo-500/80 px-3 py-2 text-sm font-semibold text-white transition hover:bg-indigo-400">Save</button>
+            <button type="button" onClick={() => setEditingPrice(null)} className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${darkMode ? "border-[#4a4540] text-[#C4BAB0] hover:bg-[#333333]" : "border-[#D4CCC2] text-[#3d3d3d] hover:bg-[#E8E0D6]"}`}>Cancel</button>
+            <button type="button" onClick={handleEditSave} className="flex-1 rounded-lg bg-[#DA7756]/80 px-3 py-2 text-sm font-semibold text-[#E8E0D6] transition hover:bg-[#E8825A]">Save</button>
           </div>
         </div>
       </Modal>
 
       {/* Delete Modal */}
       <Modal isOpen={!!pendingDelete} onClose={() => setPendingDelete(null)} title="Confirm Delete" darkMode={darkMode}>
-        <p className={`mt-2 text-sm ${darkMode ? "text-zinc-300" : "text-zinc-600"}`}>Delete model {pendingDelete}&apos;s price configuration?</p>
+        <p className={`mt-2 text-sm ${darkMode ? "text-[#C4BAB0]" : "text-[#7A7068]"}`}>Delete model {pendingDelete}&apos;s price configuration?</p>
         <div className="mt-4 flex gap-2">
-          <button type="button" onClick={() => setPendingDelete(null)} className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${darkMode ? "border-zinc-600 text-zinc-300 hover:bg-zinc-700" : "border-zinc-300 text-zinc-700 hover:bg-zinc-100"}`}>Cancel</button>
+          <button type="button" onClick={() => setPendingDelete(null)} className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${darkMode ? "border-[#4a4540] text-[#C4BAB0] hover:bg-[#333333]" : "border-[#D4CCC2] text-[#3d3d3d] hover:bg-[#E8E0D6]"}`}>Cancel</button>
           <button type="button" onClick={() => { handleDelete(pendingDelete!); setPendingDelete(null); }} className="flex-1 rounded-lg border border-rose-400/80 px-3 py-2 text-sm font-semibold text-rose-400/80 transition hover:bg-rose-500/10">Delete</button>
         </div>
       </Modal>

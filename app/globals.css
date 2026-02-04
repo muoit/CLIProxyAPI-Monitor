@@ -7,16 +7,16 @@
 :root {
   color-scheme: dark;
   --scrollbar-size: 6px;
-  --scrollbar-thumb: #4a4e57;
-  --scrollbar-thumb-hover: #6b7080;
+  --scrollbar-thumb: #4a4540;
+  --scrollbar-thumb-hover: #6b6358;
   --scrollbar-track: transparent;
 }
 
 html:not(.dark) {
   color-scheme: light;
-  --scrollbar-thumb: #b8bcc5;
-  --scrollbar-thumb-hover: #9298a5;
-  --scrollbar-track: #f0f1f3;
+  --scrollbar-thumb: #C4BAB0;
+  --scrollbar-thumb-hover: #A89888;
+  --scrollbar-track: #F5F0EB;
 }
 
 html {
@@ -25,8 +25,13 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background: #1a1d23;
-  color: #e8eaed;
+  background: #1a1a1a;
+  color: #E8E0D6;
+}
+
+html:not(.dark) body {
+  background: #FAF9F6;
+  color: #2A2520;
 }
 
 /* 统一扁平窄滚动条样式 */

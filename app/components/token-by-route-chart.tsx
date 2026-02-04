@@ -23,13 +23,13 @@ interface TokenByRouteChartProps {
 
 // Distinct colors for up to 5 routes + "Other" (gray)
 const ROUTE_COLORS = [
-  "#d4a0bc", // pink
-  "#93b8f2", // blue
-  "#7ed4a0", // green
-  "#e8d48a", // yellow
-  "#b8a3e0", // purple
+  "#DA7756", // terracotta
+  "#D4B878", // warm gold
+  "#7CC4A0", // sage green
+  "#8AABBF", // dusty blue
+  "#B8A088", // warm tan
 ];
-const OTHER_COLOR = "#8a8f9a"; // slate gray
+const OTHER_COLOR = "#6B6358"; // warm gray
 
 function getRouteColor(index: number): string {
   return index < ROUTE_COLORS.length ? ROUTE_COLORS[index] : OTHER_COLOR;
@@ -46,8 +46,8 @@ export function TokenByRouteChart({ data, routes, darkMode, isHourly, formatLabe
 
   if (!data.length) {
     return (
-      <div className={`flex items-center justify-center rounded-xl border border-dashed py-6 ${darkMode ? "border-zinc-700 bg-zinc-800/30" : "border-zinc-300 bg-zinc-50"}`}>
-        <p className={`text-base ${darkMode ? "text-zinc-400" : "text-zinc-500"}`}>No route data</p>
+      <div className={`flex items-center justify-center rounded-xl border border-dashed py-6 ${darkMode ? "border-[#3d3d3d] bg-[#2a2a2a]/30" : "border-[#D4CCC2] bg-[#FAF9F6]"}`}>
+        <p className={`text-base ${darkMode ? "text-[#A39888]" : "text-[#8A7F72]"}`}>No route data</p>
       </div>
     );
   }
@@ -57,17 +57,17 @@ export function TokenByRouteChart({ data, routes, darkMode, isHourly, formatLabe
       <BarChart data={data} margin={{ top: 4, right: 12, left: 0, bottom: 4 }}>
         <XAxis
           dataKey="label"
-          stroke={darkMode ? "#8a8f9a" : "#7a7f8a"}
+          stroke={darkMode ? "#8A7F72" : "#7A7068"}
           fontSize={11}
           tickFormatter={isHourly && formatLabel ? formatLabel : undefined}
         />
         <YAxis
-          stroke={darkMode ? "#8a8f9a" : "#7a7f8a"}
+          stroke={darkMode ? "#8A7F72" : "#7A7068"}
           fontSize={11}
           tickFormatter={(v: number) => formatCompactNumber(v)}
         />
         <Tooltip
-          cursor={{ fill: darkMode ? "rgba(138,143,154,0.08)" : "rgba(122,127,138,0.08)" }}
+          cursor={{ fill: darkMode ? "rgba(163,152,136,0.08)" : "rgba(122,112,104,0.08)" }}
           content={({ active, payload, label }) => {
             if (!active || !payload?.length) return null;
             // Sort by value desc for readability
@@ -77,21 +77,21 @@ export function TokenByRouteChart({ data, routes, darkMode, isHourly, formatLabe
               <div
                 className="rounded-xl px-4 py-3 shadow-xl backdrop-blur-sm"
                 style={{
-                  backgroundColor: darkMode ? "rgba(26,29,35,0.7)" : "rgba(255,255,255,0.8)",
-                  border: `1px solid ${darkMode ? "rgba(138,143,154,0.4)" : "rgba(184,188,197,0.6)"}`,
-                  color: darkMode ? "#f8fafc" : "#0f172a",
+                  backgroundColor: darkMode ? "rgba(26,26,26,0.85)" : "rgba(250,249,246,0.9)",
+                  border: `1px solid ${darkMode ? "rgba(163,152,136,0.4)" : "rgba(212,204,194,0.6)"}`,
+                  color: darkMode ? "#E8E0D6" : "#2A2520",
                 }}
               >
-                <p className={`mb-2 text-sm font-medium ${darkMode ? "text-zinc-50" : "text-zinc-900"}`}>{label}</p>
+                <p className={`mb-2 text-sm font-medium ${darkMode ? "text-[#E8E0D6]" : "text-[#2A2520]"}`}>{label}</p>
                 <div className="space-y-1 text-sm">
                   {sorted.map((entry) => (
                     <div key={entry.dataKey as string} className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color as string }} />
                       <span style={{ color: entry.color as string }} className="font-medium">{entry.name}:</span>
-                      <span className={darkMode ? "text-zinc-50" : "text-zinc-700"}>{formatNumberWithCommas(entry.value as number)}</span>
+                      <span className={darkMode ? "text-[#E8E0D6]" : "text-[#3d3d3d]"}>{formatNumberWithCommas(entry.value as number)}</span>
                     </div>
                   ))}
-                  <div className={`mt-1 border-t pt-1 ${darkMode ? "border-zinc-600" : "border-zinc-300"}`}>
+                  <div className={`mt-1 border-t pt-1 ${darkMode ? "border-[#4a4540]" : "border-[#D4CCC2]"}`}>
                     <span className="font-medium">Total: </span>
                     <span>{formatNumberWithCommas(total)}</span>
                   </div>

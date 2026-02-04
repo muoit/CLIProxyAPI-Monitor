@@ -27,30 +27,30 @@ type ExploreResponse = {
 // Evenly distributed by hue, saturation 70-90%, brightness 55-75%, adapted for dark theme
 // Optimized ordering: 1,3,5,7,9,2,4,6,8,10 pattern maximizes adjacent color contrast
 const MODEL_COLORS = [
-  "#e0a5a5", // 14 Rose (345°)
-  "#e0d493", // 3 Orange-yellow (40°)
-  "#a0d4a0", // 6 Green (120°)
-  "#93b8e0", // 9 Blue (220°)
-  "#b0a0d4", // 11 Purple (270°)
-  "#a5d4e0", // 19 Light blue (200°+)
-  "#d4a0c0", // 13 Magenta (320°)
-  "#e0c0c0", // 15 Light red (0°+)
-  "#e0dab0", // 17 Light yellow (60°+)
-  "#d4a880", // 2 Orange-red (20°)
-  "#e0d49a", // 4 Yellow (60°)
-  "#80b8d4", // 8 Cyan (195°)
-  "#a0a0d4", // 10 Indigo (245°)
-  "#c0a0d4", // 12 Magenta-purple (290°)
-  "#e0c8a5", // 16 Light orange (40°+)
-  "#b0d4b0", // 18 Light green (120°+)
-  "#c8b0e0", // 20 Light purple (280°+)
+  "#DA7756", // terracotta
+  "#D4B878", // warm gold
+  "#7CC4A0", // sage green
+  "#8AABBF", // dusty blue
+  "#B8A088", // warm tan
+  "#C47D6D", // salmon
+  "#A8B87C", // olive
+  "#B09080", // taupe
+  "#C4A070", // amber
+  "#88A8A0", // teal sage
+  "#D4A090", // peach
+  "#A09878", // khaki
+  "#C08888", // dusty rose
+  "#90B0A0", // mint sage
+  "#B8B068", // golden olive
+  "#A89090", // mauve
+  "#C4B8A0", // wheat
 ];
 
 const TOKEN_COLORS = {
-  input: "#93b8f2",
-  output: "#7ed4a0",
-  reasoning: "#e8d48a",
-  cached: "#b8a3e0"
+  input: "#DA7756",
+  output: "#7CC4A0",
+  reasoning: "#D4B878",
+  cached: "#B8A088"
 } as const;
 
 const CHART_MARGIN = { top: 8, right: 12, left: 8, bottom: 12 };
@@ -298,7 +298,7 @@ function useLerpYDomain(
 }
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded-lg bg-zinc-700/50 ${className ?? ""}`} />;
+  return <div className={`animate-pulse rounded-lg bg-[#3d3d3d]/50 ${className ?? ""}`} />;
 }
 
 // Standalone legend component, using React.memo to avoid unnecessary re-renders
@@ -324,25 +324,25 @@ const ModelLegend = memo(function ModelLegend({
   if (models.length === 0) return null;
   
   return (
-    <div className="mt-3 rounded-xl bg-zinc-900/30 p-3 ring-1 ring-zinc-800">
-      <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-300">
-        <span className="text-zinc-400">Model legend (hover to highlight, click to hide)</span>
+    <div className="mt-3 rounded-xl bg-[#1e1e1e]/30 p-3 ring-1 ring-[#3d3d3d]">
+      <div className="flex flex-wrap items-center gap-3 text-xs text-[#C4BAB0]">
+        <span className="text-[#A39888]">Model legend (hover to highlight, click to hide)</span>
       </div>
       <div className="mt-2 max-h-20 overflow-auto pr-1">
-        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-zinc-300">
+        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-[#C4BAB0]">
           {models.map((m) => {
             const isHidden = hiddenModels.has(m);
             return (
               <button
                 key={m}
                 type="button"
-                className={`flex items-center gap-2 rounded-md px-1.5 py-0.5 transition-all hover:bg-zinc-600/40 ${isHidden ? 'opacity-40' : ''}`}
+                className={`flex items-center gap-2 rounded-md px-1.5 py-0.5 transition-all hover:bg-[#4a4540]/40 ${isHidden ? 'opacity-40' : ''}`}
                 onMouseEnter={() => onMouseEnter(m)}
                 onMouseLeave={onMouseLeave}
                 onClick={() => onClick(m)}
               >
                 <span
-                  className={`h-2.5 w-2.5 rounded-full ${isHidden ? 'ring-1 ring-zinc-500' : ''}`}
+                  className={`h-2.5 w-2.5 rounded-full ${isHidden ? 'ring-1 ring-[#8A7F72]' : ''}`}
                   style={{ backgroundColor: isHidden ? 'transparent' : getModelColor(m), opacity: isHidden ? 1 : 0.8 }}
                 />
                 <span className={`max-w-[18rem] truncate ${isHidden ? 'line-through' : ''}`}>{m}</span>
@@ -516,38 +516,38 @@ export default function ExplorePage() {
       return (
         <div
           ref={tooltipRef}
-          className="pointer-events-none fixed z-50 rounded-xl bg-zinc-900/60 px-3 py-2 text-sm shadow-lg ring-1 ring-zinc-600/60 backdrop-blur-sm"
+          className="pointer-events-none fixed z-50 rounded-xl bg-[#1e1e1e]/60 px-3 py-2 text-sm shadow-lg ring-1 ring-[#4a4540]/60 backdrop-blur-sm"
           style={{
             ...positionStyle,
             top: state.y - 10,
             transform: 'translateY(-100%)'
           }}
         >
-          <div className="font-semibold text-zinc-100">{formatTs(state.point.ts)}</div>
-          <div className="mt-1 flex items-center gap-2 text-zinc-200">
-            <span className="text-zinc-400">Model:</span>
+          <div className="font-semibold text-[#E8E0D6]">{formatTs(state.point.ts)}</div>
+          <div className="mt-1 flex items-center gap-2 text-[#D4CCC2]">
+            <span className="text-[#A39888]">Model:</span>
             <span className="inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: getModelColor(state.point.model || ""), opacity: 0.7 }} />
             <span className="max-w-[22rem] truncate">{state.point.model || "-"}</span>
           </div>
-          <div className="mt-1 text-zinc-200">
-            <span className="text-zinc-400">Total Tokens:</span>
+          <div className="mt-1 text-[#D4CCC2]">
+            <span className="text-[#A39888]">Total Tokens:</span>
             <span>{formatNumberWithCommas(state.point.tokens)}</span>
           </div>
-          <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-zinc-200">
+          <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-[#D4CCC2]">
             <div>
-              <span className="text-zinc-400">Input:</span>
+              <span className="text-[#A39888]">Input:</span>
               <span style={{ color: TOKEN_COLORS.input }}>{formatNumberWithCommas(state.point.inputTokens)}</span>
             </div>
             <div>
-              <span className="text-zinc-400">Output:</span>
+              <span className="text-[#A39888]">Output:</span>
               <span style={{ color: TOKEN_COLORS.output }}>{formatNumberWithCommas(state.point.outputTokens)}</span>
             </div>
             <div>
-              <span className="text-zinc-400">Reasoning:</span>
+              <span className="text-[#A39888]">Reasoning:</span>
               <span style={{ color: TOKEN_COLORS.reasoning }}>{formatNumberWithCommas(state.point.reasoningTokens)}</span>
             </div>
             <div>
-              <span className="text-zinc-400">Cached:</span>
+              <span className="text-[#A39888]">Cached:</span>
               <span style={{ color: TOKEN_COLORS.cached }}>{formatNumberWithCommas(state.point.cachedTokens)}</span>
             </div>
           </div>
@@ -1360,7 +1360,7 @@ export default function ExplorePage() {
   const cartesianGridProps = useMemo(() => ({
     yAxisId: "left",
     strokeDasharray: "3 3",
-    stroke: "#7a7f8a",
+    stroke: "#7A7068",
     strokeOpacity: 0.6,
     horizontal: true,
     vertical: true
@@ -1482,13 +1482,13 @@ export default function ExplorePage() {
   }, [globalSelection]);
 
     return (
-      <main className="min-h-screen bg-zinc-900 px-6 pb-4 pt-8 text-zinc-100">
+      <main className="min-h-screen bg-[#1e1e1e] px-6 pb-4 pt-8 text-[#E8E0D6]">
       <header className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Data Exploration</h1>
-          <p className="text-sm text-zinc-400">Each point represents a request (X=time, Y=token count, color=model)</p>
+          <h1 className="text-2xl font-bold text-[#E8E0D6]">Data Exploration</h1>
+          <p className="text-sm text-[#A39888]">Each point represents a request (X=time, Y=token count, color=model)</p>
         </div>
-        <div className="flex flex-col items-start gap-2 text-sm text-zinc-300 md:items-end">
+        <div className="flex flex-col items-start gap-2 text-sm text-[#C4BAB0] md:items-end">
           <div className="flex flex-wrap items-center gap-2 md:justify-end">
             {[7, 14, 30].map((days) => (
               <button
@@ -1496,8 +1496,8 @@ export default function ExplorePage() {
                 onClick={() => applyPresetRange(days)}
                 className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                   rangeMode === "preset" && selectionSource === "local" && rangeDays === days
-                    ? "border-indigo-500 bg-indigo-500/20 text-indigo-100"
-                    : "border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-zinc-500"
+                    ? "border-[#DA7756] bg-[#DA7756]/20 text-[#DA7756]"
+                    : "border-[#3d3d3d] bg-[#2a2a2a] text-[#D4CCC2] hover:border-[#8A7F72]"
                 }`}
               >
                 Last {days} days
@@ -1512,31 +1512,31 @@ export default function ExplorePage() {
                 }}
                 className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                   rangeMode === "custom" && selectionSource === "local"
-                    ? "border-indigo-500 bg-indigo-500/20 text-indigo-100"
-                    : "border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-zinc-500"
+                    ? "border-[#DA7756] bg-[#DA7756]/20 text-[#DA7756]"
+                    : "border-[#3d3d3d] bg-[#2a2a2a] text-[#D4CCC2] hover:border-[#8A7F72]"
                 }`}
               >
                 Custom
               </button>
               {customPickerOpen ? (
-                <div className="absolute right-0 z-30 mt-2 w-72 rounded-xl border border-zinc-700 bg-zinc-900 p-4 shadow-2xl">
+                <div className="absolute right-0 z-30 mt-2 w-72 rounded-xl border border-[#3d3d3d] bg-[#1e1e1e] p-4 shadow-2xl">
                   <div className="space-y-3 text-sm">
                     <div className="grid grid-cols-1 gap-2">
-                      <label className="text-zinc-300">
+                      <label className="text-[#C4BAB0]">
                         Start date
                         <input
                           type="date"
-                          className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
+                          className="mt-1 w-full rounded-lg border border-[#3d3d3d] bg-[#2a2a2a] px-3 py-2 text-sm text-[#E8E0D6] focus:border-[#DA7756] focus:outline-none"
                           value={customDraftStart}
                           max={customDraftEnd || undefined}
                           onChange={(e) => setCustomDraftStart(e.target.value)}
                         />
                       </label>
-                      <label className="text-zinc-300">
+                      <label className="text-[#C4BAB0]">
                         End date
                         <input
                           type="date"
-                          className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white focus:border-indigo-500 focus:outline-none"
+                          className="mt-1 w-full rounded-lg border border-[#3d3d3d] bg-[#2a2a2a] px-3 py-2 text-sm text-[#E8E0D6] focus:border-[#DA7756] focus:outline-none"
                           value={customDraftEnd}
                           min={customDraftStart || undefined}
                           onChange={(e) => setCustomDraftEnd(e.target.value)}
@@ -1553,14 +1553,14 @@ export default function ExplorePage() {
                           setCustomDraftStart(customStart);
                           setCustomDraftEnd(customEnd);
                         }}
-                        className="rounded-lg px-3 py-1.5 text-xs font-medium text-zinc-300 hover:bg-zinc-800"
+                        className="rounded-lg px-3 py-1.5 text-xs font-medium text-[#C4BAB0] hover:bg-[#2a2a2a]"
                       >
                         Cancel
                       </button>
                       <button
                         type="button"
                         onClick={applyCustomRange}
-                        className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500"
+                        className="rounded-lg bg-[#C4653A] px-3 py-1.5 text-xs font-semibold text-[#E8E0D6] hover:bg-[#DA7756]"
                       >
                         Apply
                       </button>
@@ -1574,28 +1574,28 @@ export default function ExplorePage() {
               className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                 selectionSource === "global"
                   ? "border-emerald-500 bg-emerald-500/20 text-emerald-100"
-                  : "border-zinc-700 bg-zinc-800 text-zinc-200 hover:border-zinc-500"
+                  : "border-[#3d3d3d] bg-[#2a2a2a] text-[#D4CCC2] hover:border-[#8A7F72]"
               }`}
             >
               Follow dashboard
             </button>
           </div>
-          <div className="text-xs text-zinc-400">
-            <span className="text-zinc-500">Time range: </span>
+          <div className="text-xs text-[#A39888]">
+            <span className="text-[#8A7F72]">Time range: </span>
             <span>{rangeSubtitle}</span>
-            {data?.step && data.step > 1 ? <span className="ml-3 text-zinc-500">{`Sampled: 1 in every ${data.step} points`}</span> : null}
+            {data?.step && data.step > 1 ? <span className="ml-3 text-[#8A7F72]">{`Sampled: 1 in every ${data.step} points`}</span> : null}
           </div>
         </div>
       </header>
 
-      <section className="mt-6 rounded-2xl bg-zinc-950/40 p-5 ring-1 ring-zinc-800">
-        <div className="flex min-h-[28px] flex-wrap items-center gap-x-4 gap-y-1 text-sm text-zinc-300">
+      <section className="mt-6 rounded-2xl bg-[#1a1a1a]/40 p-5 ring-1 ring-[#3d3d3d]">
+        <div className="flex min-h-[28px] flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[#C4BAB0]">
           <div>
-            <span className="text-zinc-400">Total points: </span>
+            <span className="text-[#A39888]">Total points: </span>
             <span>{formatNumberWithCommas(data?.total ?? 0)}</span>
           </div>
           <div>
-            <span className="text-zinc-400">Rendered points: </span>
+            <span className="text-[#A39888]">Rendered points: </span>
             <span>{formatNumberWithCommas(visiblePoints.length)}</span>
           </div>
           {zoomDomain && dataBounds && (() => {
@@ -1607,20 +1607,20 @@ export default function ExplorePage() {
             <button
               type="button"
               onClick={resetZoom}
-              className="rounded-lg bg-zinc-600/90 px-3 py-1 text-xs text-zinc-100 transition-colors hover:bg-zinc-500"
+              className="rounded-lg bg-[#4a4540]/90 px-3 py-1 text-xs text-[#E8E0D6] transition-colors hover:bg-[#FAF9F6]0"
             >
               Reset zoom
             </button>
           )}
           <div className="ml-auto flex items-center gap-4">
-            <label className="flex cursor-pointer items-center gap-2 text-sm text-zinc-400 hover:text-zinc-300">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-[#A39888] hover:text-[#C4BAB0]">
               <button
                 type="button"
                 role="switch"
                 aria-checked={showStackedArea}
                 onClick={() => setShowStackedArea(!showStackedArea)}
-                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900 ${
-                  showStackedArea ? 'bg-indigo-500/80' : 'bg-zinc-600'
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DA7756] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1e1e1e] ${
+                  showStackedArea ? 'bg-[#DA7756]/80' : 'bg-[#4a4540]'
                 }`}
               >
                 <span
@@ -1631,7 +1631,7 @@ export default function ExplorePage() {
               </button>
               <span>Model stacked distribution</span>
             </label>
-            <span className="text-xs text-zinc-500">Tip: Drag to select and zoom area</span>
+            <span className="text-xs text-[#8A7F72]">Tip: Drag to select and zoom area</span>
           </div>
         </div>
 
@@ -1648,14 +1648,14 @@ export default function ExplorePage() {
           {loading ? (
             <Skeleton className="h-full" />
           ) : error ? (
-            <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-zinc-900/30 text-center">
-                  <p className="text-base text-zinc-200">Failed to load</p>
-                  <p className="mt-1 text-sm text-zinc-400">{error}</p>
+            <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-[#3d3d3d] bg-[#1e1e1e]/30 text-center">
+                  <p className="text-base text-[#D4CCC2]">Failed to load</p>
+                  <p className="mt-1 text-sm text-[#A39888]">{error}</p>
             </div>
           ) : points.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-zinc-900/30 text-center">
-                  <p className="text-base text-zinc-200">No request detail data</p>
-                  <p className="mt-1 text-sm text-zinc-400">If upstream /usage does not provide details, this chart will be empty.</p>
+            <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-[#3d3d3d] bg-[#1e1e1e]/30 text-center">
+                  <p className="text-base text-[#D4CCC2]">No request detail data</p>
+                  <p className="mt-1 text-sm text-[#A39888]">If upstream /usage does not provide details, this chart will be empty.</p>
             </div>
           ) : (
             <>
@@ -1677,9 +1677,9 @@ export default function ExplorePage() {
                   >
                     <defs>
                       <linearGradient id="yDistGradient" x1="1" y1="0" x2="0" y2="0">
-                        <stop offset="0%" stopColor="#93b8f2" stopOpacity={0.08} />
-                        <stop offset="40%" stopColor="#93b8f2" stopOpacity={0.4} />
-                        <stop offset="100%" stopColor="#93b8f2" stopOpacity={0.7} />
+                        <stop offset="0%" stopColor="#DA7756" stopOpacity={0.08} />
+                        <stop offset="40%" stopColor="#DA7756" stopOpacity={0.4} />
+                        <stop offset="100%" stopColor="#DA7756" stopOpacity={0.7} />
                       </linearGradient>
                     </defs>
                     <XAxis type="number" hide domain={[0, 'dataMax']} reversed />
@@ -1687,7 +1687,7 @@ export default function ExplorePage() {
                     <Area
                       type="basis"
                         dataKey="count"
-                        stroke="#9ac0e0"
+                        stroke="#DA7756"
                         strokeWidth={1.5}
                         strokeOpacity={0.75}
                       fill="url(#yDistGradient)"
@@ -1715,7 +1715,7 @@ export default function ExplorePage() {
                 {/* Brush selection area visualization - direct DOM update to avoid frequent re-renders */}
                 <div
                   ref={brushOverlayRef}
-                  className="pointer-events-none absolute border border-indigo-400/80 bg-indigo-400/15"
+                  className="pointer-events-none absolute border border-[#DA7756]/80 bg-[#DA7756]/15"
                   style={{ display: 'none' }}
                 />
               <ResponsiveContainer width="100%" height="100%">
@@ -1813,7 +1813,7 @@ export default function ExplorePage() {
             >
               <div
                 ref={xRangeContainerRef}
-                className="relative h-10 w-full cursor-ew-resize overflow-visible rounded-lg bg-zinc-950/40 ring-1 ring-zinc-800/80 transition-colors"
+                className="relative h-10 w-full cursor-ew-resize overflow-visible rounded-lg bg-[#1a1a1a]/40 ring-1 ring-[#3d3d3d]/80 transition-colors"
                 onMouseDown={handleXRangeMouseDown}
                 onMouseLeave={() => !isXRangeDragging && setXRangeHover(null)}
                 onDoubleClick={zoomDomain ? resetZoom : undefined}
@@ -1826,8 +1826,8 @@ export default function ExplorePage() {
                   >
                     <defs>
                       <linearGradient id="xDistGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#93b8f2" stopOpacity={0.4} />
-                        <stop offset="100%" stopColor="#93b8f2" stopOpacity={0.05} />
+                        <stop offset="0%" stopColor="#DA7756" stopOpacity={0.4} />
+                        <stop offset="100%" stopColor="#DA7756" stopOpacity={0.05} />
                       </linearGradient>
                     </defs>
                     <XAxis type="number" dataKey="ts" domain={dataBounds?.x} hide />
@@ -1835,7 +1835,7 @@ export default function ExplorePage() {
                     <Area
                       type="monotone"
                       dataKey="tokens"
-                      stroke="#9ac0e0"
+                      stroke="#DA7756"
                       strokeWidth={1.5}
                       strokeOpacity={0.8}
                       fill="url(#xDistGradient)"
@@ -1858,7 +1858,7 @@ export default function ExplorePage() {
                       {/* Left gray area */}
                       {startRatio > 0.001 && (
                         <div
-                          className="pointer-events-none absolute top-0 h-full rounded-l-lg bg-zinc-950/55"
+                          className="pointer-events-none absolute top-0 h-full rounded-l-lg bg-[#1a1a1a]/55"
                           style={{
                             left: 0,
                             width: `${startRatio * 100}%`,
@@ -1868,7 +1868,7 @@ export default function ExplorePage() {
                       {/* Right gray area */}
                       {endRatio < 0.999 && (
                         <div
-                          className="pointer-events-none absolute top-0 h-full rounded-r-lg bg-zinc-950/55"
+                          className="pointer-events-none absolute top-0 h-full rounded-r-lg bg-[#1a1a1a]/55"
                           style={{
                             left: `${endRatio * 100}%`,
                             right: 0,
@@ -1878,7 +1878,7 @@ export default function ExplorePage() {
 
                       {/* Selection box (draggable for moving) */}
                       <div
-                        className={`absolute top-0 h-full cursor-move border-y transition-[background-color,border-color] duration-150 hover:bg-indigo-500/10 active:bg-indigo-500/15 ${hasZoom ? 'border-indigo-500/50 border-l border-r rounded-lg' : 'border-indigo-500/25'}`}
+                        className={`absolute top-0 h-full cursor-move border-y transition-[background-color,border-color] duration-150 hover:bg-[#DA7756]/10 active:bg-[#DA7756]/15 ${hasZoom ? 'border-[#DA7756]/50 border-l border-r rounded-lg' : 'border-[#DA7756]/25'}`}
                         style={{
                           left: `${startRatio * 100}%`,
                           width: `${(endRatio - startRatio) * 100}%`,
@@ -1892,9 +1892,9 @@ export default function ExplorePage() {
                         style={{ left: `${startRatio * 100}%` }}
                         onMouseEnter={() => setXRangeHover('left')}
                       >
-                        <div className="h-6 w-1.5 rounded-full bg-zinc-200/90 ring-1 ring-zinc-950/80 shadow-none transition-[background-color,width] duration-150 group-hover:w-2 group-hover:bg-zinc-50" />
+                        <div className="h-6 w-1.5 rounded-full bg-[#D4CCC2]/90 ring-1 ring-[#1a1a1a]/80 shadow-none transition-[background-color,width] duration-150 group-hover:w-2 group-hover:bg-[#F0EBE4]" />
                         {/* Time label - only show on hover or drag */}
-                        <div className={`absolute bottom-full mb-1 whitespace-nowrap rounded-md bg-zinc-900/70 px-1.5 py-0.5 text-[10px] font-medium text-zinc-200 ring-1 ring-zinc-700/60 transition-opacity duration-150 ${showLeftLabel ? 'opacity-100' : 'opacity-0'}`}>
+                        <div className={`absolute bottom-full mb-1 whitespace-nowrap rounded-md bg-[#1e1e1e]/70 px-1.5 py-0.5 text-[10px] font-medium text-[#D4CCC2] ring-1 ring-[#3d3d3d]/60 transition-opacity duration-150 ${showLeftLabel ? 'opacity-100' : 'opacity-0'}`}>
                           {formatTs(currentSelection[0])}
                         </div>
                       </div>
@@ -1905,9 +1905,9 @@ export default function ExplorePage() {
                         style={{ left: `${endRatio * 100}%` }}
                         onMouseEnter={() => setXRangeHover('right')}
                       >
-                        <div className="h-6 w-1.5 rounded-full bg-zinc-200/90 ring-1 ring-zinc-950/80 shadow-none transition-[background-color,width] duration-150 group-hover:w-2 group-hover:bg-zinc-50" />
+                        <div className="h-6 w-1.5 rounded-full bg-[#D4CCC2]/90 ring-1 ring-[#1a1a1a]/80 shadow-none transition-[background-color,width] duration-150 group-hover:w-2 group-hover:bg-[#F0EBE4]" />
                         {/* Time label - only show on hover or drag */}
-                        <div className={`absolute bottom-full mb-1 whitespace-nowrap rounded-md bg-zinc-900/70 px-1.5 py-0.5 text-[10px] font-medium text-zinc-200 ring-1 ring-zinc-700/60 transition-opacity duration-150 ${showRightLabel ? 'opacity-100' : 'opacity-0'}`}>
+                        <div className={`absolute bottom-full mb-1 whitespace-nowrap rounded-md bg-[#1e1e1e]/70 px-1.5 py-0.5 text-[10px] font-medium text-[#D4CCC2] ring-1 ring-[#3d3d3d]/60 transition-opacity duration-150 ${showRightLabel ? 'opacity-100' : 'opacity-0'}`}>
                           {formatTs(currentSelection[1])}
                         </div>
                       </div>

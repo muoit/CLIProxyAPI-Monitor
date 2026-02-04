@@ -60,20 +60,20 @@ export default function SettingsPage() {
   }, []);
 
   return (
-    <main className={`min-h-screen px-6 py-8 transition-colors ${darkMode ? "bg-zinc-900 text-zinc-100" : "bg-zinc-50 text-zinc-900"}`}>
+    <main className={`min-h-screen px-6 py-8 transition-colors ${darkMode ? "bg-[#1e1e1e] text-[#E8E0D6]" : "bg-[#FAF9F6] text-[#2A2520]"}`}>
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-zinc-900"}`}>Settings</h1>
-        <p className={`mt-1 text-sm ${darkMode ? "text-zinc-400" : "text-zinc-600"}`}>
+        <h1 className={`text-2xl font-bold ${darkMode ? "text-[#E8E0D6]" : "text-[#2A2520]"}`}>Settings</h1>
+        <p className={`mt-1 text-sm ${darkMode ? "text-[#A39888]" : "text-[#7A7068]"}`}>
           Configure model pricing and system settings
         </p>
       </div>
 
       <SettingsErrorBoundary darkMode={darkMode}>
         {loading ? (
-          <div className={`rounded-2xl p-6 shadow-sm ring-1 ${darkMode ? "bg-zinc-800/50 ring-zinc-700" : "bg-white ring-zinc-200"}`}>
+          <div className={`rounded-2xl p-6 shadow-sm ring-1 ${darkMode ? "bg-[#2a2a2a]/50 ring-[#3d3d3d]" : "bg-[#F0EBE4] ring-[#D4CCC2]"}`}>
             <div className="flex items-center justify-center py-12">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#DA7756] border-t-transparent" />
             </div>
           </div>
         ) : (

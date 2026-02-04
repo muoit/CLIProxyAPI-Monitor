@@ -69,7 +69,7 @@ export function Modal({
     >
       <div
         className={`relative w-full rounded-2xl p-6 shadow-xl ${
-          darkMode ? "bg-zinc-800" : "bg-white"
+          darkMode ? "bg-[#2a2a2a]" : "bg-[#F0EBE4]"
         } ${className ?? "max-w-md"} ${
           isClosing ? "animate-modal-content-out" : "animate-modal-content"
         }`}
@@ -79,14 +79,14 @@ export function Modal({
           onClick={onClose}
           className={`absolute right-4 top-4 rounded-lg p-1 transition ${
             darkMode
-              ? "text-zinc-400 hover:bg-zinc-700 hover:text-white"
-              : "text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900"
+              ? "text-[#A39888] hover:bg-[#333333] hover:text-[#E8E0D6]"
+              : "text-[#8A7F72] hover:bg-[#D4CCC2] hover:text-[#2A2520]"
           }`}
         >
           <X className="h-5 w-5" />
         </button>
         {(isOpen ? title : cachedTitle) && (
-          <h3 className={`text-lg font-semibold ${darkMode ? "text-white" : "text-zinc-900"}`}>
+          <h3 className={`text-lg font-semibold ${darkMode ? "text-[#E8E0D6]" : "text-[#2A2520]"}`}>
             {isOpen ? title : cachedTitle}
           </h3>
         )}
